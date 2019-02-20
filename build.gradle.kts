@@ -1,11 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val junit5Version = "5.3.2"
-val junitPlatformVersion = "1.3.2"
+val junit5Version = "5.4.0"
+val junitPlatformVersion = "1.4.0"
 
 plugins {
     java
-    kotlin("jvm") version "1.3.11"
+    kotlin("jvm") version "1.3.21"
     id("com.github.ben-manes.versions") version "0.20.0"
 
 }
@@ -21,8 +21,8 @@ repositories {
 
 dependencies {
     compile(kotlin("stdlib-jdk8"))
-    testImplementation("io.strikt:strikt-core:0.17.1")
-    testImplementation("com.oneeyedmen:minutest:0.32.0")
+    testImplementation("io.strikt:strikt-core:0.17.2")
+    testImplementation("dev.minutest:minutest:1.2.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
