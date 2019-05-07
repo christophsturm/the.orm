@@ -1,3 +1,5 @@
+package blueprint
+
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
