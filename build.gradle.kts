@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val junit5Version = "5.6.2"
 val junitPlatformVersion = "1.6.2"
+val coroutinesVersion = "1.3.5"
+
 
 plugins {
     java
@@ -25,13 +27,21 @@ repositories {
 dependencies {
     implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:1.3.72"))
     implementation(kotlin("stdlib-jdk8"))
+    implementation("org.flywaydb:flyway-core:6.4.0")
+    implementation("com.h2database:h2:1.4.200")
+    implementation("io.r2dbc:r2dbc-spi:0.8.1.RELEASE")
+    implementation("io.r2dbc:r2dbc-h2:0.8.3.RELEASE")
+//    implementation("io.r2dbc:r2dbc-pool:0.8.2.RELEASE")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.3.5")
     testImplementation("io.strikt:strikt-core:0.25.0")
     testImplementation("dev.minutest:minutest:1.11.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     "pitest"("org.pitest:pitest-junit5-plugin:0.12")
+
 }
 
 configure<JavaPluginConvention> {
