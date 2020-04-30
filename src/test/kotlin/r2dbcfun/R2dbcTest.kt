@@ -14,7 +14,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
-import strikt.assertions.isGreaterThan
+import strikt.assertions.isEqualTo
 
 
 @ExperimentalCoroutinesApi
@@ -38,8 +38,8 @@ class R2dbcTest : JUnit5Minutests {
                 val selectResult: Result = connection.createStatement("select * from USERS").execute().awaitSingle()
                 val namesFlow = selectResult.map { row, _ -> row.get("NAME", String::class.java) }.asFlow()
                 val names = namesFlow.toCollection(mutableListOf())
-                expectThat(firstId).isGreaterThan(0)
-                expectThat(secondId).isGreaterThan(firstId)
+                expectThat(firstId).isEqualTo(1)
+                expectThat(secondId).isEqualTo(2)
                 expectThat(names).containsExactly("belle", "sebastian")
             }
         }

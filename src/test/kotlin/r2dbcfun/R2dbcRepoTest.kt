@@ -8,13 +8,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import strikt.assertions.isGreaterThan
-import strikt.assertions.isNotNull
+import strikt.assertions.isNull
 
-data class User(val id: Int? = null, val name: String, val email: String?)
 
 @ExperimentalCoroutinesApi
 class R2dbcRepoTest : JUnit5Minutests {
+    data class User(val id: Int? = null, val name: String, val email: String?)
 
     fun tests() = rootContext<R2dbcRepo<User>> {
         fixture {
@@ -22,16 +21,26 @@ class R2dbcRepoTest : JUnit5Minutests {
                 R2dbcRepo.create<User>(prepareDB().create().awaitSingle())
             }
         }
-        test("can insert data class") {
+        test("can insert data class and return primary key") {
             runBlockingTest {
                 val user = fixture.create(User(name = "chris", email = "my email"))
                 expectThat(user).and {
-                    get { id }.isNotNull().isGreaterThan(0)
+                    get { id }.isEqualTo(1)
                     get { name }.isEqualTo("chris")
                     get { email }.isEqualTo("my email")
                 }
             }
         }
 
+        test("supports nullable values") {
+            runBlockingTest {
+                val user = fixture.create(User(name = "chris", email = null))
+                expectThat(user).and {
+                    get { id }.isEqualTo(1)
+                    get { name }.isEqualTo("chris")
+                    get { email }.isNull()
+                }
+            }
+        }
     }
 }
