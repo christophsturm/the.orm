@@ -31,7 +31,6 @@ dependencies {
     implementation("com.h2database:h2:1.4.200")
     implementation("io.r2dbc:r2dbc-spi:0.8.1.RELEASE")
     implementation("io.r2dbc:r2dbc-h2:0.8.3.RELEASE")
-//    implementation("io.r2dbc:r2dbc-pool:0.8.2.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.3.5")
     testImplementation("io.strikt:strikt-core:0.25.0")
     testImplementation("dev.minutest:minutest:1.11.0")
@@ -65,8 +64,8 @@ plugins.withId("info.solidsoft.pitest") {
         jvmArgs.set(listOf("-Xmx512m"))
         testPlugin.set("junit5")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
-        targetClasses.set(setOf("blueprint.*"))  //by default "${project.group}.*"
-        targetTests.set(setOf("blueprint.**.*Test"))
+        targetClasses.set(setOf("r2dbcfun.*"))  //by default "${project.group}.*"
+        targetTests.set(setOf("r2dbcfun.**.*Test"))
         //pitestVersion.set("1.4.10")
         threads.set(System.getenv("PITEST_THREADS")?.toInt() ?: Runtime.getRuntime().availableProcessors())
         outputFormats.set(setOf("XML", "HTML"))
