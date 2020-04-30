@@ -2,6 +2,7 @@ package r2dbcfun
 
 import io.r2dbc.spi.Connection
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.instanceParameter
@@ -13,7 +14,9 @@ class R2dbcRepo<T : Any>(val connection: Connection, val kClass: KClass<out T>) 
     }
 
     private val properties = kClass.declaredMemberProperties
-    private val copyConstructor = kClass.memberFunctions.single { it.name == "copy" }
+
+    @Suppress("UNCHECKED_CAST")
+    private val copyConstructor: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
     private val idParameter = copyConstructor.parameters.single { it.name == "id" }
 
     suspend fun create(instance: T): T {
@@ -35,8 +38,7 @@ class R2dbcRepo<T : Any>(val connection: Connection, val kClass: KClass<out T>) 
 
         val id = statement.executeInsert()
 
-        @Suppress("UNCHECKED_CAST")
-        return copyConstructor.callBy(mapOf(idParameter to id) + mapOf(copyConstructor.instanceParameter!! to instance)) as T
+        return copyConstructor.callBy(mapOf(idParameter to id) + mapOf(copyConstructor.instanceParameter!! to instance))
     }
 
 }
