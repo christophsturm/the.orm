@@ -1,3 +1,5 @@
+@file:Suppress("SqlResolve")
+
 package r2dbcfun
 
 import dev.minutest.junit.JUnit5Minutests
@@ -18,6 +20,8 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
 
+data class User(val id: Int, val name: String, val email: String?)
+
 @ExperimentalCoroutinesApi
 class R2dbcTest : JUnit5Minutests {
 
@@ -34,10 +38,10 @@ class R2dbcTest : JUnit5Minutests {
             runBlockingTest {
                 val connection: Connection = fixture.create().awaitSingle()
                 val firstId =
-                    connection.createStatement("insert into USERS values(NULL, $1)").bind("$1", "belle")
+                    connection.createStatement("insert into USERS(name) values($1)").bind("$1", "belle")
                         .executeInsert()
                 val secondId =
-                    connection.createStatement("insert into USERS values(NULL, $1)").bind("$1", "sebastian")
+                    connection.createStatement("insert into USERS(name) values($1)").bind("$1", "sebastian")
                         .executeInsert()
 
                 val selectResult: Result = connection.createStatement("select * from USERS").execute().awaitSingle()
