@@ -18,9 +18,14 @@ import org.h2.jdbcx.JdbcDataSource
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.memberFunctions
 
 
-data class User(val id: Int, val name: String, val email: String?)
+data class User(val id: Int? = null, val name: String, val email: String?)
 
 @ExperimentalCoroutinesApi
 class R2dbcTest : JUnit5Minutests {
@@ -52,6 +57,41 @@ class R2dbcTest : JUnit5Minutests {
                 expectThat(names).containsExactly("belle", "sebastian")
             }
         }
+        test("can insert data class") {
+            runBlockingTest {
+                val connection: Connection = fixture.create().awaitSingle()
+                val instance = User(name = "chris", email = "my email")
+                val user = connection.create(User(name = "chris", email = "my email"), instance::class)
+                expectThat(user).isEqualTo(User(3, "chris", "my email"))
+            }
+        }
     }
+
+}
+
+private suspend fun <T : Any> Connection.create(instance: T, kClass: KClass<out T>): T {
+    val properties = kClass.declaredMemberProperties
+    val propertiesMap = properties.associateBy({ it }, { it: KProperty1<out T, *> -> it.getter.call(instance) })
+    val propertiesWithValues =
+        propertiesMap
+            .filterValues { it != null }
+
+    val insertStatement =
+        propertiesWithValues.keys.joinToString(
+            prefix = "INSERT INTO ${kClass.simpleName}s(",
+            postfix = ") values ("
+        ) { it.name } +
+                propertiesWithValues.keys.mapIndexed { idx, _ -> "$${idx + 1}" }.joinToString(postfix = ")")
+
+    val statement = propertiesWithValues.values.foldIndexed(
+        createStatement(insertStatement),
+        { idx, statement, field -> statement.bind(idx, field) })
+    val id = statement.executeInsert()
+    val copyConstructor = kClass.memberFunctions.single { it.name == "copy" }
+
+    return copyConstructor.callBy(mapOf(copyConstructor.parameters.single { it.name == "id" } to id) + mapOf(
+        copyConstructor.instanceParameter!! to instance
+    )) as T
+
 
 }
