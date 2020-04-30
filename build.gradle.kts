@@ -29,14 +29,14 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    implementation("org.flywaydb:flyway-core:6.4.1")
-    implementation("com.h2database:h2:1.4.200")
     implementation("io.r2dbc:r2dbc-spi:0.8.1.RELEASE")
-    implementation("io.r2dbc:r2dbc-h2:0.8.3.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.3.5")
     testImplementation("io.strikt:strikt-core:0.25.0")
     testImplementation("dev.minutest:minutest:1.11.0")
 
+    testImplementation("io.r2dbc:r2dbc-h2:0.8.3.RELEASE")
+    testImplementation("com.h2database:h2:1.4.200")
+    testImplementation("org.flywaydb:flyway-core:6.4.1")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
