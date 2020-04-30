@@ -8,7 +8,7 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 
-class R2dbcRepo<T : Any>(val connection: Connection, val kClass: KClass<out T>) {
+class R2dbcRepo<T : Any>(private val connection: Connection, private val kClass: KClass<out T>) {
     companion object {
         inline fun <reified T : Any> create(connection: Connection) = R2dbcRepo(connection, T::class)
     }
@@ -22,7 +22,7 @@ class R2dbcRepo<T : Any>(val connection: Connection, val kClass: KClass<out T>) 
     suspend fun create(instance: T): T {
         @Suppress("UNCHECKED_CAST")
         val propertiesWithValues =
-            properties.associateBy({ it }, { it: KProperty1<out T, *> -> it.getter.call(instance) })
+            properties.associateBy({ it }, { it.getter.call(instance) })
                 .filterValues { it != null } as Map<KProperty1<out T, *>, Any>
 
         val insertStatementString =

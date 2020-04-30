@@ -15,6 +15,7 @@ import strikt.assertions.isNull
 class R2dbcRepoTest : JUnit5Minutests {
     data class User(val id: Int? = null, val name: String, val email: String?)
 
+    @Suppress("unused")
     fun tests() = rootContext<R2dbcRepo<User>> {
         fixture {
             runBlocking {
