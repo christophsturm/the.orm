@@ -27,6 +27,8 @@ repositories {
 dependencies {
     implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:1.3.72"))
     implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect"))
+
     implementation("org.flywaydb:flyway-core:6.4.1")
     implementation("com.h2database:h2:1.4.200")
     implementation("io.r2dbc:r2dbc-spi:0.8.1.RELEASE")
