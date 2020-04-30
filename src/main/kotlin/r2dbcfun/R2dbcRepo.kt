@@ -12,15 +12,17 @@ class R2dbcRepo<T : Any>(val connection: Connection, val kClass: KClass<out T>) 
         inline fun <reified T : Any> create(connection: Connection) = R2dbcRepo(connection, T::class)
     }
 
-    val properties = kClass.declaredMemberProperties
-    val copyConstructor = kClass.memberFunctions.single { it.name == "copy" }
-    suspend fun create(instance: T): T {
-        val propertiesMap = properties.associateBy({ it }, { it: KProperty1<out T, *> -> it.getter.call(instance) })
-        val propertiesWithValues =
-            propertiesMap
-                .filterValues { it != null }
+    private val properties = kClass.declaredMemberProperties
+    private val copyConstructor = kClass.memberFunctions.single { it.name == "copy" }
+    private val idParameter = copyConstructor.parameters.single { it.name == "id" }
 
-        val insertStatement =
+    suspend fun create(instance: T): T {
+        @Suppress("UNCHECKED_CAST")
+        val propertiesWithValues =
+            properties.associateBy({ it }, { it: KProperty1<out T, *> -> it.getter.call(instance) })
+                .filterValues { it != null } as Map<KProperty1<out T, *>, Any>
+
+        val insertStatementString =
             propertiesWithValues.keys.joinToString(
                 prefix = "INSERT INTO ${kClass.simpleName}s(",
                 postfix = ") values ("
@@ -28,15 +30,13 @@ class R2dbcRepo<T : Any>(val connection: Connection, val kClass: KClass<out T>) 
                     propertiesWithValues.keys.mapIndexed { idx, _ -> "$${idx + 1}" }.joinToString(postfix = ")")
 
         val statement = propertiesWithValues.values.foldIndexed(
-            connection.createStatement(insertStatement),
+            connection.createStatement(insertStatementString),
             { idx, statement, field -> statement.bind(idx, field) })
+
         val id = statement.executeInsert()
 
-        return copyConstructor.callBy(mapOf(copyConstructor.parameters.single { it.name == "id" } to id) + mapOf(
-            copyConstructor.instanceParameter!! to instance
-        )) as T
-
-
+        @Suppress("UNCHECKED_CAST")
+        return copyConstructor.callBy(mapOf(idParameter to id) + mapOf(copyConstructor.instanceParameter!! to instance)) as T
     }
 
 }
