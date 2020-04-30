@@ -27,7 +27,7 @@ repositories {
 dependencies {
     implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:1.3.72"))
     implementation(kotlin("stdlib-jdk8"))
-    implementation("org.flywaydb:flyway-core:6.4.0")
+    implementation("org.flywaydb:flyway-core:6.4.1")
     implementation("com.h2database:h2:1.4.200")
     implementation("io.r2dbc:r2dbc-spi:0.8.1.RELEASE")
     implementation("io.r2dbc:r2dbc-h2:0.8.3.RELEASE")
@@ -73,13 +73,12 @@ plugins.withId("info.solidsoft.pitest") {
 }
 
 tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
+    val filtered = listOf("alpha", "beta", "rc", "cr", "m", "preview")
+        .map { qualifier -> Regex("(?i).*[.-]$qualifier[.\\d-]*.*") }
     resolutionStrategy {
         componentSelection {
             all {
-                val rejected = listOf("alpha", "beta", "rc", "cr", "m", "preview")
-                    .map { qualifier -> Regex("(?i).*[.-]$qualifier[.\\d-]*") }
-                    .any { it.matches(candidate.version) }
-                if (rejected) {
+                if (filtered.any { it.matches(candidate.version) }) {
                     reject("Release candidate")
                 }
             }
