@@ -67,7 +67,7 @@ plugins.withId("info.solidsoft.pitest") {
         testPlugin.set("junit5")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
         targetClasses.set(setOf("r2dbcfun.*"))  //by default "${project.group}.*"
-        targetTests.set(setOf("r2dbcfun.**.*Test"))
+        targetTests.set(setOf("r2dbcfun.*Test", "r2dbcfun.**.*Test"))
         //pitestVersion.set("1.4.10")
         threads.set(System.getenv("PITEST_THREADS")?.toInt() ?: Runtime.getRuntime().availableProcessors())
         outputFormats.set(setOf("XML", "HTML"))
