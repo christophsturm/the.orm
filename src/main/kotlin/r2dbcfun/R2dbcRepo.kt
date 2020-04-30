@@ -18,6 +18,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, private val kClass:
     @Suppress("UNCHECKED_CAST")
     private val copyConstructor: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
     private val idParameter = copyConstructor.parameters.single { it.name == "id" }
+    private val instanceParameter = copyConstructor.instanceParameter!!
 
     suspend fun create(instance: T): T {
         @Suppress("UNCHECKED_CAST")
@@ -38,7 +39,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, private val kClass:
 
         val id = statement.executeInsert()
 
-        return copyConstructor.callBy(mapOf(idParameter to id) + mapOf(copyConstructor.instanceParameter!! to instance))
+        return copyConstructor.callBy(mapOf(idParameter to id, instanceParameter to instance))
     }
 
 }
