@@ -24,7 +24,10 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
         ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
 
+    private val constructorParameters = constructor.parameters
     private val tableName = "${kClass.simpleName}s"
+    private val idSelectString =
+        "select ${constructorParameters.joinToString { it.name!! }} from $tableName where id=\$1"
 
     suspend fun create(instance: T): T {
         @Suppress("UNCHECKED_CAST")
@@ -48,11 +51,10 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         return copyConstructor.callBy(mapOf(idParameter to id, instanceParameter to instance))
     }
 
+
     suspend fun findById(id: Int): T {
-        val constructorParameters = constructor.parameters
-        val fieldNames = constructorParameters.joinToString { it.name!! }
         val result =
-            connection.createStatement("select $fieldNames from $tableName where id=$id").execute().awaitSingle()
+            connection.createStatement(idSelectString).bind("$1", id).execute().awaitSingle()
         val parameterMap =
             result.map { row, _ -> constructorParameters.map { it to row.get(it.name!!) }.toMap() }.awaitSingle()
         return constructor.callBy(parameterMap)
