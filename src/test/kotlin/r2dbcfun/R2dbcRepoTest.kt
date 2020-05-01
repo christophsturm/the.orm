@@ -15,32 +15,48 @@ import strikt.assertions.isNull
 class R2dbcRepoTest : JUnit5Minutests {
     data class User(val id: Int? = null, val name: String, val email: String?)
 
+    @Suppress("unused")
     fun tests() = rootContext<R2dbcRepo<User>> {
         fixture {
             runBlocking {
                 R2dbcRepo.create<User>(prepareDB().create().awaitSingle())
             }
         }
-        test("can insert data class and return primary key") {
+        context("Creating Rows") {
+            test("can insert data class and return primary key") {
+                runBlockingTest {
+                    val user = fixture.create(User(name = "chris", email = "my email"))
+                    expectThat(user).and {
+                        get { id }.isEqualTo(1)
+                        get { name }.isEqualTo("chris")
+                        get { email }.isEqualTo("my email")
+                    }
+                }
+            }
+
+            test("supports nullable values") {
+                runBlockingTest {
+                    val user = fixture.create(User(name = "chris", email = null))
+                    expectThat(user).and {
+                        get { id }.isEqualTo(1)
+                        get { name }.isEqualTo("chris")
+                        get { email }.isNull()
+                    }
+                }
+            }
+        }
+        test("loading data objects") {
             runBlockingTest {
-                val user = fixture.create(User(name = "chris", email = "my email"))
+                fixture.create(User(name = "anotherUser", email = "my email"))
+                val id = fixture.create(User(name = "chris", email = "my email")).id!!
+                val user = fixture.findById(id)
                 expectThat(user).and {
-                    get { id }.isEqualTo(1)
+                    get { id }.isEqualTo(id)
                     get { name }.isEqualTo("chris")
                     get { email }.isEqualTo("my email")
                 }
             }
-        }
 
-        test("supports nullable values") {
-            runBlockingTest {
-                val user = fixture.create(User(name = "chris", email = null))
-                expectThat(user).and {
-                    get { id }.isEqualTo(1)
-                    get { name }.isEqualTo("chris")
-                    get { email }.isNull()
-                }
-            }
         }
     }
 }

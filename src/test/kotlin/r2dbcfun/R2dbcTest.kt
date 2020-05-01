@@ -20,6 +20,7 @@ import strikt.assertions.isEqualTo
 @ExperimentalCoroutinesApi
 class R2dbcTest : JUnit5Minutests {
 
+    @Suppress("unused")
     fun tests() = rootContext<ConnectionFactory> {
         fixture {
             prepareDB()
