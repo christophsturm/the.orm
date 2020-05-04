@@ -1,12 +1,9 @@
 package r2dbcfun
 
-fun String.toSnakeCase(): String {
-    return this.mapIndexed { idx, char ->
-        when {
-            char.isLowerCase() -> char.toString()
-            idx > 0 -> "_${char.toLowerCase()}"
-            else -> char.toLowerCase()
-                .toString()
-        }
-    }.joinToString("")
-}
+fun String.toSnakeCase(): String = this.foldIndexed(StringBuilder(this.length + 5)) { idx, target, char ->
+    when {
+        char.isLowerCase() -> target.append(char)
+        idx > 0 -> target.append('_').append(char.toLowerCase())
+        else -> target.append(char.toLowerCase())
+    }
+}.toString()
