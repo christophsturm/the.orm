@@ -3,14 +3,37 @@ package r2dbcfun
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import org.flywaydb.core.Flyway
-import org.h2.jdbcx.JdbcDataSource
+import org.testcontainers.containers.PostgreSQLContainer
+import java.sql.Connection
+import java.sql.DriverManager
 import java.util.*
 
+
 fun prepareDB(): ConnectionFactory {
-    val dataSource = JdbcDataSource()
     val uuid = UUID.randomUUID()
-    dataSource.setURL("jdbc:h2:mem:r2dbc-test$uuid;DB_CLOSE_DELAY=-1")
-    val flyway = Flyway.configure().dataSource(dataSource).load()
+    val databaseName = "r2dbc-test$uuid"
+    val jdbcUrl = "jdbc:h2:mem:$databaseName;DB_CLOSE_DELAY=-1"
+    val flyway = Flyway.configure().dataSource(jdbcUrl, "", "").load()
     flyway.migrate()
-    return ConnectionFactories.get("r2dbc:h2:mem:///r2dbc-test$uuid;DB_CLOSE_DELAY=-1")
+    return ConnectionFactories.get("r2dbc:h2:mem:///$databaseName;DB_CLOSE_DELAY=-1")
+}
+
+val container: PostgreSQLContainer<Nothing> by lazy {
+    PostgreSQLContainer<Nothing>().apply {
+        start()
+    }
+}
+
+fun preparePostgreSQL(): ConnectionFactory {
+    Class.forName("org.postgresql.Driver")
+    val uuid = UUID.randomUUID()
+    val databaseName = "r2dbctest$uuid".replace("-", "_")
+    val host = container.containerIpAddress
+    val port = container.getMappedPort(5432)
+    val db: Connection = DriverManager.getConnection("jdbc:postgresql://$host:$port/postgres", "test", "test")
+    db.createStatement().executeUpdate("create database $databaseName")
+
+    val flyway = Flyway.configure().dataSource("jdbc:postgresql://$host:$port/$databaseName", "test", "test").load()
+    flyway.migrate()
+    return ConnectionFactories.get("r2dbc:postgresql://test:test@$host:$port/$databaseName")
 }

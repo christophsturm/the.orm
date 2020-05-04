@@ -25,8 +25,8 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
 
     private val constructorParameters = constructor.parameters
-    private val tableName = "${kClass.simpleName}s"
-    private val idSelectString =
+    private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
+    private val selectByIdString =
         "select ${constructorParameters.joinToString { it.name!! }} from $tableName where id=\$1"
 
     suspend fun create(instance: T): T {
@@ -46,15 +46,23 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             connection.createStatement(insertStatementString),
             { idx, statement, field -> statement.bind(idx, field) })
 
-        val id = statement.executeInsert()
+        val id = try {
+            statement.executeInsert()
+        } catch (e: Exception) {
+            throw RuntimeException("error executing insert: $insertStatementString", e)
+        }
 
         return copyConstructor.callBy(mapOf(idParameter to id, instanceParameter to instance))
     }
 
 
-    suspend fun findById(id: Int): T {
+    suspend fun findById(id: Long): T {
         val result =
-            connection.createStatement(idSelectString).bind("$1", id).execute().awaitSingle()
+            try {
+                connection.createStatement(selectByIdString).bind("$1", id).execute().awaitSingle()
+            } catch (e: Exception) {
+                throw RuntimeException("error executing insert: $selectByIdString", e)
+            }
         val parameterMap =
             result.map { row, _ -> constructorParameters.map { it to row.get(it.name!!) }.toMap() }.awaitSingle()
         return constructor.callBy(parameterMap)

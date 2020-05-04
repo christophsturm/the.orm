@@ -1,6 +1,8 @@
-create table USERS
+create sequence users_id_seq no maxvalue;
+create table users
 (
-    ID    int          not null auto_increment primary key,
-    NAME  varchar(100) not null,
-    EMAIL varchar(100)
+    ID     bigint       not null primary key default nextval('users_id_seq'),
+    NAME   varchar(100) not null,
+    EMAIL  varchar(100),
+    ISCOOL boolean
 );

@@ -5,7 +5,6 @@ import dev.minutest.rootContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
@@ -13,18 +12,18 @@ import strikt.assertions.isNull
 
 @ExperimentalCoroutinesApi
 class R2dbcRepoTest : JUnit5Minutests {
-    data class User(val id: Int? = null, val name: String, val email: String?)
+    data class User(val id: Long? = null, val name: String, val email: String?)
 
     @Suppress("unused")
     fun tests() = rootContext<R2dbcRepo<User>> {
         fixture {
             runBlocking {
-                R2dbcRepo.create<User>(prepareDB().create().awaitSingle())
+                R2dbcRepo.create<User>(preparePostgreSQL().create().awaitSingle())
             }
         }
         context("Creating Rows") {
             test("can insert data class and return primary key") {
-                runBlockingTest {
+                runBlocking {
                     val user = fixture.create(User(name = "chris", email = "my email"))
                     expectThat(user).and {
                         get { id }.isEqualTo(1)
@@ -35,7 +34,7 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
 
             test("supports nullable values") {
-                runBlockingTest {
+                runBlocking {
                     val user = fixture.create(User(name = "chris", email = null))
                     expectThat(user).and {
                         get { id }.isEqualTo(1)
@@ -46,7 +45,7 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
         }
         test("loading data objects") {
-            runBlockingTest {
+            runBlocking {
                 fixture.create(User(name = "anotherUser", email = "my email"))
                 val id = fixture.create(User(name = "chris", email = "my email")).id!!
                 val user = fixture.findById(id)
