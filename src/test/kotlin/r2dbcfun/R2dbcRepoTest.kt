@@ -53,17 +53,29 @@ class R2dbcRepoTest : JUnit5Minutests {
                     }
                 }
             }
-            test("loading data objects") {
-                runBlocking {
-                    fixture.create(User(name = "anotherUser", email = "my email"))
-                    val id = fixture.create(User(name = "chris", email = "my email")).id!!
-                    val user = fixture.findById(id)
-                    expectThat(user).and {
-                        get { id }.isEqualTo(id)
-                        get { name }.isEqualTo("chris")
-                        get { email }.isEqualTo("my email")
+            context("loading data objects") {
+                test("can load data object by id") {
+                    runBlocking {
+                        fixture.create(User(name = "anotherUser", email = "my email"))
+                        val id = fixture.create(User(name = "chris", email = "my email")).id!!
+                        val user = fixture.findById(id)
+                        expectThat(user).and {
+                            get { id }.isEqualTo(id)
+                            get { name }.isEqualTo("chris")
+                            get { email }.isEqualTo("my email")
+                        }
                     }
                 }
+                test("throws NotFoundException when id does not exist") {
+                    runBlocking {
+                        expectCatching {
+                            fixture.findById(1)
+                        }.failed().isA<NotFoundException>().message.isNotNull().isEqualTo("No users found for id 1")
+
+                    }
+
+                }
+
             }
         }
         context("fail fast error handling") {

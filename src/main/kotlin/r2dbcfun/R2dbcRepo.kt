@@ -70,8 +70,11 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             } catch (e: Exception) {
                 throw RuntimeException("error executing insert: $selectByIdString", e)
             }
-        val parameterMap =
+        val parameterMap = try {
             result.map { row, _ -> constructorParameters.map { it to row.get(it.name!!) }.toMap() }.awaitSingle()
+        } catch (e: NoSuchElementException) {
+            throw NotFoundException("No $tableName found for id $id")
+        }
         return constructor.callBy(parameterMap)
     }
 

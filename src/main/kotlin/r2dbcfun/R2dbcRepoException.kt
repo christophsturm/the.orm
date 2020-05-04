@@ -1,5 +1,5 @@
 package r2dbcfun
 
-class R2dbcRepoException(message: String) : RuntimeException(message) {
+open class R2dbcRepoException(message: String) : RuntimeException(message)
+class NotFoundException(message: String) : R2dbcRepoException(message)
 
-}
