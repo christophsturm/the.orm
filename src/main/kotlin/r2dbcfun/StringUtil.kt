@@ -1,6 +1,6 @@
 package r2dbcfun
 
-public fun String.toSnakeCase(): String {
+fun String.toSnakeCase(): String {
     return this.mapIndexed { idx, char ->
         when {
             char.isLowerCase() -> char.toString()
