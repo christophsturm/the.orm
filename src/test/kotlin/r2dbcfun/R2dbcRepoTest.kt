@@ -15,7 +15,7 @@ import strikt.assertions.isNull
 class R2dbcRepoTest : JUnit5Minutests {
     data class User(val id: Long? = null, val name: String, val email: String?)
 
-    fun ContextBuilder<R2dbcRepo<User>>.repoTests() {
+    private fun ContextBuilder<R2dbcRepo<User>>.repoTests() {
         context("Creating Rows") {
             test("can insert data class and return primary key") {
                 runBlocking {
