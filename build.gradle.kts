@@ -95,4 +95,7 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
     outputDir = "build/dependencyUpdates"
     reportfileName = "report"
 }
+tasks.wrapper {
+    distributionType = Wrapper.DistributionType.ALL
+}
 
