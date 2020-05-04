@@ -9,7 +9,7 @@ import java.sql.DriverManager
 import java.util.*
 
 
-fun prepareDB(): ConnectionFactory {
+fun prepareH2(): ConnectionFactory {
     val uuid = UUID.randomUUID()
     val databaseName = "r2dbc-test$uuid"
     val jdbcUrl = "jdbc:h2:mem:$databaseName;DB_CLOSE_DELAY=-1"
