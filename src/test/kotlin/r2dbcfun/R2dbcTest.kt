@@ -11,7 +11,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
@@ -23,20 +23,20 @@ class R2dbcTest : JUnit5Minutests {
     @Suppress("unused")
     fun tests() = rootContext<ConnectionFactory> {
         fixture {
-            prepareDB()
+            preparePostgreSQL()
         }
 
         test("can insert values and select result") {
-            runBlockingTest {
+            runBlocking {
                 val connection: Connection = fixture.create().awaitSingle()
                 val firstId =
-                    connection.createStatement("insert into USERS(name) values($1)").bind("$1", "belle")
+                    connection.createStatement("insert into users(name) values($1)").bind("$1", "belle")
                         .executeInsert()
                 val secondId =
-                    connection.createStatement("insert into USERS(name) values($1)").bind("$1", "sebastian")
+                    connection.createStatement("insert into users(name) values($1)").bind("$1", "sebastian")
                         .executeInsert()
 
-                val selectResult: Result = connection.createStatement("select * from USERS").execute().awaitSingle()
+                val selectResult: Result = connection.createStatement("select * from users").execute().awaitSingle()
                 val namesFlow = selectResult.map { row, _ -> row.get("NAME", String::class.java) }.asFlow()
                 val names = namesFlow.toCollection(mutableListOf())
                 expectThat(firstId).isEqualTo(1)

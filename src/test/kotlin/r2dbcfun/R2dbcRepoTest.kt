@@ -1,11 +1,11 @@
 package r2dbcfun
 
+import dev.minutest.ContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
@@ -13,18 +13,12 @@ import strikt.assertions.isNull
 
 @ExperimentalCoroutinesApi
 class R2dbcRepoTest : JUnit5Minutests {
-    data class User(val id: Int? = null, val name: String, val email: String?)
+    data class User(val id: Long? = null, val name: String, val email: String?)
 
-    @Suppress("unused")
-    fun tests() = rootContext<R2dbcRepo<User>> {
-        fixture {
-            runBlocking {
-                R2dbcRepo.create<User>(prepareDB().create().awaitSingle())
-            }
-        }
+    private fun ContextBuilder<R2dbcRepo<User>>.repoTests() {
         context("Creating Rows") {
             test("can insert data class and return primary key") {
-                runBlockingTest {
+                runBlocking {
                     val user = fixture.create(User(name = "chris", email = "my email"))
                     expectThat(user).and {
                         get { id }.isEqualTo(1)
@@ -35,7 +29,7 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
 
             test("supports nullable values") {
-                runBlockingTest {
+                runBlocking {
                     val user = fixture.create(User(name = "chris", email = null))
                     expectThat(user).and {
                         get { id }.isEqualTo(1)
@@ -46,7 +40,7 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
         }
         test("loading data objects") {
-            runBlockingTest {
+            runBlocking {
                 fixture.create(User(name = "anotherUser", email = "my email"))
                 val id = fixture.create(User(name = "chris", email = "my email")).id!!
                 val user = fixture.findById(id)
@@ -58,5 +52,26 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
 
         }
+    }
+
+    @Suppress("unused")
+    fun tests() = rootContext<Unit> {
+        derivedContext<R2dbcRepo<User>>("run on postgresql") {
+            fixture {
+                runBlocking {
+                    R2dbcRepo.create<User>(preparePostgreSQL().create().awaitSingle())
+                }
+            }
+            repoTests()
+        }
+        derivedContext<R2dbcRepo<User>>("run on H2") {
+            fixture {
+                runBlocking {
+                    R2dbcRepo.create<User>(prepareH2().create().awaitSingle())
+                }
+            }
+            repoTests()
+        }
+
     }
 }

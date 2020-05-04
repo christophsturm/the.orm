@@ -4,10 +4,10 @@ import io.r2dbc.spi.Result
 import io.r2dbc.spi.Statement
 import kotlinx.coroutines.reactive.awaitSingle
 
-suspend fun Result.singleInt(): Int {
+suspend fun Result.singleLong(): Long {
     return this.map { row, _ ->
-        row.get(0, Integer::class.java)!!.toInt()
+        row.get(0, java.lang.Long::class.java)!!.toLong()
     }.awaitSingle()
 }
 
-suspend fun Statement.executeInsert() = this.returnGeneratedValues().execute().awaitSingle().singleInt()
+suspend fun Statement.executeInsert() = this.returnGeneratedValues().execute().awaitSingle().singleLong()

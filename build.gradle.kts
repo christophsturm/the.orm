@@ -34,8 +34,11 @@ dependencies {
     testImplementation("io.strikt:strikt-core:0.25.0")
     testImplementation("dev.minutest:minutest:1.11.0")
 
-    testImplementation("io.r2dbc:r2dbc-h2:0.8.3.RELEASE")
-    testImplementation("com.h2database:h2:1.4.200")
+    testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.3.RELEASE")
+    testRuntimeOnly("com.h2database:h2:1.4.200")
+    testRuntimeOnly("org.postgresql:postgresql:42.2.12")
+    testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.2.RELEASE")
+    testImplementation("org.testcontainers:postgresql:1.14.1")
     testImplementation("org.flywaydb:flyway-core:6.4.1")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
@@ -91,5 +94,8 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
     outputFormatter = "json"
     outputDir = "build/dependencyUpdates"
     reportfileName = "report"
+}
+tasks.wrapper {
+    distributionType = Wrapper.DistributionType.ALL
 }
 
