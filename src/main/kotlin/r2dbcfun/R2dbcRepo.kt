@@ -27,7 +27,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     private val constructorParameters = constructor.parameters
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
     private val selectByIdString =
-        "select ${constructorParameters.joinToString { it.name!! }} from $tableName where id=\$1"
+        "select ${constructorParameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where id=\$1"
 
     init {
         val kclass = idParameter.type.classifier as KClass<*>
@@ -46,7 +46,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             propertiesWithValues.keys.joinToString(
                 prefix = "INSERT INTO $tableName(",
                 postfix = ") values ("
-            ) { it.name } +
+            ) { it.name.toSnakeCase() } +
                     propertiesWithValues.keys.mapIndexed { idx, _ -> "$${idx + 1}" }.joinToString(postfix = ")")
 
         val statement = propertiesWithValues.values.foldIndexed(
@@ -71,7 +71,8 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
                 throw RuntimeException("error executing insert: $selectByIdString", e)
             }
         val parameterMap = try {
-            result.map { row, _ -> constructorParameters.map { it to row.get(it.name!!) }.toMap() }.awaitSingle()
+            result.map { row, _ -> constructorParameters.map { it to row.get(it.name!!.toSnakeCase()) }.toMap() }
+                .awaitSingle()
         } catch (e: NoSuchElementException) {
             throw NotFoundException("No $tableName found for id $id")
         }

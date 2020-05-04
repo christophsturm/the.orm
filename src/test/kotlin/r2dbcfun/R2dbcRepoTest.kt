@@ -13,6 +13,7 @@ import strikt.assertions.contains
 import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.message
@@ -20,7 +21,7 @@ import strikt.assertions.message
 
 @ExperimentalCoroutinesApi
 class R2dbcRepoTest : JUnit5Minutests {
-    data class User(val id: Long? = null, val name: String, val email: String?)
+    data class User(val id: Long? = null, val name: String, val email: String?, val isCool: Boolean = false)
 
     private fun ContextBuilder<ConnectionFactory>.repoTests() {
         derivedContext<R2dbcRepo<User>>("a repo with a data class") {
@@ -63,6 +64,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                             get { id }.isEqualTo(id)
                             get { name }.isEqualTo("chris")
                             get { email }.isEqualTo("my email")
+                            get { isCool }.isFalse()
                         }
                     }
                 }

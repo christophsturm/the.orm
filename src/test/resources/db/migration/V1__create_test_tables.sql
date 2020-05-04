@@ -4,7 +4,7 @@ create table users
     id     bigint       not null default nextval('users_id_seq'),
     name   varchar(100) not null,
     email  varchar(100),
-    iscool boolean
+    is_cool boolean
 );
 
 alter table users

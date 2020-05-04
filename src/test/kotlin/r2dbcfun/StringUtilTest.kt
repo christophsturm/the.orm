@@ -16,9 +16,3 @@ class StringUtilTest : JUnit5Minutests {
     }
 }
 
-private fun String.toSnakeCase(): String {
-    return this.mapIndexed { idx, char ->
-        if (char.isLowerCase()) char.toString() else if (idx > 0) "_${char.toLowerCase()}" else char.toLowerCase()
-            .toString()
-    }.joinToString("")
-}
