@@ -29,6 +29,13 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     private val selectByIdString =
         "select ${constructorParameters.joinToString { it.name!! }} from $tableName where id=\$1"
 
+    init {
+        val kclass = idParameter.type.classifier as KClass<*>
+
+        if (kclass != Long::class)
+            throw R2dbcRepoException("Id Column type was ${kclass}, but must be ${Long::class}")
+    }
+
     suspend fun create(instance: T): T {
         @Suppress("UNCHECKED_CAST")
         val propertiesWithValues =
