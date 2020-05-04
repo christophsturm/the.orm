@@ -17,4 +17,4 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
       - name: Build with Gradle
-        run: ./gradlew build pitest
+        run: PITEST_THREADS=2 ./gradlew build pitest

@@ -29,6 +29,13 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     private val selectByIdString =
         "select ${constructorParameters.joinToString { it.name!! }} from $tableName where id=\$1"
 
+    init {
+        val kclass = idParameter.type.classifier as KClass<*>
+
+        if (kclass != Long::class)
+            throw R2dbcRepoException("Id Column type was ${kclass}, but must be ${Long::class}")
+    }
+
     suspend fun create(instance: T): T {
         @Suppress("UNCHECKED_CAST")
         val propertiesWithValues =
@@ -63,8 +70,11 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             } catch (e: Exception) {
                 throw RuntimeException("error executing insert: $selectByIdString", e)
             }
-        val parameterMap =
+        val parameterMap = try {
             result.map { row, _ -> constructorParameters.map { it to row.get(it.name!!) }.toMap() }.awaitSingle()
+        } catch (e: NoSuchElementException) {
+            throw NotFoundException("No $tableName found for id $id")
+        }
         return constructor.callBy(parameterMap)
     }
 
