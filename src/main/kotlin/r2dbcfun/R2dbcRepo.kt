@@ -26,8 +26,10 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
 
     private val constructorParameters = constructor.parameters
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
+
+    @Suppress("SqlResolve")
     private val selectByIdString =
-        "select ${constructorParameters.joinToString { it.name!! }} from $tableName where id=\$1"
+        "select ${constructorParameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where id=\$1"
 
     init {
         val kclass = idParameter.type.classifier as KClass<*>
@@ -42,12 +44,9 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             properties.associateBy({ it }, { it.getter.call(instance) })
                 .filterValues { it != null } as Map<KProperty1<out T, *>, Any>
 
-        val insertStatementString =
-            propertiesWithValues.keys.joinToString(
-                prefix = "INSERT INTO $tableName(",
-                postfix = ") values ("
-            ) { it.name } +
-                    propertiesWithValues.keys.mapIndexed { idx, _ -> "$${idx + 1}" }.joinToString(postfix = ")")
+        val fieldNames = propertiesWithValues.keys.joinToString { it.name.toSnakeCase() }
+        val fieldPlaceHolders = (1..propertiesWithValues.keys.size).joinToString { idx -> "$$idx" }
+        val insertStatementString = "INSERT INTO $tableName($fieldNames) values ($fieldPlaceHolders)"
 
         val statement = propertiesWithValues.values.foldIndexed(
             connection.createStatement(insertStatementString),
@@ -71,7 +70,8 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
                 throw RuntimeException("error executing insert: $selectByIdString", e)
             }
         val parameterMap = try {
-            result.map { row, _ -> constructorParameters.map { it to row.get(it.name!!) }.toMap() }.awaitSingle()
+            result.map { row, _ -> constructorParameters.map { it to row.get(it.name!!.toSnakeCase()) }.toMap() }
+                .awaitSingle()
         } catch (e: NoSuchElementException) {
             throw NotFoundException("No $tableName found for id $id")
         }
