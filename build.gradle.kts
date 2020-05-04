@@ -14,8 +14,8 @@ plugins {
     id("info.solidsoft.pitest") version "1.5.0"
 }
 
-group = "group"
-version = "1.0-SNAPSHOT"
+group = "r2dbcfun"
+version = "0.1-SNAPSHOT"
 
 
 repositories {
