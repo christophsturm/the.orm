@@ -62,6 +62,7 @@ tasks.withType<Test> {
     testLogging {
         events("passed", "skipped", "failed")
     }
+    maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
 }
 plugins.withId("info.solidsoft.pitest") {
     configure<PitestPluginExtension> {
