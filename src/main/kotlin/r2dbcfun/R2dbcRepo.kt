@@ -59,7 +59,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         val id = try {
             statement.executeInsert()
         } catch (e: Exception) {
-            throw RuntimeException("error executing insert: $insertStatementString", e)
+            throw R2dbcRepoException("error executing insert: $insertStatementString", e)
         }
 
         return copyConstructor.callBy(mapOf(idParameter to id, instanceParameter to instance))
@@ -69,9 +69,10 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     suspend fun findById(id: Long): T {
         val result =
             try {
-                connection.createStatement(selectByIdString).bind("$1", id).execute().awaitSingle()
+                val statement = connection.createStatement(selectByIdString).bind("$1", id)
+                statement.execute().awaitSingle()
             } catch (e: Exception) {
-                throw RuntimeException("error executing insert: $selectByIdString", e)
+                throw R2dbcRepoException("error executing select: $selectByIdString", e)
             }
         val parameterMap = try {
             result.map { row, _ -> constructorParameters.map { it to row.get(it.name!!.toSnakeCase()) }.toMap() }
@@ -83,12 +84,16 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     }
 
     suspend fun <V> findBy(property: KProperty1<T, V>, value: V): Flow<T> {
+        val query = selectString + property.name.toSnakeCase() + "=$1"
         val result =
-            connection.createStatement(selectString + property.name.toSnakeCase() + "=$1").bind("$1", value).execute()
-                .awaitSingle()
+            try {
+                connection.createStatement(query).bind("$1", value).execute()
+                    .awaitSingle()
+            } catch (e: Exception) {
+                throw R2dbcRepoException("error executing select: $query", e)
+            }
         return result.map { row, _ ->
             constructor.callBy(constructorParameters.map { it to row.get(it.name!!.toSnakeCase()) }.toMap())
         }.asFlow()
     }
-
 }
