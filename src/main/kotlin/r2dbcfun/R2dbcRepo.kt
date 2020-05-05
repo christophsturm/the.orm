@@ -19,24 +19,16 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         inline fun <reified T : Any> create(connection: Connection) = R2dbcRepo(connection, T::class)
     }
 
-    private val properties = kClass.declaredMemberProperties
-
-    @Suppress("UNCHECKED_CAST")
-    private val copyConstructor: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
-    private val idParameter = copyConstructor.parameters.single { it.name == "id" }
-    private val instanceParameter = copyConstructor.instanceParameter!!
-    private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
-        ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
-
-    private val constructorParameters = constructor.parameters
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
-    @Suppress("SqlResolve")
-    private val selectString =
-        "select ${constructorParameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where "
 
+    private val properties = kClass.declaredMemberProperties
+
+    // to call the copy function
     @Suppress("UNCHECKED_CAST")
-    private val idProperty = kClass.memberProperties.single { it.name == "id" } as KProperty1<T, Any>
+    private val copyFunction: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
+    private val idParameter = copyFunction.parameters.single { it.name == "id" }
+    private val instanceParameter = copyFunction.instanceParameter!!
 
     init {
         val kclass = idParameter.type.classifier as KClass<*>
@@ -65,10 +57,12 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             throw R2dbcRepoException("error executing insert: $insertStatementString", e)
         }
 
-        return copyConstructor.callBy(mapOf(idParameter to id, instanceParameter to instance))
+        return copyFunction.callBy(mapOf(idParameter to id, instanceParameter to instance))
     }
 
 
+    @Suppress("UNCHECKED_CAST")
+    private val idProperty = kClass.memberProperties.single { it.name == "id" } as KProperty1<T, Any>
     suspend fun findById(id: Long): T {
         return try {
             findBy(idProperty, id).single()
@@ -77,12 +71,19 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         }
     }
 
+    private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
+        ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
+    private val constructorParameters = constructor.parameters
+
+    @Suppress("SqlResolve")
+    private val selectString =
+        "select ${constructorParameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where "
+
     suspend fun <V> findBy(property: KProperty1<T, V>, value: V): Flow<T> {
         val query = selectString + property.name.toSnakeCase() + "=$1"
         val result =
             try {
-                connection.createStatement(query).bind("$1", value).execute()
-                    .awaitSingle()
+                connection.createStatement(query).bind("$1", value).execute().awaitSingle()
             } catch (e: Exception) {
                 throw R2dbcRepoException("error executing select: $query", e)
             }
