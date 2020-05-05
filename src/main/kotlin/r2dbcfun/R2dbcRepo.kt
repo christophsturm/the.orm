@@ -2,6 +2,7 @@ package r2dbcfun
 
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlin.reflect.KClass
@@ -11,6 +12,7 @@ import kotlin.reflect.KVisibility
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.full.memberProperties
 
 class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out T>) {
     companion object {
@@ -33,7 +35,8 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     private val selectString =
         "select ${constructorParameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where "
 
-    private val selectByIdString = "${selectString}id=\$1"
+    @Suppress("UNCHECKED_CAST")
+    private val idProperty = kClass.memberProperties.single { it.name == "id" } as KProperty1<T, Any>
 
     init {
         val kclass = idParameter.type.classifier as KClass<*>
@@ -67,20 +70,11 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
 
 
     suspend fun findById(id: Long): T {
-        val result =
-            try {
-                val statement = connection.createStatement(selectByIdString).bind("$1", id)
-                statement.execute().awaitSingle()
-            } catch (e: Exception) {
-                throw R2dbcRepoException("error executing select: $selectByIdString", e)
-            }
-        val parameterMap = try {
-            result.map { row, _ -> constructorParameters.map { it to row.get(it.name!!.toSnakeCase()) }.toMap() }
-                .awaitSingle()
+        return try {
+            findBy(idProperty, id).single()
         } catch (e: NoSuchElementException) {
             throw NotFoundException("No $tableName found for id $id")
         }
-        return constructor.callBy(parameterMap)
     }
 
     suspend fun <V> findBy(property: KProperty1<T, V>, value: V): Flow<T> {
