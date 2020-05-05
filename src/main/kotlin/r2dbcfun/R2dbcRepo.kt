@@ -1,6 +1,8 @@
 package r2dbcfun
 
 import io.r2dbc.spi.Connection
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -28,8 +30,10 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
     @Suppress("SqlResolve")
-    private val selectByIdString =
-        "select ${constructorParameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where id=\$1"
+    private val selectString =
+        "select ${constructorParameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where "
+
+    private val selectByIdString = "${selectString}id=\$1"
 
     init {
         val kclass = idParameter.type.classifier as KClass<*>
@@ -76,6 +80,15 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             throw NotFoundException("No $tableName found for id $id")
         }
         return constructor.callBy(parameterMap)
+    }
+
+    suspend fun <V> findBy(property: KProperty1<T, V>, value: V): Flow<T> {
+        val result =
+            connection.createStatement(selectString + property.name.toSnakeCase() + "=$1").bind("$1", value).execute()
+                .awaitSingle()
+        return result.map { row, _ ->
+            constructor.callBy(constructorParameters.map { it to row.get(it.name!!.toSnakeCase()) }.toMap())
+        }.asFlow()
     }
 
 }

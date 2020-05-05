@@ -5,11 +5,13 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
+import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -66,6 +68,15 @@ class R2dbcRepoTest : JUnit5Minutests {
                             get { email }.isEqualTo("my email")
                             get { isCool }.isFalse()
                         }
+                    }
+                }
+                test("can load data object by id") {
+                    val repo = fixture
+                    runBlocking {
+                        val firstUser = repo.create(User(name = "chris", email = "my email"))
+                        val secondUser = repo.create(User(name = "chris", email = "different email"))
+                        val users = repo.findBy(User::name, "chris").toCollection(mutableListOf())
+                        expectThat(users).containsExactlyInAnyOrder(firstUser, secondUser)
                     }
                 }
                 test("throws NotFoundException when id does not exist") {

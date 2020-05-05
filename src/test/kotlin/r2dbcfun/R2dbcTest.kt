@@ -16,6 +16,10 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
+/**
+ * this is just the r2dbc playground that started this project.
+ * @see r2dbcfun.R2dbcRepoTest for api usage.
+ **/
 
 @ExperimentalCoroutinesApi
 class R2dbcTest : JUnit5Minutests {
