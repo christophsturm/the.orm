@@ -20,6 +20,7 @@ fun prepareH2(): ConnectionFactory {
 
 val container: PostgreSQLContainer<Nothing> by lazy {
     PostgreSQLContainer<Nothing>().apply {
+        withReuse(true)
         start()
     }
 }
