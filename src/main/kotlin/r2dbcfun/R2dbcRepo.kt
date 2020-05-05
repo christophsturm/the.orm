@@ -1,6 +1,9 @@
 package r2dbcfun
 
 import io.r2dbc.spi.Connection
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -9,6 +12,7 @@ import kotlin.reflect.KVisibility
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.full.memberProperties
 
 class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out T>) {
     companion object {
@@ -28,8 +32,11 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
     @Suppress("SqlResolve")
-    private val selectByIdString =
-        "select ${constructorParameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where id=\$1"
+    private val selectString =
+        "select ${constructorParameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where "
+
+    @Suppress("UNCHECKED_CAST")
+    private val idProperty = kClass.memberProperties.single { it.name == "id" } as KProperty1<T, Any>
 
     init {
         val kclass = idParameter.type.classifier as KClass<*>
@@ -55,7 +62,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         val id = try {
             statement.executeInsert()
         } catch (e: Exception) {
-            throw RuntimeException("error executing insert: $insertStatementString", e)
+            throw R2dbcRepoException("error executing insert: $insertStatementString", e)
         }
 
         return copyConstructor.callBy(mapOf(idParameter to id, instanceParameter to instance))
@@ -63,19 +70,24 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
 
 
     suspend fun findById(id: Long): T {
-        val result =
-            try {
-                connection.createStatement(selectByIdString).bind("$1", id).execute().awaitSingle()
-            } catch (e: Exception) {
-                throw RuntimeException("error executing insert: $selectByIdString", e)
-            }
-        val parameterMap = try {
-            result.map { row, _ -> constructorParameters.map { it to row.get(it.name!!.toSnakeCase()) }.toMap() }
-                .awaitSingle()
+        return try {
+            findBy(idProperty, id).single()
         } catch (e: NoSuchElementException) {
             throw NotFoundException("No $tableName found for id $id")
         }
-        return constructor.callBy(parameterMap)
     }
 
+    suspend fun <V> findBy(property: KProperty1<T, V>, value: V): Flow<T> {
+        val query = selectString + property.name.toSnakeCase() + "=$1"
+        val result =
+            try {
+                connection.createStatement(query).bind("$1", value).execute()
+                    .awaitSingle()
+            } catch (e: Exception) {
+                throw R2dbcRepoException("error executing select: $query", e)
+            }
+        return result.map { row, _ ->
+            constructor.callBy(constructorParameters.map { it to row.get(it.name!!.toSnakeCase()) }.toMap())
+        }.asFlow()
+    }
 }
