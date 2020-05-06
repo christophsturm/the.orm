@@ -1,12 +1,16 @@
 package r2dbcfun
 
+import io.r2dbc.spi.Clob
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.declaredMemberProperties
@@ -77,17 +81,38 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         }
     }
 
-    suspend fun <V> findBy(property: KProperty1<T, V>, value: V): Flow<T> {
+    suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
         val query = selectString + property.name.toSnakeCase() + "=$1"
         val result =
             try {
-                connection.createStatement(query).bind("$1", value).execute()
+                connection.createStatement(query).bind("$1", propertyValue).execute()
                     .awaitSingle()
             } catch (e: Exception) {
                 throw R2dbcRepoException("error executing select: $query", e)
             }
-        return result.map { row, _ ->
-            constructor.callBy(constructorParameters.map { it to row.get(it.name!!.toSnakeCase()) }.toMap())
+        val parameters = result.map { row, _ ->
+            constructorParameters.map {
+                it to row.get(it.name!!.toSnakeCase())
+            }.toMap()
         }.asFlow()
+        return parameters.map {
+            val resolvedParameters: Map<KParameter, Any> = it.mapValues { entry ->
+                val value = entry.value
+                if (value is Clob) {
+                    val sb = StringBuilder()
+                    value.stream().asFlow().collect { chunk ->
+                        @Suppress("BlockingMethodInNonBlockingContext")
+                        sb.append(chunk)
+                    }
+                    value.discard()
+                    sb.toString()
+                } else value
+            }
+            try {
+                constructor.callBy(resolvedParameters)
+            } catch (e: IllegalArgumentException) {
+                throw R2dbcRepoException("error invoking constructor for $tableName. parameters:$resolvedParameters", e)
+            }
+        }
     }
 }
