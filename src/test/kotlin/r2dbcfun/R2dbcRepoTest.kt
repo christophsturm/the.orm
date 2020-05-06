@@ -3,9 +3,10 @@ package r2dbcfun
 import dev.minutest.ContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.r2dbc.spi.ConnectionFactory
+import io.r2dbc.spi.Connection
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toCollection
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectCatching
@@ -34,12 +35,12 @@ class R2dbcRepoTest : JUnit5Minutests {
         val bio: String? = null
     )
 
-    private fun ContextBuilder<ConnectionFactory>.repoTests() {
+    private fun ContextBuilder<Connection>.repoTests() {
         derivedContext<R2dbcRepo<User>>("a repo with a data class") {
             deriveFixture {
                 val db = this
                 runBlocking {
-                    R2dbcRepo.create<User>(db.create().awaitSingle())
+                    R2dbcRepo.create<User>(db)
                 }
             }
             context("Creating Rows") {
@@ -106,7 +107,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 data class Mismatch(val id: Int?)
                 runBlocking {
                     expectCatching {
-                        R2dbcRepo.create<Mismatch>(fixture.create().awaitSingle())
+                        R2dbcRepo.create<Mismatch>(fixture)
                     }.failed().isA<R2dbcRepoException>().message.isNotNull()
                         .contains("Id Column type was class kotlin.Int, but must be class kotlin.Long")
                 }
@@ -117,17 +118,31 @@ class R2dbcRepoTest : JUnit5Minutests {
 
     @Suppress("unused")
     fun tests() = rootContext<Unit> {
-        derivedContext<ConnectionFactory>("run on H2") {
+        derivedContext<Connection>("run on H2") {
             fixture {
-                prepareH2()
+                runBlocking {
+                    prepareH2().create().awaitSingle()
+                }
             }
             repoTests()
+            after {
+                runBlocking {
+                    fixture.close().awaitFirstOrNull()
+                }
+            }
         }
-        derivedContext<ConnectionFactory>("run on postgresql") {
+        derivedContext<Connection>("run on postgresql") {
             fixture {
-                preparePostgreSQL()
+                runBlocking {
+                    preparePostgreSQL().create().awaitSingle()
+                }
             }
             repoTests()
+            after {
+                runBlocking {
+                    fixture.close().awaitFirstOrNull()
+                }
+            }
         }
 
     }
