@@ -104,6 +104,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
                         @Suppress("BlockingMethodInNonBlockingContext")
                         sb.append(chunk)
                     }
+                    value.discard()
                     sb.toString()
                 } else value
             }
