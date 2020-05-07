@@ -13,9 +13,9 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
-import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
@@ -94,7 +94,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                     runBlocking {
                         expectCatching {
                             fixture.findById(1)
-                        }.failed().isA<NotFoundException>().message.isNotNull().isEqualTo("No users found for id 1")
+                        }.isFailure().isA<NotFoundException>().message.isNotNull().isEqualTo("No users found for id 1")
 
                     }
 
@@ -108,7 +108,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 runBlocking {
                     expectCatching {
                         R2dbcRepo.create<Mismatch>(fixture)
-                    }.failed().isA<R2dbcRepoException>().message.isNotNull()
+                    }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
                         .contains("Id Column type was class kotlin.Int, but must be class kotlin.Long")
                 }
             }
