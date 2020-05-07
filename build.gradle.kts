@@ -51,19 +51,30 @@ dependencies {
 configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_1_8
 }
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+tasks {
+    withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+    withType<Test> {
+        useJUnitPlatform {
+            includeEngines("junit-jupiter")
+        }
+        testLogging {
+            events("passed", "skipped", "failed")
+        }
+        maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
+    }
+    create<Jar>("sourceJar") {
+        from(sourceSets.main.get().allSource)
+        archiveClassifier.set("sources")
+    }
+}
+artifacts {
+    add("archives", tasks["jar"])
+    add("archives", tasks["sourceJar"])
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform {
-        includeEngines("junit-jupiter")
-    }
-    testLogging {
-        events("passed", "skipped", "failed")
-    }
-    maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
-}
+
 plugins.withId("info.solidsoft.pitest") {
     configure<PitestPluginExtension> {
         //        verbose.set(true)
