@@ -11,7 +11,7 @@ plugins {
     java
     kotlin("jvm") version "1.3.72"
     id("com.github.ben-manes.versions") version "0.28.0"
-    id("info.solidsoft.pitest") version "1.5.0"
+    id("info.solidsoft.pitest") version "1.5.1"
 }
 
 group = "r2dbcfun"
@@ -31,7 +31,7 @@ dependencies {
 
     implementation("io.r2dbc:r2dbc-spi:0.8.1.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.3.5")
-    testImplementation("io.strikt:strikt-core:0.25.0")
+    testImplementation("io.strikt:strikt-core:0.26.0")
     testImplementation("dev.minutest:minutest:1.11.0")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.3.RELEASE")
