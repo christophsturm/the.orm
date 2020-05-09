@@ -26,9 +26,10 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     private val properties = kClass.declaredMemberProperties
 
     @Suppress("UNCHECKED_CAST")
-    private val copyConstructor: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
-    private val idParameter = copyConstructor.parameters.single { it.name == "id" }
-    private val instanceParameter = copyConstructor.instanceParameter!!
+    private val copyFunction: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
+    private val idParameter = copyFunction.parameters.single { it.name == "id" }
+    private val instanceParameter = copyFunction.instanceParameter!!
+
     private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
         ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
 
@@ -69,7 +70,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             throw R2dbcRepoException("error executing insert: $insertStatementString", e)
         }
 
-        return copyConstructor.callBy(mapOf(idParameter to id, instanceParameter to instance))
+        return copyFunction.callBy(mapOf(idParameter to id, instanceParameter to instance))
     }
 
 
@@ -83,13 +84,12 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
 
     suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
         val query = selectString + property.name.toSnakeCase() + "=$1"
-        val result =
-            try {
-                connection.createStatement(query).bind("$1", propertyValue).execute()
-                    .awaitSingle()
-            } catch (e: Exception) {
-                throw R2dbcRepoException("error executing select: $query", e)
-            }
+        val result = try {
+            connection.createStatement(query).bind("$1", propertyValue).execute()
+                .awaitSingle()
+        } catch (e: Exception) {
+            throw R2dbcRepoException("error executing select: $query", e)
+        }
         val parameters = result.map { row, _ ->
             constructorParameters.map {
                 it to row.get(it.name!!.toSnakeCase())
@@ -97,16 +97,18 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         }.asFlow()
         return parameters.map {
             val resolvedParameters: Map<KParameter, Any> = it.mapValues { entry ->
-                val value = entry.value
-                if (value is Clob) {
-                    val sb = StringBuilder()
-                    value.stream().asFlow().collect { chunk ->
-                        @Suppress("BlockingMethodInNonBlockingContext")
-                        sb.append(chunk)
+                when (val value = entry.value) {
+                    is Clob -> {
+                        val sb = StringBuilder()
+                        value.stream().asFlow().collect { chunk ->
+                            @Suppress("BlockingMethodInNonBlockingContext")
+                            sb.append(chunk)
+                        }
+                        value.discard()
+                        sb.toString()
                     }
-                    value.discard()
-                    sb.toString()
-                } else value
+                    else -> value
+                }
             }
             try {
                 constructor.callBy(resolvedParameters)
