@@ -4,14 +4,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val junit5Version = "5.6.2"
 val junitPlatformVersion = "1.6.2"
-val coroutinesVersion = "1.3.5"
+val coroutinesVersion = "1.3.6"
 
 
 plugins {
     java
     kotlin("jvm") version "1.3.72"
     id("com.github.ben-manes.versions") version "0.28.0"
-    id("info.solidsoft.pitest") version "1.5.0"
+    id("info.solidsoft.pitest") version "1.5.1"
 }
 
 group = "r2dbcfun"
@@ -31,7 +31,7 @@ dependencies {
 
     implementation("io.r2dbc:r2dbc-spi:0.8.1.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.3.5")
-    testImplementation("io.strikt:strikt-core:0.25.0")
+    testImplementation("io.strikt:strikt-core:0.26.0")
     testImplementation("dev.minutest:minutest:1.11.0")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.3.RELEASE")
@@ -51,19 +51,30 @@ dependencies {
 configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_1_8
 }
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+tasks {
+    withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+    withType<Test> {
+        useJUnitPlatform {
+            includeEngines("junit-jupiter")
+        }
+        testLogging {
+            events("passed", "skipped", "failed")
+        }
+        maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
+    }
+    create<Jar>("sourceJar") {
+        from(sourceSets.main.get().allSource)
+        archiveClassifier.set("sources")
+    }
+}
+artifacts {
+    add("archives", tasks["jar"])
+    add("archives", tasks["sourceJar"])
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform {
-        includeEngines("junit-jupiter")
-    }
-    testLogging {
-        events("passed", "skipped", "failed")
-    }
-    maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
-}
+
 plugins.withId("info.solidsoft.pitest") {
     configure<PitestPluginExtension> {
         //        verbose.set(true)
