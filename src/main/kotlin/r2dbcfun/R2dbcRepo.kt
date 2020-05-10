@@ -51,18 +51,15 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     }
 
     suspend fun create(instance: T): T {
-        @Suppress("UNCHECKED_CAST")
-        val propertiesWithValues =
-            properties.associateBy({ it }, { it.getter.call(instance) })
-                .filterValues { it != null } as Map<KProperty1<out T, *>, Any>
+        val propertiesWithValues = toMap(instance).filterValues { it != null }
 
         val fieldNames = propertiesWithValues.keys.joinToString { it.name.toSnakeCase() }
-        val fieldPlaceHolders = (1..propertiesWithValues.keys.size).joinToString { idx -> "$$idx" }
+        val fieldPlaceHolders = (1..propertiesWithValues.size).joinToString { idx -> "$$idx" }
         val insertStatementString = "INSERT INTO $tableName($fieldNames) values ($fieldPlaceHolders)"
 
         val statement = propertiesWithValues.values.foldIndexed(
             connection.createStatement(insertStatementString),
-            { idx, statement, field -> statement.bind(idx, field) })
+            { idx, statement, field -> statement.bind(idx, field!!) })
 
         val id = try {
             statement.executeInsert()
@@ -71,6 +68,37 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         }
 
         return copyFunction.callBy(mapOf(idParameter to id, instanceParameter to instance))
+    }
+
+    private fun toMap(instance: T) = properties.associateBy({ it }, { it.getter.call(instance) })
+
+    suspend fun update(instance: T) {
+        val properties = toMap(instance)
+        val propertiesWithValues = properties.filterKeys { it.name != "id" }
+        val propertiesString = propertiesWithValues.keys.withIndex()
+            .joinToString { indexedProperty -> "${indexedProperty.value.name.toSnakeCase()}=$${indexedProperty.index + 2}" }
+        @Suppress("SqlResolve") val updateStatementString = "UPDATE $tableName set $propertiesString where id=$1"
+        val statement = propertiesWithValues.entries.foldIndexed(
+            connection.createStatement(updateStatementString)
+                .bind(0, properties.entries.single { it.key.name == "id" }.value!!)
+        ) { idx, statement, entry ->
+            val value = entry.value
+            try {
+                if (value == null)
+                    statement.bindNull(idx + 1, (entry.key.returnType.classifier as KClass<*>).java)
+                else
+                    statement.bind(idx + 1, value)
+            } catch (e: java.lang.IllegalArgumentException) {
+                throw R2dbcRepoException(
+                    "error binding value " + value + " to field " + entry.key + " with index ${idx + 1}",
+                    e
+                )
+            }
+        }
+        val rowsUpdated = statement.execute().awaitSingle().rowsUpdated.awaitSingle()
+        if (rowsUpdated != 1)
+            throw R2dbcRepoException("rowsUpdated was $rowsUpdated instead of 1")
+
     }
 
 
@@ -117,4 +145,5 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             }
         }
     }
+
 }

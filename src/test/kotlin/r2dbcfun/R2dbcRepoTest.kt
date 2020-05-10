@@ -97,9 +97,26 @@ class R2dbcRepoTest : JUnit5Minutests {
                         }.isFailure().isA<NotFoundException>().message.isNotNull().isEqualTo("No users found for id 1")
 
                     }
+                }
+            }
+            context("updating objects") {
+                test("can update objects") {
+                    val originalUser = User(name = "chris", email = "my email", bio = reallyLongString)
+                    runBlocking {
+                        val id = fixture.create(originalUser).id!!
+                        val readBackUser = fixture.findById(id)
+                        fixture.update(readBackUser.copy(name = "updated name", email = null))
+                        val readBackUpdatedUser = fixture.findById(id)
+                        expectThat(readBackUpdatedUser).isEqualTo(
+                            originalUser.copy(
+                                id = id,
+                                name = "updated name",
+                                email = null
+                            )
+                        )
+                    }
 
                 }
-
             }
         }
         context("fail fast error handling") {
