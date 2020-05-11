@@ -128,7 +128,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         val parameters = result.map { row, _ ->
             snakeCaseStringForConstructorParameter.mapValues { entry ->
                 row.get(entry.value)
-            }.toMap()
+            }
         }.asFlow()
         return parameters.map {
             val resolvedParameters: Map<KParameter, Any> = it.mapValues { entry ->
