@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
+import reactor.blockhound.BlockHound
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -26,6 +27,10 @@ import strikt.assertions.message
 
 @ExperimentalCoroutinesApi
 class R2dbcRepoTest : JUnit5Minutests {
+    init {
+        BlockHound.install()
+    }
+
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
@@ -53,13 +58,11 @@ class R2dbcRepoTest : JUnit5Minutests {
             context("Creating Rows") {
                 test("can insert data class and return primary key") {
                     runBlocking {
-                        repeat(10000) {
-                            val user = repo.create(User(name = "chris", email = "my email", bio = reallyLongString))
-                            expectThat(user).and {
-                                get { id }.isEqualTo(1)
-                                get { name }.isEqualTo("chris")
-                                get { email }.isEqualTo("my email")
-                            }
+                        val user = repo.create(User(name = "chris", email = "my email", bio = reallyLongString))
+                        expectThat(user).and {
+                            get { id }.isEqualTo(1)
+                            get { name }.isEqualTo("chris")
+                            get { email }.isEqualTo("my email")
                         }
                     }
                 }

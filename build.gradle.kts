@@ -45,6 +45,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
+    testImplementation("io.projectreactor.tools:blockhound:1.0.3.RELEASE")
 
     "pitest"("org.pitest:pitest-junit5-plugin:0.12")
 
