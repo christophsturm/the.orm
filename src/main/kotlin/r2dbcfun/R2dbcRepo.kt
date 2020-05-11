@@ -2,6 +2,7 @@ package r2dbcfun
 
 import io.r2dbc.spi.Clob
 import io.r2dbc.spi.Connection
+import io.r2dbc.spi.Statement
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
@@ -35,6 +36,13 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     }
 
     private val updateStatementString = makeUpdateString()
+    private fun makeInsertStatementString(): String {
+        val fieldNames = propertiesExceptId.joinToString { it.name.toSnakeCase() }
+        val fieldPlaceHolders = (1..propertiesExceptId.size).joinToString { idx -> "$$idx" }
+        return "INSERT INTO $tableName($fieldNames) values ($fieldPlaceHolders)"
+    }
+
+    private val insertStatementString = makeInsertStatementString()
     private val idAssigner = IdAssigner(kClass)
     private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
         ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
@@ -50,16 +58,12 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
 
 
     suspend fun create(instance: T): T {
-        val propertiesWithValues = toMap(instance).filterValues { it != null }
-
-        val fieldNames = propertiesWithValues.keys.joinToString { it.name.toSnakeCase() }
-        val fieldPlaceHolders = (1..propertiesWithValues.size).joinToString { idx -> "$$idx" }
-        val insertStatementString = "INSERT INTO $tableName($fieldNames) values ($fieldPlaceHolders)"
-
-        val statement = propertiesWithValues.values.foldIndexed(
-            connection.createStatement(insertStatementString),
-            { idx, statement, field -> statement.bind(idx, field!!) })
-
+        val statement = propertiesExceptId.foldIndexed(
+            connection.createStatement(insertStatementString)
+        )
+        { idx, statement, property ->
+            bindValueOrNull(property, instance, statement, idx)
+        }
         val id = try {
             statement.executeInsert()
         } catch (e: Exception) {
@@ -69,30 +73,37 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         return idAssigner.assignId(instance, id)
     }
 
-    private fun toMap(instance: T) = properties.values.associateBy({ it }, { it.getter.call(instance) })
-
     suspend fun update(instance: T) {
         val statement = propertiesExceptId.foldIndexed(
             connection.createStatement(updateStatementString)
                 .bind(0, idProperty.call(instance))
         ) { idx, statement, entry ->
-            val value = entry.call(instance)
-            try {
-                if (value == null)
-                    statement.bindNull(idx + 1, (entry.returnType.classifier as KClass<*>).java)
-                else
-                    statement.bind(idx + 1, value)
-            } catch (e: java.lang.IllegalArgumentException) {
-                throw R2dbcRepoException(
-                    "error binding value " + value + " to field " + entry + " with index ${idx + 1}",
-                    e
-                )
-            }
+            bindValueOrNull(entry, instance, statement, idx + 1)
         }
         val rowsUpdated = statement.execute().awaitSingle().rowsUpdated.awaitSingle()
         if (rowsUpdated != 1)
             throw R2dbcRepoException("rowsUpdated was $rowsUpdated instead of 1")
 
+    }
+
+    private fun bindValueOrNull(
+        entry: KProperty1<out T, *>,
+        instance: T,
+        statement: Statement,
+        index: Int
+    ): Statement {
+        val value = entry.call(instance)
+        return try {
+            if (value == null)
+                statement.bindNull(index, (entry.returnType.classifier as KClass<*>).java)
+            else
+                statement.bind(index, value)
+        } catch (e: java.lang.IllegalArgumentException) {
+            throw R2dbcRepoException(
+                "error binding value $value to field $entry with index $index",
+                e
+            )
+        }
     }
 
 
@@ -139,5 +150,4 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             }
         }
     }
-
 }
