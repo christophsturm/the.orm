@@ -36,17 +36,20 @@ class R2dbcRepoTest : JUnit5Minutests {
     )
 
     private fun ContextBuilder<Connection>.repoTests() {
-        derivedContext<R2dbcRepo<User>>("a repo with a data class") {
+        class Fixture(connection: Connection) {
+            val repo = R2dbcRepo.create<User>(connection)
+        }
+        derivedContext<Fixture>("a repo with a data class") {
             deriveFixture {
-                val db = this
+                val connection = this
                 runBlocking {
-                    R2dbcRepo.create<User>(db)
+                    Fixture(connection)
                 }
             }
             context("Creating Rows") {
                 test("can insert data class and return primary key") {
                     runBlocking {
-                        val user = fixture.create(User(name = "chris", email = "my email", bio = reallyLongString))
+                        val user = repo.create(User(name = "chris", email = "my email", bio = reallyLongString))
                         expectThat(user).and {
                             get { id }.isEqualTo(1)
                             get { name }.isEqualTo("chris")
@@ -57,7 +60,7 @@ class R2dbcRepoTest : JUnit5Minutests {
 
                 test("supports nullable values") {
                     runBlocking {
-                        val user = fixture.create(User(name = "chris", email = null))
+                        val user = repo.create(User(name = "chris", email = null))
                         expectThat(user).and {
                             get { id }.isEqualTo(1)
                             get { name }.isEqualTo("chris")
@@ -69,9 +72,9 @@ class R2dbcRepoTest : JUnit5Minutests {
             context("loading data objects") {
                 test("can load data object by id") {
                     runBlocking {
-                        fixture.create(User(name = "anotherUser", email = "my email"))
-                        val id = fixture.create(User(name = "chris", email = "my email", bio = reallyLongString)).id!!
-                        val user = fixture.findById(id)
+                        repo.create(User(name = "anotherUser", email = "my email"))
+                        val id = repo.create(User(name = "chris", email = "my email", bio = reallyLongString)).id!!
+                        val user = repo.findById(id)
                         expectThat(user).and {
                             get { id }.isEqualTo(id)
                             get { name }.isEqualTo("chris")
@@ -82,7 +85,6 @@ class R2dbcRepoTest : JUnit5Minutests {
                     }
                 }
                 test("can load data object by id") {
-                    val repo = fixture
                     runBlocking {
                         val firstUser = repo.create(User(name = "chris", email = "my email"))
                         val secondUser = repo.create(User(name = "chris", email = "different email"))
@@ -93,7 +95,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 test("throws NotFoundException when id does not exist") {
                     runBlocking {
                         expectCatching {
-                            fixture.findById(1)
+                            repo.findById(1)
                         }.isFailure().isA<NotFoundException>().message.isNotNull().isEqualTo("No users found for id 1")
 
                     }
@@ -103,10 +105,10 @@ class R2dbcRepoTest : JUnit5Minutests {
                 test("can update objects") {
                     val originalUser = User(name = "chris", email = "my email", bio = reallyLongString)
                     runBlocking {
-                        val id = fixture.create(originalUser).id!!
-                        val readBackUser = fixture.findById(id)
-                        fixture.update(readBackUser.copy(name = "updated name", email = null))
-                        val readBackUpdatedUser = fixture.findById(id)
+                        val id = repo.create(originalUser).id!!
+                        val readBackUser = repo.findById(id)
+                        repo.update(readBackUser.copy(name = "updated name", email = null))
+                        val readBackUpdatedUser = repo.findById(id)
                         expectThat(readBackUpdatedUser).isEqualTo(
                             originalUser.copy(
                                 id = id,
