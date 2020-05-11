@@ -8,14 +8,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
+import r2dbcfun.internal.IdAssigner
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.instanceParameter
-import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 
 class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out T>) {
@@ -25,22 +23,6 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
 
     private val properties = kClass.declaredMemberProperties
 
-    class IdAssigner<T : Any>(kClass: KClass<out T>) {
-        @Suppress("UNCHECKED_CAST")
-        private val copyFunction: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
-        private val idParameter = copyFunction.parameters.single { it.name == "id" }
-        private val instanceParameter = copyFunction.instanceParameter!!
-
-        init {
-            val kclass = idParameter.type.classifier as KClass<*>
-
-            if (kclass != Long::class)
-                throw R2dbcRepoException("Id Column type was ${kclass}, but must be ${Long::class}")
-        }
-
-        fun assignId(instance: T, id: Long): T =
-            copyFunction.callBy(mapOf(idParameter to id, instanceParameter to instance))
-    }
 
     private val idAssigner = IdAssigner(kClass)
     private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
