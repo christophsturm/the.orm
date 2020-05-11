@@ -14,21 +14,21 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.memberProperties
 
 class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out T>) {
     companion object {
         inline fun <reified T : Any> create(connection: Connection) = R2dbcRepo(connection, T::class)
     }
 
-    private val properties = kClass.declaredMemberProperties
+    private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
+    private val propertiesExceptId = properties.filter { it.key != "id" }.values
 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
     private fun makeUpdateString(): String {
-        val propertiesWithoutId = properties.filter { it.name != "id" }
+        val propertiesWithoutId = properties.keys.filter { it != "id" }
         val propertiesString = propertiesWithoutId.withIndex()
-            .joinToString { indexedProperty -> "${indexedProperty.value.name.toSnakeCase()}=$${indexedProperty.index + 2}" }
+            .joinToString { indexedProperty -> "${indexedProperty.value.toSnakeCase()}=$${indexedProperty.index + 2}" }
 
         @Suppress("SqlResolve")
         return "UPDATE $tableName set $propertiesString where id=$1"
@@ -46,7 +46,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         "select ${constructorParameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where "
 
     @Suppress("UNCHECKED_CAST")
-    private val idProperty = kClass.memberProperties.single { it.name == "id" } as KProperty1<T, Any>
+    private val idProperty = properties["id"] as KProperty1<T, Any>
 
 
     suspend fun create(instance: T): T {
@@ -69,25 +69,22 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         return idAssigner.assignId(instance, id)
     }
 
-    private fun toMap(instance: T) = properties.associateBy({ it }, { it.getter.call(instance) })
+    private fun toMap(instance: T) = properties.values.associateBy({ it }, { it.getter.call(instance) })
 
     suspend fun update(instance: T) {
-        val property2Value = toMap(instance)
-        val propertiesWithValues = property2Value.filterKeys { it.name != "id" }
-
-        val statement = propertiesWithValues.entries.foldIndexed(
+        val statement = propertiesExceptId.foldIndexed(
             connection.createStatement(updateStatementString)
-                .bind(0, property2Value.entries.single { it.key.name == "id" }.value!!)
+                .bind(0, idProperty.call(instance))
         ) { idx, statement, entry ->
-            val value = entry.value
+            val value = entry.call(instance)
             try {
                 if (value == null)
-                    statement.bindNull(idx + 1, (entry.key.returnType.classifier as KClass<*>).java)
+                    statement.bindNull(idx + 1, (entry.returnType.classifier as KClass<*>).java)
                 else
                     statement.bind(idx + 1, value)
             } catch (e: java.lang.IllegalArgumentException) {
                 throw R2dbcRepoException(
-                    "error binding value " + value + " to field " + entry.key + " with index ${idx + 1}",
+                    "error binding value " + value + " to field " + entry + " with index ${idx + 1}",
                     e
                 )
             }
