@@ -11,14 +11,21 @@ internal class IdAssigner<T : Any>(kClass: KClass<out T>) {
     private val copyFunction: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
     private val idParameter = copyFunction.parameters.single { it.name == "id" }
     private val instanceParameter = copyFunction.instanceParameter!!
+    private val pkConstructor: KFunction<Any>?
 
     init {
-        val kclass = idParameter.type.classifier as KClass<*>
-
-        if (kclass != Long::class)
-            throw R2dbcRepoException("Id Column type was ${kclass}, but must be ${Long::class}")
+        val pkClass = idParameter.type.classifier as KClass<*>
+        if (pkClass != Long::class) {
+            pkConstructor = pkClass.constructors.single()
+            val parameters = pkConstructor.parameters
+            if (parameters.singleOrNull()?.type?.classifier as? KClass<*> != Long::class)
+                throw R2dbcRepoException("Id Column type was ${pkClass}, but must be ${Long::class}")
+        } else
+            pkConstructor = null
     }
 
-    fun assignId(instance: T, id: Long): T =
-        copyFunction.callBy(mapOf(idParameter to id, instanceParameter to instance))
+    fun assignId(instance: T, id: Long): T {
+        val idFieldValue = pkConstructor?.call(id) ?: id
+        return copyFunction.callBy(mapOf(idParameter to idFieldValue, instanceParameter to instance))
+    }
 }
