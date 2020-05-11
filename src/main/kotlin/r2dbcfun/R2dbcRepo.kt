@@ -23,13 +23,23 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
 
     private val properties = kClass.declaredMemberProperties
 
+    private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
+    private fun makeUpdateString(): String {
+        val propertiesWithoutId = properties.filter { it.name != "id" }
+        val propertiesString = propertiesWithoutId.withIndex()
+            .joinToString { indexedProperty -> "${indexedProperty.value.name.toSnakeCase()}=$${indexedProperty.index + 2}" }
+
+        @Suppress("SqlResolve")
+        return "UPDATE $tableName set $propertiesString where id=$1"
+    }
+
+    private val updateStatementString = makeUpdateString()
     private val idAssigner = IdAssigner(kClass)
     private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
         ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
 
     private val constructorParameters = constructor.parameters
-    private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
     @Suppress("SqlResolve")
     private val selectString =
@@ -62,17 +72,12 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     private fun toMap(instance: T) = properties.associateBy({ it }, { it.getter.call(instance) })
 
     suspend fun update(instance: T) {
-        val properties = toMap(instance)
-        val propertiesWithValues = properties.filterKeys { it.name != "id" }
-        val propertiesString = propertiesWithValues.keys.withIndex()
-            .joinToString { indexedProperty -> "${indexedProperty.value.name.toSnakeCase()}=$${indexedProperty.index + 2}" }
-
-        @Suppress("SqlResolve")
-        val updateStatementString = "UPDATE $tableName set $propertiesString where id=$1"
+        val property2Value = toMap(instance)
+        val propertiesWithValues = property2Value.filterKeys { it.name != "id" }
 
         val statement = propertiesWithValues.entries.foldIndexed(
             connection.createStatement(updateStatementString)
-                .bind(0, properties.entries.single { it.key.name == "id" }.value!!)
+                .bind(0, property2Value.entries.single { it.key.name == "id" }.value!!)
         ) { idx, statement, entry ->
             val value = entry.value
             try {
