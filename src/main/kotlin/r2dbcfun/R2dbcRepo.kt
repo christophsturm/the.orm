@@ -21,40 +21,42 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         inline fun <reified T : Any> create(connection: Connection) = R2dbcRepo(connection, T::class)
     }
 
-    private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
-    private val propertiesExceptId = properties.filter { it.key != "id" }.values
+    private val propertyForName = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
+    private val propertiesExceptId = propertyForName.filter { it.key != "id" }.values
+    private val snakeCaseForProperty = kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
     private fun makeUpdateString(): String {
-        val propertiesWithoutId = properties.keys.filter { it != "id" }
+        val propertiesWithoutId = propertyForName.keys.filter { it != "id" }
         val propertiesString = propertiesWithoutId.withIndex()
             .joinToString { indexedProperty -> "${indexedProperty.value.toSnakeCase()}=$${indexedProperty.index + 2}" }
 
         @Suppress("SqlResolve")
         return "UPDATE $tableName set $propertiesString where id=$1"
     }
-
     private val updateStatementString = makeUpdateString()
+
     private fun makeInsertStatementString(): String {
         val fieldNames = propertiesExceptId.joinToString { it.name.toSnakeCase() }
         val fieldPlaceHolders = (1..propertiesExceptId.size).joinToString { idx -> "$$idx" }
         return "INSERT INTO $tableName($fieldNames) values ($fieldPlaceHolders)"
     }
-
     private val insertStatementString = makeInsertStatementString()
+
     private val idAssigner = IdAssigner(kClass)
     private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
         ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
 
-    private val constructorParameters = constructor.parameters
+    private val snakeCaseStringForConstructorParameter =
+        constructor.parameters.associateBy({ it }, { it.name!!.toSnakeCase() })
 
     @Suppress("SqlResolve")
     private val selectString =
-        "select ${constructorParameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where "
+        "select ${constructor.parameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where "
 
     @Suppress("UNCHECKED_CAST")
-    private val idProperty = properties["id"] as KProperty1<T, Any>
+    private val idProperty = propertyForName["id"] as KProperty1<T, Any>
 
 
     suspend fun create(instance: T): T {
@@ -116,7 +118,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     }
 
     suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
-        val query = selectString + property.name.toSnakeCase() + "=$1"
+        val query = selectString + snakeCaseForProperty[property] + "=$1"
         val result = try {
             connection.createStatement(query).bind("$1", propertyValue).execute()
                 .awaitSingle()
@@ -124,8 +126,8 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             throw R2dbcRepoException("error executing select: $query", e)
         }
         val parameters = result.map { row, _ ->
-            constructorParameters.map {
-                it to row.get(it.name!!.toSnakeCase())
+            snakeCaseStringForConstructorParameter.mapValues { entry ->
+                row.get(entry.value)
             }.toMap()
         }.asFlow()
         return parameters.map {
