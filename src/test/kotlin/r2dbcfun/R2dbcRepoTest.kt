@@ -2,9 +2,11 @@ package r2dbcfun
 
 import dev.minutest.ContextBuilder
 import dev.minutest.junit.JUnit5Minutests
+import dev.minutest.junit.experimental.applyRule
 import dev.minutest.rootContext
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.debug.junit4.CoroutinesTimeout
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -38,8 +40,10 @@ class R2dbcRepoTest : JUnit5Minutests {
     private fun ContextBuilder<Connection>.repoTests() {
         class Fixture(connection: Connection) {
             val repo = R2dbcRepo.create<User>(connection)
+            val timeout = CoroutinesTimeout.seconds(1)
         }
         derivedContext<Fixture>("a repo with a data class") {
+            applyRule { timeout }
             deriveFixture {
                 val connection = this
                 runBlocking {
@@ -49,11 +53,13 @@ class R2dbcRepoTest : JUnit5Minutests {
             context("Creating Rows") {
                 test("can insert data class and return primary key") {
                     runBlocking {
-                        val user = repo.create(User(name = "chris", email = "my email", bio = reallyLongString))
-                        expectThat(user).and {
-                            get { id }.isEqualTo(1)
-                            get { name }.isEqualTo("chris")
-                            get { email }.isEqualTo("my email")
+                        repeat(10000) {
+                            val user = repo.create(User(name = "chris", email = "my email", bio = reallyLongString))
+                            expectThat(user).and {
+                                get { id }.isEqualTo(1)
+                                get { name }.isEqualTo("chris")
+                                get { email }.isEqualTo("my email")
+                            }
                         }
                     }
                 }
