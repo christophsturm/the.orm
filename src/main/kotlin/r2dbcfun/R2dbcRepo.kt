@@ -25,11 +25,24 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
 
     private val properties = kClass.declaredMemberProperties
 
-    @Suppress("UNCHECKED_CAST")
-    private val copyFunction: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
-    private val idParameter = copyFunction.parameters.single { it.name == "id" }
-    private val instanceParameter = copyFunction.instanceParameter!!
+    class IdAssigner<T : Any>(kClass: KClass<out T>) {
+        @Suppress("UNCHECKED_CAST")
+        private val copyFunction: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
+        private val idParameter = copyFunction.parameters.single { it.name == "id" }
+        private val instanceParameter = copyFunction.instanceParameter!!
 
+        init {
+            val kclass = idParameter.type.classifier as KClass<*>
+
+            if (kclass != Long::class)
+                throw R2dbcRepoException("Id Column type was ${kclass}, but must be ${Long::class}")
+        }
+
+        fun assignId(instance: T, id: Long): T =
+            copyFunction.callBy(mapOf(idParameter to id, instanceParameter to instance))
+    }
+
+    private val idAssigner = IdAssigner(kClass)
     private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
         ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
 
@@ -43,12 +56,6 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     @Suppress("UNCHECKED_CAST")
     private val idProperty = kClass.memberProperties.single { it.name == "id" } as KProperty1<T, Any>
 
-    init {
-        val kclass = idParameter.type.classifier as KClass<*>
-
-        if (kclass != Long::class)
-            throw R2dbcRepoException("Id Column type was ${kclass}, but must be ${Long::class}")
-    }
 
     suspend fun create(instance: T): T {
         val propertiesWithValues = toMap(instance).filterValues { it != null }
@@ -67,7 +74,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             throw R2dbcRepoException("error executing insert: $insertStatementString", e)
         }
 
-        return copyFunction.callBy(mapOf(idParameter to id, instanceParameter to instance))
+        return idAssigner.assignId(instance, id)
     }
 
     private fun toMap(instance: T) = properties.associateBy({ it }, { it.getter.call(instance) })
@@ -77,7 +84,10 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         val propertiesWithValues = properties.filterKeys { it.name != "id" }
         val propertiesString = propertiesWithValues.keys.withIndex()
             .joinToString { indexedProperty -> "${indexedProperty.value.name.toSnakeCase()}=$${indexedProperty.index + 2}" }
-        @Suppress("SqlResolve") val updateStatementString = "UPDATE $tableName set $propertiesString where id=$1"
+
+        @Suppress("SqlResolve")
+        val updateStatementString = "UPDATE $tableName set $propertiesString where id=$1"
+
         val statement = propertiesWithValues.entries.foldIndexed(
             connection.createStatement(updateStatementString)
                 .bind(0, properties.entries.single { it.key.name == "id" }.value!!)
