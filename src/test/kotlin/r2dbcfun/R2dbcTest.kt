@@ -10,8 +10,9 @@ import io.r2dbc.spi.Result
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
@@ -27,11 +28,10 @@ class R2dbcTest : JUnit5Minutests {
     @Suppress("unused")
     fun tests() = rootContext<ConnectionFactory> {
         fixture {
-            preparePostgreSQL()
+            prepareH2()
         }
-
         test("can insert values and select result") {
-            runBlocking {
+            runBlockingTest {
                 val connection: Connection = fixture.create().awaitSingle()
                 val firstId =
                     connection.createStatement("insert into users(name) values($1)").bind("$1", "belle")
@@ -46,6 +46,15 @@ class R2dbcTest : JUnit5Minutests {
                 expectThat(firstId).isEqualTo(1)
                 expectThat(secondId).isEqualTo(2)
                 expectThat(names).containsExactly("belle", "sebastian")
+                connection.close().awaitFirstOrNull()
+            }
+        }
+        test("play with runBlockingTest") {
+            runBlockingTest {
+                val connection: Connection = fixture.create().awaitSingle()
+                connection.createStatement("insert into users(name) values($1)").bind("$1", "belle")
+                    .executeInsert()
+                connection.close().awaitFirstOrNull()
             }
         }
     }
