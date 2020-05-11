@@ -1,5 +1,6 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import info.solidsoft.gradle.pitest.PitestPluginExtension
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val junit5Version = "5.6.2"
@@ -44,6 +45,9 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
+    testImplementation("io.projectreactor.tools:blockhound:1.0.3.RELEASE")
+
     "pitest"("org.pitest:pitest-junit5-plugin:0.12")
 
 }
@@ -56,11 +60,16 @@ tasks {
         kotlinOptions.jvmTarget = "1.8"
     }
     withType<Test> {
+        // for BlockHound https://github.com/reactor/BlockHound/issues/33
+        if (listOf(JavaVersion.VERSION_13, JavaVersion.VERSION_14).contains(JavaVersion.current()))
+            jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
         useJUnitPlatform {
             includeEngines("junit-jupiter")
         }
         testLogging {
-            events("passed", "skipped", "failed")
+            testLogging {
+                exceptionFormat = FULL
+            }
         }
         maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
     }

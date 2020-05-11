@@ -24,4 +24,4 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Build with Gradle
         #        run: PITEST_THREADS=2 ./gradlew build pitest
-        run: ./gradlew build
+        run: CI=true ./gradlew build
