@@ -5,26 +5,26 @@ import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-class IdAssignerTest : JUnit5Minutests {
+class IDHandlerTest : JUnit5Minutests {
 
     @Suppress("unused")
     fun tests() = rootContext<Unit> {
 
-        context("returning an instance with id for an instance without id") {
+        context("assigning an id to a newly created instance") {
             test("assigns a long id") {
                 data class ClassWithLongId(val id: Long?, val otherProp: String)
 
                 val instance = ClassWithLongId(null, "string")
-                expectThat(IdAssigner(ClassWithLongId::class).assignId(instance, 1)).isEqualTo(
+                expectThat(IDHandler(ClassWithLongId::class).assignId(instance, 1)).isEqualTo(
                     instance.copy(id = 1)
                 )
             }
             test("assigns a PK class instance") {
                 data class PK(val id: Long)
-                data class ClassWithLongId(val id: PK?, val otherProp: String)
+                data class ClassWithPKClassId(val id: PK?, val otherProp: String)
 
-                val instance = ClassWithLongId(null, "string")
-                expectThat(IdAssigner(ClassWithLongId::class).assignId(instance, 1)).isEqualTo(
+                val instance = ClassWithPKClassId(null, "string")
+                expectThat(IDHandler(ClassWithPKClassId::class).assignId(instance, 1)).isEqualTo(
                     instance.copy(id = PK(1))
                 )
             }

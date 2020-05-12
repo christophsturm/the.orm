@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
-import r2dbcfun.internal.IdAssigner
+import r2dbcfun.internal.IDHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
@@ -44,7 +44,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     }
     private val insertStatementString = makeInsertStatementString()
 
-    private val idAssigner = IdAssigner(kClass)
+    private val idAssigner = IDHandler(kClass)
     private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
         ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
 

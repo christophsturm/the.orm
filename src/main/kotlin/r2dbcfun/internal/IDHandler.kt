@@ -8,7 +8,7 @@ import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 
-internal class IdAssigner<T : Any>(kClass: KClass<out T>) {
+internal class IDHandler<T : Any>(kClass: KClass<out T>) {
     @Suppress("UNCHECKED_CAST")
     private val copyFunction: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
     private val idParameter = copyFunction.parameters.single { it.name == "id" }
