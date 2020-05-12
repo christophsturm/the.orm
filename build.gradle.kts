@@ -1,3 +1,5 @@
+@file:Suppress("ConstantConditionIf")
+
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
@@ -5,12 +7,12 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val junit5Version = "5.6.2"
 val junitPlatformVersion = "1.6.2"
-val coroutinesVersion = "1.3.6"
-
+val coroutinesVersion = if (ProjectConfig.eap) "1.3.5-1.4-M1" else "1.3.6"
+val kotlinVersion = if (ProjectConfig.eap) "1.4-M1" else "1.3.72"
 
 plugins {
     java
-    kotlin("jvm") version "1.3.72"
+    kotlin("jvm").version(if (ProjectConfig.eap) "1.4-M1" else "1.3.72")
     id("com.github.ben-manes.versions") version "0.28.0"
     id("info.solidsoft.pitest") version "1.5.1"
 }
@@ -20,13 +22,14 @@ version = "0.1-SNAPSHOT"
 
 
 repositories {
-//    maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
+    if (ProjectConfig.eap)
+        maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
     jcenter()
     mavenCentral()
 }
 
 dependencies {
-    implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:1.3.72"))
+    implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
@@ -61,6 +64,7 @@ tasks {
     }
     withType<Test> {
         // for BlockHound https://github.com/reactor/BlockHound/issues/33
+        @Suppress("UnstableApiUsage")
         if (listOf(JavaVersion.VERSION_13, JavaVersion.VERSION_14).contains(JavaVersion.current()))
             jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
         useJUnitPlatform {
@@ -92,7 +96,7 @@ plugins.withId("info.solidsoft.pitest") {
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
         targetClasses.set(setOf("r2dbcfun.*"))  //by default "${project.group}.*"
         targetTests.set(setOf("r2dbcfun.*Test", "r2dbcfun.**.*Test"))
-        //pitestVersion.set("1.4.10")
+        pitestVersion.set("1.5.2")
         threads.set(System.getenv("PITEST_THREADS")?.toInt() ?: Runtime.getRuntime().availableProcessors())
         outputFormats.set(setOf("XML", "HTML"))
     }
