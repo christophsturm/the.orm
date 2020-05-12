@@ -78,7 +78,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     suspend fun update(instance: T) {
         val statement = propertiesExceptId.foldIndexed(
             connection.createStatement(updateStatementString)
-                .bind(0, idProperty.call(instance))
+                .bind(0, idAssigner.getId(idProperty.call(instance)))
         ) { idx, statement, entry ->
             bindValueOrNull(entry, instance, statement, idx + 1)
         }
@@ -132,7 +132,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         }.asFlow()
         return parameters.map {
             val resolvedParameters: Map<KParameter, Any> = it.mapValues { entry ->
-                when (val value = entry.value) {
+                val resolvedValue = when (val value = entry.value) {
                     is Clob -> {
                         val sb = StringBuilder()
                         value.stream().asFlow().collect { chunk ->
@@ -144,6 +144,10 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
                     }
                     else -> value
                 }
+                if (entry.key.name == "id")
+                    idAssigner.createId(resolvedValue as Long)
+                else
+                    resolvedValue
             }
             try {
                 constructor.callBy(resolvedParameters)

@@ -34,8 +34,9 @@ class R2dbcRepoTest : JUnit5Minutests {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
+    data class UserPK(val id: Long)
     data class User(
-        val id: Long? = null,
+        val id: UserPK? = null,
         val name: String,
         val email: String?,
         val isCool: Boolean = false,
@@ -60,7 +61,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                     runBlocking {
                         val user = repo.create(User(name = "chris", email = "my email", bio = reallyLongString))
                         expectThat(user).and {
-                            get { id }.isEqualTo(1)
+                            get { id }.isEqualTo(UserPK(1))
                             get { name }.isEqualTo("chris")
                             get { email }.isEqualTo("my email")
                         }
@@ -71,7 +72,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                     runBlocking {
                         val user = repo.create(User(name = "chris", email = null))
                         expectThat(user).and {
-                            get { id }.isEqualTo(1)
+                            get { id }.isEqualTo(UserPK(1))
                             get { name }.isEqualTo("chris")
                             get { email }.isNull()
                         }
@@ -83,7 +84,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                     runBlocking {
                         repo.create(User(name = "anotherUser", email = "my email"))
                         val id = repo.create(User(name = "chris", email = "my email", bio = reallyLongString)).id!!
-                        val user = repo.findById(id)
+                        val user = repo.findById(id.id)
                         expectThat(user).and {
                             get { id }.isEqualTo(id)
                             get { name }.isEqualTo("chris")
@@ -93,7 +94,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                         }
                     }
                 }
-                test("can load data object by id") {
+                test("can load data object by field value") {
                     runBlocking {
                         val firstUser = repo.create(User(name = "chris", email = "my email"))
                         val secondUser = repo.create(User(name = "chris", email = "different email"))
@@ -115,9 +116,9 @@ class R2dbcRepoTest : JUnit5Minutests {
                     val originalUser = User(name = "chris", email = "my email", bio = reallyLongString)
                     runBlocking {
                         val id = repo.create(originalUser).id!!
-                        val readBackUser = repo.findById(id)
+                        val readBackUser = repo.findById(id.id)
                         repo.update(readBackUser.copy(name = "updated name", email = null))
-                        val readBackUpdatedUser = repo.findById(id)
+                        val readBackUpdatedUser = repo.findById(id.id)
                         expectThat(readBackUpdatedUser).isEqualTo(
                             originalUser.copy(
                                 id = id,
