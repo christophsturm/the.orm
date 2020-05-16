@@ -167,16 +167,18 @@ class R2dbcRepoTest : JUnit5Minutests {
                 }
             }
         }
-        derivedContext<Connection>("run on postgresql") {
-            fixture {
-                runBlocking {
-                    preparePostgreSQL().create().awaitSingle()
+        if (System.getenv("H2_ONLY") == null) {
+            derivedContext<Connection>("run on postgresql") {
+                fixture {
+                    runBlocking {
+                        preparePostgreSQL().create().awaitSingle()
+                    }
                 }
-            }
-            repoTests()
-            after {
-                runBlocking {
-                    fixture.close().awaitFirstOrNull()
+                repoTests()
+                after {
+                    runBlocking {
+                        fixture.close().awaitFirstOrNull()
+                    }
                 }
             }
         }
