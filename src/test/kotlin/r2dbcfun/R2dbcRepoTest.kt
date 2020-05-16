@@ -34,14 +34,18 @@ class R2dbcRepoTest : JUnit5Minutests {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
-    data class UserPK(val id: Long)
+    data class UserPK(override val id: Long) : PK
+    interface HasPK {
+        val id: PK?
+    }
+
     data class User(
-        val id: UserPK? = null,
+        override val id: UserPK? = null,
         val name: String,
         val email: String?,
         val isCool: Boolean = false,
         val bio: String? = null
-    )
+    ) : HasPK
 
     private fun ContextBuilder<Connection>.repoTests() {
         class Fixture(connection: Connection) {
@@ -84,7 +88,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                     runBlocking {
                         repo.create(User(name = "anotherUser", email = "my email"))
                         val id = repo.create(User(name = "chris", email = "my email", bio = reallyLongString)).id!!
-                        val user = repo.findById(id.id)
+                        val user = repo.findById(id)
                         expectThat(user).and {
                             get { id }.isEqualTo(id)
                             get { name }.isEqualTo("chris")
@@ -176,3 +180,4 @@ class R2dbcRepoTest : JUnit5Minutests {
 
     }
 }
+
