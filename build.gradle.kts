@@ -35,15 +35,15 @@ dependencies {
 
     implementation("io.r2dbc:r2dbc-spi:0.8.1.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
-    testImplementation("io.strikt:strikt-core:0.26.0")
+    testImplementation("io.strikt:strikt-core:0.26.1")
     testImplementation("dev.minutest:minutest:1.11.0")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.3.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
     testRuntimeOnly("org.postgresql:postgresql:42.2.12")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.2.RELEASE")
-    testImplementation("org.testcontainers:postgresql:1.14.1")
-    testImplementation("org.flywaydb:flyway-core:6.4.1")
+    testImplementation("org.testcontainers:postgresql:1.14.2")
+    testImplementation("org.flywaydb:flyway-core:6.4.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
