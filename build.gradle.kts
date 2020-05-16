@@ -1,5 +1,7 @@
 @file:Suppress("ConstantConditionIf")
 
+import com.adarshr.gradle.testlogger.TestLoggerExtension
+import com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD_PARALLEL
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
@@ -15,6 +17,7 @@ plugins {
     kotlin("jvm").version(if (ProjectConfig.eap) "1.4-M1" else "1.3.72")
     id("com.github.ben-manes.versions") version "0.28.0"
     id("info.solidsoft.pitest") version "1.5.1"
+    id("com.adarshr.test-logger") version "2.0.0"
 }
 
 group = "r2dbcfun"
@@ -70,6 +73,7 @@ tasks {
         useJUnitPlatform {
             includeEngines("junit-jupiter")
         }
+
         testLogging {
             testLogging {
                 exceptionFormat = FULL
@@ -124,3 +128,7 @@ tasks.wrapper {
     distributionType = Wrapper.DistributionType.ALL
 }
 
+configure<TestLoggerExtension> {
+    theme = STANDARD_PARALLEL
+    showSimpleNames = true
+}
