@@ -1,10 +1,12 @@
 package r2dbcfun.internal
 
+import r2dbcfun.PK
 import r2dbcfun.R2dbcRepoException
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 
@@ -19,10 +21,12 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
     init {
         val pkClass = idParameter.type.classifier as KClass<*>
         if (pkClass != Long::class) {
+            if (!pkClass.isSubclassOf(PK::class))
+                throw R2dbcRepoException("If PK type is not long, it must implement the PK interface")
             pkConstructor = pkClass.constructors.single()
             val parameters = pkConstructor.parameters
             if (parameters.singleOrNull()?.type?.classifier as? KClass<*> != Long::class)
-                throw R2dbcRepoException("Id Column type was ${pkClass}, but must be ${Long::class}")
+                throw R2dbcRepoException("PK classes must have a single field of type long")
             pkIdGetter = pkClass.memberProperties.single().getter
         } else {
             pkConstructor = null

@@ -2,6 +2,7 @@ package r2dbcfun.internal
 
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import r2dbcfun.PK
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
@@ -20,12 +21,12 @@ class IDHandlerTest : JUnit5Minutests {
                 )
             }
             test("assigns a PK class instance") {
-                data class PK(val id: Long)
-                data class ClassWithPKClassId(val id: PK?, val otherProp: String)
+                data class PKClass(override val id: Long) : PK
+                data class ClassWithPKClassId(val id: PKClass?, val otherProp: String)
 
                 val instance = ClassWithPKClassId(null, "string")
                 expectThat(IDHandler(ClassWithPKClassId::class).assignId(instance, 1)).isEqualTo(
-                    instance.copy(id = PK(1))
+                    instance.copy(id = PKClass(1))
                 )
             }
         }

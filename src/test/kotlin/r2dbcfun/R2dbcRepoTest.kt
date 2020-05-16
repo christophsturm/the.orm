@@ -142,7 +142,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                     expectCatching {
                         R2dbcRepo.create<Mismatch>(fixture)
                     }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
-                        .contains("Id Column type was class kotlin.Int, but must be class kotlin.Long")
+                        .contains("If PK type is not long, it must implement the PK interface")
                 }
             }
         }
