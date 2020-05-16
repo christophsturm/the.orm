@@ -49,7 +49,7 @@ class R2dbcRepoTest : JUnit5Minutests {
 
     private fun ContextBuilder<Connection>.repoTests() {
         class Fixture(connection: Connection) {
-            val repo = R2dbcRepo.create<User>(connection)
+            val repo = R2dbcRepo.create<User, UserPK>(connection)
             val timeout = CoroutinesTimeout(if (System.getenv("CI") != null) 5000 else 500)
         }
         derivedContext<Fixture>("a repo with a data class") {
@@ -109,7 +109,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 test("throws NotFoundException when id does not exist") {
                     runBlocking {
                         expectCatching {
-                            repo.findById(1)
+                            repo.findById(UserPK(1))
                         }.isFailure().isA<NotFoundException>().message.isNotNull().isEqualTo("No users found for id 1")
 
                     }
@@ -120,9 +120,9 @@ class R2dbcRepoTest : JUnit5Minutests {
                     val originalUser = User(name = "chris", email = "my email", bio = reallyLongString)
                     runBlocking {
                         val id = repo.create(originalUser).id!!
-                        val readBackUser = repo.findById(id.id)
+                        val readBackUser = repo.findById(id)
                         repo.update(readBackUser.copy(name = "updated name", email = null))
-                        val readBackUpdatedUser = repo.findById(id.id)
+                        val readBackUpdatedUser = repo.findById(id)
                         expectThat(readBackUpdatedUser).isEqualTo(
                             originalUser.copy(
                                 id = id,
@@ -136,13 +136,14 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
         }
         context("fail fast error handling") {
-            test("fails fast if id type is not Long") {
-                data class Mismatch(val id: Int?)
+            test("fails fast if PK has more than one constructor") {
+                data class MismatchPK(override val id: Long, val blah: String) : PK
+                data class Mismatch(val id: MismatchPK)
                 runBlocking {
                     expectCatching {
-                        R2dbcRepo.create<Mismatch>(fixture)
+                        R2dbcRepo.create<Mismatch, MismatchPK>(fixture)
                     }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
-                        .contains("If PK type is not long, it must implement the PK interface")
+                        .contains("PK classes must have a single field of type long")
                 }
             }
         }

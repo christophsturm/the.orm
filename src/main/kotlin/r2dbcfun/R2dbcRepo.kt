@@ -20,13 +20,14 @@ interface PK {
     val id: Long
 }
 
-class R2dbcRepo<T : Any>(
+class R2dbcRepo<T : Any, PKClass : PK>(
     private val connection: Connection,
-    kClass: KClass<T>
+    kClass: KClass<T>,
+    pkClass: KClass<PKClass>
 ) {
     companion object {
-        inline fun <reified T : Any> create(connection: Connection) =
-            R2dbcRepo(connection, T::class)
+        inline fun <reified T : Any, reified PKClass : PK> create(connection: Connection) =
+            R2dbcRepo(connection, T::class, PKClass::class)
     }
 
     private val propertyForName = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
@@ -54,7 +55,7 @@ class R2dbcRepo<T : Any>(
 
     private val insertStatementString = makeInsertStatementString()
 
-    private val idAssigner = IDHandler(kClass)
+    private val idAssigner = IDHandler(kClass, pkClass)
     private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
         ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
 
@@ -119,12 +120,10 @@ class R2dbcRepo<T : Any>(
     }
 
 
-    suspend fun findById(id: Any): T {
-        return try {
-            findBy(idProperty, if (id is PK) id.id else id).single()
-        } catch (e: NoSuchElementException) {
-            throw NotFoundException("No $tableName found for id $id")
-        }
+    suspend fun findById(id: PK) = try {
+        findBy(idProperty, id.id).single()
+    } catch (e: NoSuchElementException) {
+        throw NotFoundException("No $tableName found for id ${id.id}")
     }
 
     suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
