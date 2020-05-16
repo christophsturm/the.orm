@@ -35,6 +35,8 @@ class R2dbcRepoTest : JUnit5Minutests {
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
     data class UserPK(override val id: Long) : PK
+
+    // HasPK interface it optional
     interface HasPK {
         val id: PK?
     }
