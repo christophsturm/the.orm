@@ -34,18 +34,24 @@ class R2dbcRepoTest : JUnit5Minutests {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
-    data class UserPK(val id: Long)
+    data class UserPK(override val id: Long) : PK
+
+    // HasPK interface it optional
+    interface HasPK {
+        val id: PK?
+    }
+
     data class User(
-        val id: UserPK? = null,
+        override val id: UserPK? = null,
         val name: String,
         val email: String?,
         val isCool: Boolean = false,
         val bio: String? = null
-    )
+    ) : HasPK
 
     private fun ContextBuilder<Connection>.repoTests() {
         class Fixture(connection: Connection) {
-            val repo = R2dbcRepo.create<User>(connection)
+            val repo = R2dbcRepo.create<User, UserPK>(connection)
             val timeout = CoroutinesTimeout(if (System.getenv("CI") != null) 5000 else 500)
         }
         derivedContext<Fixture>("a repo with a data class") {
@@ -84,7 +90,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                     runBlocking {
                         repo.create(User(name = "anotherUser", email = "my email"))
                         val id = repo.create(User(name = "chris", email = "my email", bio = reallyLongString)).id!!
-                        val user = repo.findById(id.id)
+                        val user = repo.findById(id)
                         expectThat(user).and {
                             get { id }.isEqualTo(id)
                             get { name }.isEqualTo("chris")
@@ -105,7 +111,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 test("throws NotFoundException when id does not exist") {
                     runBlocking {
                         expectCatching {
-                            repo.findById(1)
+                            repo.findById(UserPK(1))
                         }.isFailure().isA<NotFoundException>().message.isNotNull().isEqualTo("No users found for id 1")
 
                     }
@@ -116,9 +122,9 @@ class R2dbcRepoTest : JUnit5Minutests {
                     val originalUser = User(name = "chris", email = "my email", bio = reallyLongString)
                     runBlocking {
                         val id = repo.create(originalUser).id!!
-                        val readBackUser = repo.findById(id.id)
+                        val readBackUser = repo.findById(id)
                         repo.update(readBackUser.copy(name = "updated name", email = null))
-                        val readBackUpdatedUser = repo.findById(id.id)
+                        val readBackUpdatedUser = repo.findById(id)
                         expectThat(readBackUpdatedUser).isEqualTo(
                             originalUser.copy(
                                 id = id,
@@ -132,13 +138,14 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
         }
         context("fail fast error handling") {
-            test("fails fast if id type is not Long") {
-                data class Mismatch(val id: Int?)
+            test("fails fast if PK has more than one constructor") {
+                data class MismatchPK(override val id: Long, val blah: String) : PK
+                data class Mismatch(val id: MismatchPK)
                 runBlocking {
                     expectCatching {
-                        R2dbcRepo.create<Mismatch>(fixture)
+                        R2dbcRepo.create<Mismatch, MismatchPK>(fixture)
                     }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
-                        .contains("Id Column type was class kotlin.Int, but must be class kotlin.Long")
+                        .contains("PK classes must have a single field of type long")
                 }
             }
         }
@@ -160,19 +167,22 @@ class R2dbcRepoTest : JUnit5Minutests {
                 }
             }
         }
-        derivedContext<Connection>("run on postgresql") {
-            fixture {
-                runBlocking {
-                    preparePostgreSQL().create().awaitSingle()
+        if (System.getenv("H2_ONLY") == null) {
+            derivedContext<Connection>("run on postgresql") {
+                fixture {
+                    runBlocking {
+                        preparePostgreSQL().create().awaitSingle()
+                    }
                 }
-            }
-            repoTests()
-            after {
-                runBlocking {
-                    fixture.close().awaitFirstOrNull()
+                repoTests()
+                after {
+                    runBlocking {
+                        fixture.close().awaitFirstOrNull()
+                    }
                 }
             }
         }
 
     }
 }
+

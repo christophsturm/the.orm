@@ -1,5 +1,7 @@
 @file:Suppress("ConstantConditionIf")
 
+import com.adarshr.gradle.testlogger.TestLoggerExtension
+import com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD_PARALLEL
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
@@ -7,7 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val junit5Version = "5.6.2"
 val junitPlatformVersion = "1.6.2"
-val coroutinesVersion = if (ProjectConfig.eap) "1.3.5-1.4-M1" else "1.3.6"
+val coroutinesVersion = if (ProjectConfig.eap) "1.3.5-1.4-M1" else "1.3.7"
 val kotlinVersion = if (ProjectConfig.eap) "1.4-M1" else "1.3.72"
 
 plugins {
@@ -15,6 +17,7 @@ plugins {
     kotlin("jvm").version(if (ProjectConfig.eap) "1.4-M1" else "1.3.72")
     id("com.github.ben-manes.versions") version "0.28.0"
     id("info.solidsoft.pitest") version "1.5.1"
+    id("com.adarshr.test-logger") version "2.0.0"
 }
 
 group = "r2dbcfun"
@@ -35,15 +38,15 @@ dependencies {
 
     implementation("io.r2dbc:r2dbc-spi:0.8.1.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
-    testImplementation("io.strikt:strikt-core:0.26.0")
+    testImplementation("io.strikt:strikt-core:0.26.1")
     testImplementation("dev.minutest:minutest:1.11.0")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.3.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
     testRuntimeOnly("org.postgresql:postgresql:42.2.12")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.2.RELEASE")
-    testImplementation("org.testcontainers:postgresql:1.14.1")
-    testImplementation("org.flywaydb:flyway-core:6.4.1")
+    testImplementation("org.testcontainers:postgresql:1.14.2")
+    testImplementation("org.flywaydb:flyway-core:6.4.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
@@ -70,6 +73,7 @@ tasks {
         useJUnitPlatform {
             includeEngines("junit-jupiter")
         }
+
         testLogging {
             testLogging {
                 exceptionFormat = FULL
@@ -124,3 +128,7 @@ tasks.wrapper {
     distributionType = Wrapper.DistributionType.ALL
 }
 
+configure<TestLoggerExtension> {
+    theme = STANDARD_PARALLEL
+    showSimpleNames = true
+}

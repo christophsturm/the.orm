@@ -16,9 +16,21 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.declaredMemberProperties
 
-class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out T>) {
+interface PK {
+    val id: Long
+}
+
+class R2dbcRepo<T : Any, PKClass : PK>(
+    private val connection: Connection,
+    kClass: KClass<T>,
+    pkClass: KClass<PKClass>
+) {
     companion object {
-        inline fun <reified T : Any> create(connection: Connection) = R2dbcRepo(connection, T::class)
+        /**
+         * creates a Repo for <T> and Primary Key <PKClass>
+         */
+        inline fun <reified T : Any, reified PKClass : PK> create(connection: Connection) =
+            R2dbcRepo(connection, T::class, PKClass::class)
     }
 
     private val propertyForName = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
@@ -35,6 +47,7 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         @Suppress("SqlResolve")
         return "UPDATE $tableName set $propertiesString where id=$1"
     }
+
     private val updateStatementString = makeUpdateString()
 
     private fun makeInsertStatementString(): String {
@@ -42,9 +55,10 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         val fieldPlaceHolders = (1..propertiesExceptId.size).joinToString { idx -> "$$idx" }
         return "INSERT INTO $tableName($fieldNames) values ($fieldPlaceHolders)"
     }
+
     private val insertStatementString = makeInsertStatementString()
 
-    private val idAssigner = IDHandler(kClass)
+    private val idAssigner = IDHandler(kClass, pkClass)
     private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
         ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
 
@@ -59,6 +73,11 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
     private val idProperty = propertyForName["id"] as KProperty1<T, Any>
 
 
+    /**
+     * creates a new record in the database.
+     * @param instance the instance that will be used to set the fields of the newly created record
+     * @return a copy of the instance with an assigned id field.
+     */
     suspend fun create(instance: T): T {
         val statement = propertiesExceptId.foldIndexed(
             connection.createStatement(insertStatementString)
@@ -75,6 +94,10 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
         return idAssigner.assignId(instance, id)
     }
 
+    /**
+     * updates a record in the database.
+     * @param instance the instance that will be used to update the record
+     */
     suspend fun update(instance: T) {
         val statement = propertiesExceptId.foldIndexed(
             connection.createStatement(updateStatementString)
@@ -88,35 +111,21 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
 
     }
 
-    private fun bindValueOrNull(
-        entry: KProperty1<out T, *>,
-        instance: T,
-        statement: Statement,
-        index: Int
-    ): Statement {
-        val value = entry.call(instance)
-        return try {
-            if (value == null)
-                statement.bindNull(index, (entry.returnType.classifier as KClass<*>).java)
-            else
-                statement.bind(index, value)
-        } catch (e: java.lang.IllegalArgumentException) {
-            throw R2dbcRepoException(
-                "error binding value $value to field $entry with index $index",
-                e
-            )
-        }
+    /**
+     * loads an object from the database
+     * @param id the primary key of the object to load
+     */
+    suspend fun findById(id: PK): T = try {
+        findBy(idProperty, id.id).single()
+    } catch (e: NoSuchElementException) {
+        throw NotFoundException("No $tableName found for id ${id.id}")
     }
 
-
-    suspend fun findById(id: Long): T {
-        return try {
-            findBy(idProperty, id).single()
-        } catch (e: NoSuchElementException) {
-            throw NotFoundException("No $tableName found for id $id")
-        }
-    }
-
+    /**
+     * finds all objects in the database wjere property matches propertyValue
+     * @param property the property to filter by
+     * @param propertyValue the value of
+     */
     suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
         val query = selectString + snakeCaseForProperty[property] + "=$1"
         val result = try {
@@ -156,4 +165,25 @@ class R2dbcRepo<T : Any>(private val connection: Connection, kClass: KClass<out 
             }
         }
     }
+
+    private fun bindValueOrNull(
+        entry: KProperty1<out T, *>,
+        instance: T,
+        statement: Statement,
+        index: Int
+    ): Statement {
+        val value = entry.call(instance)
+        return try {
+            if (value == null)
+                statement.bindNull(index, (entry.returnType.classifier as KClass<*>).java)
+            else
+                statement.bind(index, value)
+        } catch (e: java.lang.IllegalArgumentException) {
+            throw R2dbcRepoException(
+                "error binding value $value to field $entry with index $index",
+                e
+            )
+        }
+    }
+
 }
