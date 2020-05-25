@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val junit5Version = "5.6.2"
 val junitPlatformVersion = "1.6.2"
-val coroutinesVersion = if (ProjectConfig.eap) "1.3.5-1.4-M1" else "1.3.6"
+val coroutinesVersion = if (ProjectConfig.eap) "1.3.5-1.4-M1" else "1.3.7"
 val kotlinVersion = if (ProjectConfig.eap) "1.4-M1" else "1.3.72"
 
 plugins {
