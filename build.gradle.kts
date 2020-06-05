@@ -9,12 +9,12 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val junit5Version = "5.6.2"
 val junitPlatformVersion = "1.6.2"
-val coroutinesVersion = if (ProjectConfig.eap) "1.3.5-1.4-M1" else "1.3.7"
-val kotlinVersion = if (ProjectConfig.eap) "1.4-M1" else "1.3.72"
+val coroutinesVersion = if (ProjectConfig.eap) "1.3.7-1.4-M2" else "1.3.7"
+val kotlinVersion = if (ProjectConfig.eap) "1.4-M2" else "1.3.72"
 
 plugins {
     java
-    kotlin("jvm").version(if (ProjectConfig.eap) "1.4-M1" else "1.3.72")
+    kotlin("jvm").version(if (ProjectConfig.eap) "1.4-M2" else "1.3.72")
     id("com.github.ben-manes.versions") version "0.28.0"
     id("info.solidsoft.pitest") version "1.5.1"
     id("com.adarshr.test-logger") version "2.0.0"
@@ -109,15 +109,16 @@ plugins.withId("info.solidsoft.pitest") {
 tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
     val filtered = listOf("alpha", "beta", "rc", "cr", "m", "preview")
         .map { qualifier -> Regex("(?i).*[.-]$qualifier[.\\d-]*.*") }
-    resolutionStrategy {
-        componentSelection {
-            all {
-                if (filtered.any { it.matches(candidate.version) }) {
-                    reject("Release candidate")
+    if (!ProjectConfig.eap)
+        resolutionStrategy {
+            componentSelection {
+                all {
+                    if (filtered.any { it.matches(candidate.version) }) {
+                        reject("Release candidate")
+                    }
                 }
             }
         }
-    }
     // optional parameters
     checkForGradleUpdate = true
     outputFormatter = "json"
