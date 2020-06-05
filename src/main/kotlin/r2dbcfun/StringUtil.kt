@@ -1,6 +1,6 @@
 package r2dbcfun
 
-fun String.toSnakeCase(): String = this.foldIndexed(StringBuilder(this.length + 5)) { idx, target, char ->
+internal fun String.toSnakeCase(): String = this.foldIndexed(StringBuilder(this.length + 5)) { idx, target, char ->
     when {
         char.isLowerCase() -> target.append(char)
         idx > 0 -> target.append('_').append(char.toLowerCase())

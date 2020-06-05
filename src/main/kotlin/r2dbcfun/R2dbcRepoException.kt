@@ -1,9 +1,9 @@
 package r2dbcfun
 
-open class R2dbcRepoException : RuntimeException {
-    constructor(message: String) : super(message)
-    constructor(message: String, cause: Throwable) : super(message, cause)
+public open class R2dbcRepoException : RuntimeException {
+    public constructor(message: String) : super(message)
+    public constructor(message: String, cause: Throwable) : super(message, cause)
 }
 
-class NotFoundException(message: String) : R2dbcRepoException(message)
+public class NotFoundException(message: String) : R2dbcRepoException(message)
 
