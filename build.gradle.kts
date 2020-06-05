@@ -57,7 +57,11 @@ dependencies {
     "pitest"("org.pitest:pitest-junit5-plugin:0.12")
 
 }
-
+if (ProjectConfig.eap) {
+    // set it here to apply only to production and not test compile
+    val compileKotlin: KotlinCompile by tasks
+    compileKotlin.kotlinOptions.freeCompilerArgs = listOf("-Xexplicit-api=strict")
+}
 configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_1_8
 }

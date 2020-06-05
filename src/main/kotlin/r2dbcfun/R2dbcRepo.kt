@@ -16,20 +16,20 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.declaredMemberProperties
 
-interface PK {
-    val id: Long
+public interface PK {
+    public val id: Long
 }
 
-class R2dbcRepo<T : Any, PKClass : PK>(
+public class R2dbcRepo<T : Any, PKClass : PK>(
     private val connection: Connection,
     kClass: KClass<T>,
     pkClass: KClass<PKClass>
 ) {
-    companion object {
+    public companion object {
         /**
          * creates a Repo for <T> and Primary Key <PKClass>
          */
-        inline fun <reified T : Any, reified PKClass : PK> create(connection: Connection) =
+        public inline fun <reified T : Any, reified PKClass : PK> create(connection: Connection): R2dbcRepo<T, PKClass> =
             R2dbcRepo(connection, T::class, PKClass::class)
     }
 
@@ -78,7 +78,7 @@ class R2dbcRepo<T : Any, PKClass : PK>(
      * @param instance the instance that will be used to set the fields of the newly created record
      * @return a copy of the instance with an assigned id field.
      */
-    suspend fun create(instance: T): T {
+    public suspend fun create(instance: T): T {
         val statement = propertiesExceptId.foldIndexed(
             connection.createStatement(insertStatementString)
         )
@@ -98,7 +98,7 @@ class R2dbcRepo<T : Any, PKClass : PK>(
      * updates a record in the database.
      * @param instance the instance that will be used to update the record
      */
-    suspend fun update(instance: T) {
+    public suspend fun update(instance: T) {
         val statement = propertiesExceptId.foldIndexed(
             connection.createStatement(updateStatementString)
                 .bind(0, idAssigner.getId(idProperty.call(instance)))
@@ -115,18 +115,18 @@ class R2dbcRepo<T : Any, PKClass : PK>(
      * loads an object from the database
      * @param id the primary key of the object to load
      */
-    suspend fun findById(id: PK): T = try {
+    public suspend fun findById(id: PK): T = try {
         findBy(idProperty, id.id).single()
     } catch (e: NoSuchElementException) {
         throw NotFoundException("No $tableName found for id ${id.id}")
     }
 
     /**
-     * finds all objects in the database wjere property matches propertyValue
+     * finds all objects in the database where property matches propertyValue
      * @param property the property to filter by
      * @param propertyValue the value of
      */
-    suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
+    public suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
         val query = selectString + snakeCaseForProperty[property] + "=$1"
         val result = try {
             connection.createStatement(query).bind("$1", propertyValue).execute()
