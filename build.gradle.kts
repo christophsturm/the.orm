@@ -36,7 +36,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    implementation("io.r2dbc:r2dbc-spi:0.8.2.RELEASE")
+    api("io.r2dbc:r2dbc-spi:0.8.2.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     testImplementation("io.strikt:strikt-core:0.26.1")
     testImplementation("dev.minutest:minutest:1.11.0")
