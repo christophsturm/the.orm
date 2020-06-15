@@ -72,7 +72,7 @@ tasks {
     withType<Test> {
         // for BlockHound https://github.com/reactor/BlockHound/issues/33
         @Suppress("UnstableApiUsage")
-        if (listOf(JavaVersion.VERSION_13, JavaVersion.VERSION_14).contains(JavaVersion.current()))
+        if (JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal)
             jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
         useJUnitPlatform {
             includeEngines("junit-jupiter")
