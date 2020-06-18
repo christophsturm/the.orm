@@ -3,9 +3,11 @@
 import com.adarshr.gradle.testlogger.TestLoggerExtension
 import com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD_PARALLEL
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+import com.jfrog.bintray.gradle.BintrayExtension
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 
 val junit5Version = "5.6.2"
 val junitPlatformVersion = "1.6.2"
@@ -18,6 +20,9 @@ plugins {
     id("com.github.ben-manes.versions") version "0.28.0"
     id("info.solidsoft.pitest") version "1.5.1"
     id("com.adarshr.test-logger") version "2.0.0"
+    `maven-publish`
+    id("com.jfrog.bintray") version "1.8.4"
+
 }
 
 group = "r2dbcfun"
@@ -93,6 +98,33 @@ tasks {
 artifacts {
     add("archives", tasks["jar"])
     add("archives", tasks["sourceJar"])
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            artifact(tasks["sourceJar"])
+            groupId = project.group as String
+            artifactId = "r2dbcfun"
+            version = project.version as String
+        }
+    }
+}
+
+// BINTRAY_API_KEY= ... ./gradlew clean check publish bintrayUpload
+bintray {
+    user = "christophsturm"
+    key = System.getenv("BINTRAY_API_KEY")
+    publish = true
+    setPublications("mavenJava")
+    pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
+        repo = "maven"
+        name = "r2dbcfun"
+        version(delegateClosureOf<BintrayExtension.VersionConfig> {
+            name = project.version as String
+        })
+    })
 }
 
 
