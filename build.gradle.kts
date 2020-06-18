@@ -21,7 +21,7 @@ plugins {
     id("info.solidsoft.pitest") version "1.5.1"
     id("com.adarshr.test-logger") version "2.0.0"
     `maven-publish`
-    id("com.jfrog.bintray") version "1.8.4"
+    id("com.jfrog.bintray") version "1.8.5"
 
 }
 
@@ -48,10 +48,10 @@ dependencies {
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
-    testRuntimeOnly("org.postgresql:postgresql:42.2.12")
+    testRuntimeOnly("org.postgresql:postgresql:42.2.14")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.3.RELEASE")
     testImplementation("org.testcontainers:postgresql:1.14.3")
-    testImplementation("org.flywaydb:flyway-core:6.4.3")
+    testImplementation("org.flywaydb:flyway-core:6.4.4")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
