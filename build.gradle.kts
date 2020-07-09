@@ -3,9 +3,11 @@
 import com.adarshr.gradle.testlogger.TestLoggerExtension
 import com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD_PARALLEL
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+import com.jfrog.bintray.gradle.BintrayExtension
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 
 val junit5Version = "5.6.2"
 val junitPlatformVersion = "1.6.2"
@@ -18,10 +20,13 @@ plugins {
     id("com.github.ben-manes.versions") version "0.28.0"
     id("info.solidsoft.pitest") version "1.5.1"
     id("com.adarshr.test-logger") version "2.0.0"
+    `maven-publish`
+    id("com.jfrog.bintray") version "1.8.5"
+
 }
 
 group = "r2dbcfun"
-version = "0.1-SNAPSHOT"
+version = "0.1"
 
 
 repositories {
@@ -36,17 +41,17 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    implementation("io.r2dbc:r2dbc-spi:0.8.2.RELEASE")
+    api("io.r2dbc:r2dbc-spi:0.8.2.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     testImplementation("io.strikt:strikt-core:0.26.1")
     testImplementation("dev.minutest:minutest:1.11.0")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
-    testRuntimeOnly("org.postgresql:postgresql:42.2.12")
+    testRuntimeOnly("org.postgresql:postgresql:42.2.14")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.3.RELEASE")
     testImplementation("org.testcontainers:postgresql:1.14.3")
-    testImplementation("org.flywaydb:flyway-core:6.4.3")
+    testImplementation("org.flywaydb:flyway-core:6.4.4")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
@@ -72,7 +77,7 @@ tasks {
     withType<Test> {
         // for BlockHound https://github.com/reactor/BlockHound/issues/33
         @Suppress("UnstableApiUsage")
-        if (listOf(JavaVersion.VERSION_13, JavaVersion.VERSION_14).contains(JavaVersion.current()))
+        if (JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal)
             jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
         useJUnitPlatform {
             includeEngines("junit-jupiter")
@@ -93,6 +98,33 @@ tasks {
 artifacts {
     add("archives", tasks["jar"])
     add("archives", tasks["sourceJar"])
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            artifact(tasks["sourceJar"])
+            groupId = project.group as String
+            artifactId = "r2dbcfun"
+            version = project.version as String
+        }
+    }
+}
+
+// BINTRAY_API_KEY= ... ./gradlew clean check publish bintrayUpload
+bintray {
+    user = "christophsturm"
+    key = System.getenv("BINTRAY_API_KEY")
+    publish = true
+    setPublications("mavenJava")
+    pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
+        repo = "maven"
+        name = "r2dbcfun"
+        version(delegateClosureOf<BintrayExtension.VersionConfig> {
+            name = project.version as String
+        })
+    })
 }
 
 
