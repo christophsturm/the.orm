@@ -9,6 +9,7 @@ import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
 
 internal class IDHandler<T : Any, PKType : PK>(kClass: KClass<T>, pkClass: KClass<PKType>) {
     @Suppress("UNCHECKED_CAST")
@@ -24,7 +25,8 @@ internal class IDHandler<T : Any, PKType : PK>(kClass: KClass<T>, pkClass: KClas
 
             if (!pkClass.isSubclassOf(PK::class))
                 throw R2dbcRepoException("PK Classes must implement the PK interface")
-        pkConstructor = pkClass.constructors.single()
+        pkConstructor = pkClass.primaryConstructor
+            ?: throw RuntimeException("No primary constructor found for ${pkClass.simpleName}")
         val parameters = pkConstructor.parameters
         if (parameters.singleOrNull()?.type?.classifier as? KClass<*> != Long::class)
             throw R2dbcRepoException("PK classes must have a single field of type long")

@@ -13,6 +13,7 @@ val junit5Version = "5.6.2"
 val junitPlatformVersion = "1.6.2"
 val coroutinesVersion = if (ProjectConfig.eap) "1.3.7-1.4-M2" else "1.3.7"
 val kotlinVersion = if (ProjectConfig.eap) "1.4-M2" else "1.3.72"
+val serializationVersion = "0.20.0"
 
 plugins {
     java
@@ -22,6 +23,8 @@ plugins {
     id("com.adarshr.test-logger") version "2.0.0"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
+    kotlin("plugin.serialization") version "1.3.72"
+
 
 }
 
@@ -58,6 +61,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
     testImplementation("io.projectreactor.tools:blockhound:1.0.3.RELEASE")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
 
     "pitest"("org.pitest:pitest-junit5-plugin:0.12")
 

@@ -13,8 +13,8 @@ import r2dbcfun.internal.IDHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
-import kotlin.reflect.KVisibility
 import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.primaryConstructor
 
 public interface PK {
     public val id: Long
@@ -59,8 +59,8 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
     private val insertStatementString = makeInsertStatementString()
 
     private val idAssigner = IDHandler(kClass, pkClass)
-    private val constructor = kClass.constructors.singleOrNull { it.visibility == KVisibility.PUBLIC }
-        ?: throw RuntimeException("No public constructor found for ${kClass.simpleName}")
+    private val constructor = kClass.primaryConstructor
+        ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
     private val snakeCaseStringForConstructorParameter =
         constructor.parameters.associateBy({ it }, { it.name!!.toSnakeCase() })
