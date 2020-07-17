@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
 import reactor.blockhound.BlockHound
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -34,6 +35,7 @@ class R2dbcRepoTest : JUnit5Minutests {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
+    @Serializable // test that it works with serializable classes
     data class UserPK(override val id: Long) : PK
 
     // HasPK interface it optional
@@ -41,6 +43,7 @@ class R2dbcRepoTest : JUnit5Minutests {
         val id: PK?
     }
 
+    @Serializable
     data class User(
         override val id: UserPK? = null,
         val name: String,
