@@ -1,3 +1,6 @@
+[![Download](https://api.bintray.com/packages/christophsturm/maven/r2dbcfun/images/download.svg)](https://bintray.com/christophsturm/maven/r2dbcfun/_latestVersion)
+[![Github CI](https://github.com/christophsturm/r2dbcfun/workflows/CI/badge.svg)](https://github.com/christophsturm/r2dbcfun/actions)
+
 # r2dbcfun
 playing around with r2dbc and kotlin coroutines
 
