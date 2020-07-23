@@ -54,7 +54,7 @@ dependencies {
     testRuntimeOnly("org.postgresql:postgresql:42.2.14")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.4.RELEASE")
     testImplementation("org.testcontainers:postgresql:1.14.3")
-    testImplementation("org.flywaydb:flyway-core:6.5.1")
+    testImplementation("org.flywaydb:flyway-core:6.5.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
@@ -116,7 +116,7 @@ publishing {
     }
 }
 
-// BINTRAY_API_KEY= ... ./gradlew clean check publish bintrayUpload
+// BINTRAY_API_KEY= ... ./gradlew clean build publish bintrayUpload
 bintray {
     user = "christophsturm"
     key = System.getenv("BINTRAY_API_KEY")
