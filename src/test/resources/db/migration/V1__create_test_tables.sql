@@ -1,11 +1,12 @@
 create sequence users_id_seq no maxvalue;
 create table users
 (
-    id      bigint       not null default nextval('users_id_seq'),
-    name    varchar(100) not null,
-    email   varchar(100),
-    is_cool boolean,
-    bio     text
+    id             bigint       not null default nextval('users_id_seq'),
+    name           varchar(100) not null,
+    email          varchar(100),
+    is_cool        boolean,
+    bio            text,
+    favorite_color varchar(10)
 );
 
 alter table users

@@ -47,14 +47,21 @@ class R2dbcRepoTest : JUnit5Minutests {
         val id: PK?
     }
 
+    enum class Color {
+        RED,
+        BLUE
+    }
+
     @Serializable
     data class User(
         override val id: UserPK? = null,
         val name: String,
         val email: String?,
         val isCool: Boolean = false,
-        val bio: String? = null
+        val bio: String? = null,
+        val favoriteColor: Color = Color.RED
     ) : HasPK
+
 
     private fun ContextBuilder<Connection>.repoTests() {
         class Fixture(connection: Connection) {
@@ -96,7 +103,12 @@ class R2dbcRepoTest : JUnit5Minutests {
                 test("can load data object by id") {
                     runBlocking {
                         repo.create(User(name = "anotherUser", email = "my email"))
-                        val id = repo.create(User(name = "chris", email = "my email", bio = reallyLongString)).id!!
+                        val id = repo.create(
+                            User(
+                                name = "chris", email = "my email", bio = reallyLongString, isCool = false,
+                                favoriteColor = Color.RED
+                            )
+                        ).id!!
                         val user = repo.findById(id)
                         expectThat(user).and {
                             get { id }.isEqualTo(id)
@@ -104,6 +116,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                             get { email }.isEqualTo("my email")
                             get { isCool }.isFalse()
                             get { bio }.isEqualTo(reallyLongString)
+                            get { favoriteColor }.isEqualTo(Color.RED)
                         }
                     }
                 }
