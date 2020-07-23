@@ -162,7 +162,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
                 else {
 
                     val clazz = key.type.javaType as Class<*>
-                    if (clazz.isEnum) {
+                    if (resolvedValue != null && clazz.isEnum) {
                         @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST")
                         valueOf<Any>(clazz as Class<Any>, resolvedValue as String)
                     } else
@@ -185,9 +185,11 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
     ): Statement {
         val value = entry.call(instance)
         return try {
-            if (value == null)
-                statement.bindNull(index, (entry.returnType.classifier as KClass<*>).java)
-            else {
+            if (value == null) {
+                val kClass = entry.returnType.classifier as KClass<*>
+                val clazz = if (kClass.isSubclassOf(Enum::class)) String::class.java else kClass.java
+                statement.bindNull(index, clazz)
+            } else {
 
                 statement.bind(index, if (value::class.isSubclassOf(Enum::class)) value.toString() else value)
             }

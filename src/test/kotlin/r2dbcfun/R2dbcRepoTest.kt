@@ -59,7 +59,7 @@ class R2dbcRepoTest : JUnit5Minutests {
         val email: String?,
         val isCool: Boolean = false,
         val bio: String? = null,
-        val favoriteColor: Color = Color.RED
+        val favoriteColor: Color? = null
     ) : HasPK
 
 
