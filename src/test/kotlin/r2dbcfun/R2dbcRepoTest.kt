@@ -25,6 +25,10 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.message
 
+object TestConfig {
+    val H2_ONLY = System.getenv("H2_ONLY") != null
+    val CI = System.getenv("CI") != null
+}
 
 @ExperimentalCoroutinesApi
 class R2dbcRepoTest : JUnit5Minutests {
@@ -55,7 +59,7 @@ class R2dbcRepoTest : JUnit5Minutests {
     private fun ContextBuilder<Connection>.repoTests() {
         class Fixture(connection: Connection) {
             val repo = R2dbcRepo.create<User, UserPK>(connection)
-            val timeout = CoroutinesTimeout(if (System.getenv("CI") != null) 5000 else 500)
+            val timeout = CoroutinesTimeout(if (TestConfig.CI) 5000 else 500)
         }
         derivedContext<Fixture>("a repo with a data class") {
             applyRule { timeout }
@@ -157,6 +161,11 @@ class R2dbcRepoTest : JUnit5Minutests {
 
     @Suppress("unused")
     fun tests() = rootContext<Unit> {
+        if (!TestConfig.H2_ONLY) { // if we need the postgres container, start loading it while running the h2 tests, and outside of the main context which has a timeout rule
+            test("warm up psql container") {
+                container
+            }
+        }
         derivedContext<Connection>("run on H2") {
             fixture {
                 runBlocking {
@@ -170,7 +179,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 }
             }
         }
-        if (System.getenv("H2_ONLY") == null) {
+        if (!TestConfig.H2_ONLY) {
             derivedContext<Connection>("run on postgresql") {
                 fixture {
                     runBlocking {
