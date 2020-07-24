@@ -143,8 +143,8 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
             }
         }.asFlow()
         return parameters.map {
-            val resolvedParameters: Map<KParameter, Any> = it.mapValues { entry ->
-                val resolvedValue = when (val value = entry.value) {
+            val resolvedParameters: Map<KParameter, Any> = it.mapValues { (parameter, value) ->
+                val resolvedValue = when (value) {
                     is Clob -> {
                         val sb = StringBuilder()
                         value.stream().asFlow().collect { chunk ->
@@ -156,12 +156,11 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
                     }
                     else -> value
                 }
-                val key = entry.key
-                if (key.name == "id")
+                if (parameter.name == "id")
                     idAssigner.createId(resolvedValue as Long)
                 else {
 
-                    val clazz = key.type.javaType as Class<*>
+                    val clazz = parameter.type.javaType as Class<*>
                     if (resolvedValue != null && clazz.isEnum) {
                         @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST")
                         valueOf<Any>(clazz as Class<Any>, resolvedValue as String)
