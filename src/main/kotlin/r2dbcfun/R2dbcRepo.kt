@@ -131,13 +131,13 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
      */
     public suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
         val query = selectString + snakeCaseForProperty[property] + "=$1"
-        val result = try {
+        val queryResult = try {
             connection.createStatement(query).bind("$1", propertyValue).execute()
                 .awaitSingle()
         } catch (e: Exception) {
             throw R2dbcRepoException("error executing select: $query", e)
         }
-        val parameters = result.map { row, _ ->
+        val parameters = queryResult.map { row, _ ->
             snakeCaseStringForConstructorParameter.mapValues { entry ->
                 row.get(entry.value)
             }
