@@ -30,6 +30,7 @@ object TestConfig {
     val CI = System.getenv("CI") != null
 }
 
+@Suppress("SqlResolve")
 @ExperimentalCoroutinesApi
 class R2dbcRepoTest : JUnit5Minutests {
     init {
@@ -64,7 +65,7 @@ class R2dbcRepoTest : JUnit5Minutests {
 
 
     private fun ContextBuilder<Connection>.repoTests() {
-        class Fixture(connection: Connection) {
+        class Fixture(val connection: Connection) {
             val repo = R2dbcRepo.create<User, UserPK>(connection)
             val timeout = CoroutinesTimeout(if (TestConfig.CI) 5000 else 500)
         }
@@ -152,6 +153,25 @@ class R2dbcRepoTest : JUnit5Minutests {
                                 email = null
                             )
                         )
+                    }
+
+                }
+            }
+            context("enum fields") {
+                test("enum fields are serialized as upper case strings") {
+                    runBlocking {
+                        val id = repo.create(
+                            User(
+                                name = "chris", email = "my email", bio = reallyLongString, isCool = false,
+                                favoriteColor = Color.RED
+                            )
+                        ).id!!
+                        val color =
+                            connection.createStatement("select * from Users where id = $1").bind("$1", id.id).execute()
+                                .awaitSingle()
+                                .map { row, _ -> row.get(User::favoriteColor.name.toSnakeCase(), String::class.java) }
+                                .awaitSingle()
+                        expectThat(color).isEqualTo("RED")
                     }
 
                 }
