@@ -1,3 +1,3 @@
 object ProjectConfig {
-    const val eap = false
+    const val eap = true
 }

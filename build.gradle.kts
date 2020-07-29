@@ -11,19 +11,19 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val junit5Version = "5.6.2"
 val junitPlatformVersion = "1.6.2"
-val coroutinesVersion = if (ProjectConfig.eap) "1.3.7-1.4-M3" else "1.3.8"
-val kotlinVersion = if (ProjectConfig.eap) "1.4-M3" else "1.3.72"
-val serializationVersion = "0.20.0"
+val coroutinesVersion = if (ProjectConfig.eap) "1.3.8-1.4.0-rc" else "1.3.8"
+val kotlinVersion = if (ProjectConfig.eap) "1.4.0-rc" else "1.3.72"
+val serializationVersion = "1.0-M1-1.4.0-rc"
 
 plugins {
     java
-    kotlin("jvm").version(if (ProjectConfig.eap) "1.4-M3" else "1.3.72")
+    kotlin("jvm").version(if (ProjectConfig.eap) "1.4.0-rc" else "1.3.72")
     id("com.github.ben-manes.versions") version "0.29.0"
     id("info.solidsoft.pitest") version "1.5.1"
     id("com.adarshr.test-logger") version "2.1.0"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
-    kotlin("plugin.serialization") version "1.3.72"
+    kotlin("plugin.serialization").version(if (ProjectConfig.eap) "1.4.0-rc" else "1.3.72")
 
 
 }
