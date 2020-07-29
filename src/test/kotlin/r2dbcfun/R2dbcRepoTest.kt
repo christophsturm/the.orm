@@ -30,6 +30,7 @@ object TestConfig {
     val CI = System.getenv("CI") != null
 }
 
+@Suppress("SqlResolve")
 @ExperimentalCoroutinesApi
 class R2dbcRepoTest : JUnit5Minutests {
     init {
@@ -47,17 +48,24 @@ class R2dbcRepoTest : JUnit5Minutests {
         val id: PK?
     }
 
+    enum class Color {
+        RED,
+        BLUE
+    }
+
     @Serializable
     data class User(
         override val id: UserPK? = null,
         val name: String,
         val email: String?,
         val isCool: Boolean = false,
-        val bio: String? = null
+        val bio: String? = null,
+        val favoriteColor: Color? = null
     ) : HasPK
 
+
     private fun ContextBuilder<Connection>.repoTests() {
-        class Fixture(connection: Connection) {
+        class Fixture(val connection: Connection) {
             val repo = R2dbcRepo.create<User, UserPK>(connection)
             val timeout = CoroutinesTimeout(if (TestConfig.CI) 5000 else 500)
         }
@@ -96,7 +104,12 @@ class R2dbcRepoTest : JUnit5Minutests {
                 test("can load data object by id") {
                     runBlocking {
                         repo.create(User(name = "anotherUser", email = "my email"))
-                        val id = repo.create(User(name = "chris", email = "my email", bio = reallyLongString)).id!!
+                        val id = repo.create(
+                            User(
+                                name = "chris", email = "my email", bio = reallyLongString, isCool = false,
+                                favoriteColor = Color.RED
+                            )
+                        ).id!!
                         val user = repo.findById(id)
                         expectThat(user).and {
                             get { id }.isEqualTo(id)
@@ -104,6 +117,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                             get { email }.isEqualTo("my email")
                             get { isCool }.isFalse()
                             get { bio }.isEqualTo(reallyLongString)
+                            get { favoriteColor }.isEqualTo(Color.RED)
                         }
                     }
                 }
@@ -139,6 +153,25 @@ class R2dbcRepoTest : JUnit5Minutests {
                                 email = null
                             )
                         )
+                    }
+
+                }
+            }
+            context("enum fields") {
+                test("enum fields are serialized as upper case strings") {
+                    runBlocking {
+                        val id = repo.create(
+                            User(
+                                name = "chris", email = "my email", bio = reallyLongString, isCool = false,
+                                favoriteColor = Color.RED
+                            )
+                        ).id!!
+                        val color =
+                            connection.createStatement("select * from Users where id = $1").bind("$1", id.id).execute()
+                                .awaitSingle()
+                                .map { row, _ -> row.get(User::favoriteColor.name.toSnakeCase(), String::class.java) }
+                                .awaitSingle()
+                        expectThat(color).isEqualTo("RED")
                     }
 
                 }

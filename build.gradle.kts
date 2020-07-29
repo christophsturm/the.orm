@@ -11,13 +11,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val junit5Version = "5.6.2"
 val junitPlatformVersion = "1.6.2"
-val coroutinesVersion = if (ProjectConfig.eap) "1.3.7-1.4-M2" else "1.3.8"
-val kotlinVersion = if (ProjectConfig.eap) "1.4-M2" else "1.3.72"
+val coroutinesVersion = if (ProjectConfig.eap) "1.3.7-1.4-M3" else "1.3.8"
+val kotlinVersion = if (ProjectConfig.eap) "1.4-M3" else "1.3.72"
 val serializationVersion = "0.20.0"
 
 plugins {
     java
-    kotlin("jvm").version(if (ProjectConfig.eap) "1.4-M2" else "1.3.72")
+    kotlin("jvm").version(if (ProjectConfig.eap) "1.4-M3" else "1.3.72")
     id("com.github.ben-manes.versions") version "0.29.0"
     id("info.solidsoft.pitest") version "1.5.1"
     id("com.adarshr.test-logger") version "2.1.0"
@@ -54,7 +54,7 @@ dependencies {
     testRuntimeOnly("org.postgresql:postgresql:42.2.14")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.4.RELEASE")
     testImplementation("org.testcontainers:postgresql:1.14.3")
-    testImplementation("org.flywaydb:flyway-core:6.5.1")
+    testImplementation("org.flywaydb:flyway-core:6.5.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
@@ -116,7 +116,7 @@ publishing {
     }
 }
 
-// BINTRAY_API_KEY= ... ./gradlew clean check publish bintrayUpload
+// BINTRAY_API_KEY= ... ./gradlew clean build publish bintrayUpload
 bintray {
     user = "christophsturm"
     key = System.getenv("BINTRAY_API_KEY")

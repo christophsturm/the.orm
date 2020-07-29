@@ -10,11 +10,14 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.internal.IDHandler
+import java.lang.Enum.valueOf
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.javaType
 
 public interface PK {
     public val id: Long
@@ -128,20 +131,20 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
      */
     public suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
         val query = selectString + snakeCaseForProperty[property] + "=$1"
-        val result = try {
+        val queryResult = try {
             connection.createStatement(query).bind("$1", propertyValue).execute()
                 .awaitSingle()
         } catch (e: Exception) {
             throw R2dbcRepoException("error executing select: $query", e)
         }
-        val parameters = result.map { row, _ ->
+        val parameters = queryResult.map { row, _ ->
             snakeCaseStringForConstructorParameter.mapValues { entry ->
                 row.get(entry.value)
             }
         }.asFlow()
         return parameters.map {
-            val resolvedParameters: Map<KParameter, Any> = it.mapValues { entry ->
-                val resolvedValue = when (val value = entry.value) {
+            val resolvedParameters: Map<KParameter, Any> = it.mapValues { (parameter, value) ->
+                val resolvedValue = when (value) {
                     is Clob -> {
                         val sb = StringBuilder()
                         value.stream().asFlow().collect { chunk ->
@@ -153,10 +156,17 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
                     }
                     else -> value
                 }
-                if (entry.key.name == "id")
+                if (parameter.name == "id")
                     idAssigner.createId(resolvedValue as Long)
-                else
-                    resolvedValue
+                else {
+
+                    val clazz = parameter.type.javaType as Class<*>
+                    if (resolvedValue != null && clazz.isEnum) {
+                        @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST")
+                        valueOf<Any>(clazz as Class<Any>, resolvedValue as String)
+                    } else
+                        resolvedValue
+                }
             }
             try {
                 constructor.callBy(resolvedParameters)
@@ -174,10 +184,14 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
     ): Statement {
         val value = entry.call(instance)
         return try {
-            if (value == null)
-                statement.bindNull(index, (entry.returnType.classifier as KClass<*>).java)
-            else
-                statement.bind(index, value)
+            if (value == null) {
+                val kClass = entry.returnType.classifier as KClass<*>
+                val clazz = if (kClass.isSubclassOf(Enum::class)) String::class.java else kClass.java
+                statement.bindNull(index, clazz)
+            } else {
+
+                statement.bind(index, if (value::class.isSubclassOf(Enum::class)) value.toString() else value)
+            }
         } catch (e: java.lang.IllegalArgumentException) {
             throw R2dbcRepoException(
                 "error binding value $value to field $entry with index $index",
