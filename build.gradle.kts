@@ -13,7 +13,7 @@ val junit5Version = "5.6.2"
 val junitPlatformVersion = "1.6.2"
 val coroutinesVersion = "1.3.9"
 val kotlinVersion = "1.4.0"
-val serializationVersion = "1.0-M1-1.4.0-rc"
+val serializationVersion = "1.0.0-RC"
 
 plugins {
     java
@@ -61,18 +61,16 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
     testImplementation("io.projectreactor.tools:blockhound:1.0.4.RELEASE")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
     "pitest"("org.pitest:pitest-junit5-plugin:0.12")
 
 }
-if (ProjectConfig.eap) {
-    // set it here to apply only to production and not test compile
-    val compileKotlin: KotlinCompile by tasks
-    compileKotlin.kotlinOptions.freeCompilerArgs = listOf("-Xexplicit-api=strict")
-}
 configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_1_8
+}
+kotlin {
+    explicitApi()
 }
 tasks {
     withType<KotlinCompile> {
