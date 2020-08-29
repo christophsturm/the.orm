@@ -19,7 +19,7 @@ plugins {
     java
     kotlin("jvm").version("1.4.0")
     id("com.github.ben-manes.versions") version "0.29.0"
-    id("info.solidsoft.pitest") version "1.5.1"
+    id("info.solidsoft.pitest") version "1.5.2"
     id("com.adarshr.test-logger") version "2.1.0"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
@@ -46,15 +46,15 @@ dependencies {
 
     api("io.r2dbc:r2dbc-spi:0.8.2.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
-    testImplementation("io.strikt:strikt-core:0.26.1")
+    testImplementation("io.strikt:strikt-core:0.27.0")
     testImplementation("dev.minutest:minutest:1.11.0")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
-    testRuntimeOnly("org.postgresql:postgresql:42.2.14")
+    testRuntimeOnly("org.postgresql:postgresql:42.2.16")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.4.RELEASE")
     testImplementation("org.testcontainers:postgresql:1.14.3")
-    testImplementation("org.flywaydb:flyway-core:6.5.2")
+    testImplementation("org.flywaydb:flyway-core:6.5.5")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
