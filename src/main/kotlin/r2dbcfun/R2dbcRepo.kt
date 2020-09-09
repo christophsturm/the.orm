@@ -162,8 +162,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
                     val clazz = parameter.type.javaType as Class<*>
                     if (resolvedValue != null && clazz.isEnum) {
-                        @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST")
-                        valueOf<Any>(clazz as Class<Any>, resolvedValue as String)
+                        createEnumValue(clazz, resolvedValue)
                     } else
                         resolvedValue
                 }
@@ -175,6 +174,10 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
             }
         }
     }
+
+    private fun createEnumValue(clazz: Class<*>, resolvedValue: Any?) =
+        (@Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST")
+        valueOf<Any>(clazz as Class<Any>, resolvedValue as String))
 
     private fun bindValueOrNull(
         entry: KProperty1<out T, *>,
