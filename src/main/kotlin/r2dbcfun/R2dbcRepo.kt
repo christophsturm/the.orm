@@ -58,15 +58,20 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
     @Suppress("UNCHECKED_CAST")
     private val idProperty = properties["id"] as KProperty1<T, Any>
 
-    private inner class Inserter {
+    private class Inserter<T : Any, PKClass : PK>(
+        val insertProperties: ArrayList<KProperty1<T, *>>,
+        tableName: String,
+        val connection: Connection,
+        val idHandler: IDHandler<T, PKClass>
+    ) {
         private val insertStatementString = run {
-            val fieldNames = propertiesExceptId.joinToString { it.name.toSnakeCase() }
-            val fieldPlaceHolders = (1..propertiesExceptId.size).joinToString { idx -> "$$idx" }
+            val fieldNames = insertProperties.joinToString { it.name.toSnakeCase() }
+            val fieldPlaceHolders = (1..insertProperties.size).joinToString { idx -> "$$idx" }
             "INSERT INTO $tableName($fieldNames) values ($fieldPlaceHolders)"
         }
 
         suspend fun create(instance: T): T {
-            val statement = propertiesExceptId.foldIndexed(
+            val statement = insertProperties.foldIndexed(
                 connection.createStatement(insertStatementString)
             )
             { idx, statement, property ->
@@ -84,11 +89,11 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
                 throw R2dbcRepoException("error executing insert: $insertStatementString", e)
             }
 
-            return idAssigner.assignId(instance, id)
+            return idHandler.assignId(instance, id)
         }
     }
 
-    private val inserter = Inserter()
+    private val inserter = Inserter(propertiesExceptId, tableName, connection, idAssigner)
 
     private inner class Updater {
         private val updateStatementString = run {
@@ -214,27 +219,28 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
         finder.findBy(property, propertyValue)
 
 
-    private fun bindValueOrNull(
-        statement: Statement,
-        index: Int,
-        value: Any?,
-        kClass: KClass<*>,
-        fieldName: String
-    ): Statement {
-        return try {
-            if (value == null) {
-                val clazz = if (kClass.isSubclassOf(Enum::class)) String::class.java else kClass.java
-                statement.bindNull(index, clazz)
-            } else {
 
-                statement.bind(index, if (value::class.isSubclassOf(Enum::class)) value.toString() else value)
-            }
-        } catch (e: java.lang.IllegalArgumentException) {
-            throw R2dbcRepoException(
-                "error binding value $value to field $fieldName with index $index",
-                e
-            )
+}
+
+private fun bindValueOrNull(
+    statement: Statement,
+    index: Int,
+    value: Any?,
+    kClass: KClass<*>,
+    fieldName: String
+): Statement {
+    return try {
+        if (value == null) {
+            val clazz = if (kClass.isSubclassOf(Enum::class)) String::class.java else kClass.java
+            statement.bindNull(index, clazz)
+        } else {
+
+            statement.bind(index, if (value::class.isSubclassOf(Enum::class)) value.toString() else value)
         }
+    } catch (e: java.lang.IllegalArgumentException) {
+        throw R2dbcRepoException(
+            "error binding value $value to field $fieldName with index $index",
+            e
+        )
     }
-
 }
