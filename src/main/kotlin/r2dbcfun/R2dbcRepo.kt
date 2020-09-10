@@ -70,7 +70,13 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
                 connection.createStatement(insertStatementString)
             )
             { idx, statement, property ->
-                bindValueOrNull(property, instance, statement, idx)
+                bindValueOrNull(
+                    statement,
+                    idx,
+                    property.call(instance),
+                    property.returnType.classifier as KClass<*>,
+                    property.name
+                )
             }
             val id = try {
                 statement.executeInsert()
@@ -99,7 +105,13 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
                 connection.createStatement(updateStatementString)
                     .bind(0, idAssigner.getId(idProperty.call(instance)))
             ) { idx, statement, entry ->
-                bindValueOrNull(entry, instance, statement, idx + 1)
+                bindValueOrNull(
+                    statement,
+                    idx + 1,
+                    entry.call(instance),
+                    entry.returnType.classifier as KClass<*>,
+                    entry.name
+                )
             }
             val rowsUpdated = statement.execute().awaitSingle().rowsUpdated.awaitSingle()
             if (rowsUpdated != 1)
@@ -110,6 +122,63 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
     }
 
     private val updater = Updater()
+
+    private inner class Finder {
+        suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
+            val query = selectString + snakeCaseForProperty[property] + "=$1"
+            val queryResult = try {
+                connection.createStatement(query).bind("$1", propertyValue).execute()
+                    .awaitSingle()
+            } catch (e: Exception) {
+                throw R2dbcRepoException("error executing select: $query", e)
+            }
+            val parameters = queryResult.map { row, _ ->
+                snakeCaseStringForConstructorParameter.mapValues { entry ->
+                    row.get(entry.value)
+                }
+            }.asFlow()
+            return parameters.map {
+                val resolvedParameters: Map<KParameter, Any> = it.mapValues { (parameter, value) ->
+                    val resolvedValue = when (value) {
+                        is Clob -> {
+                            val sb = StringBuilder()
+                            value.stream().asFlow().collect { chunk ->
+                                @Suppress("BlockingMethodInNonBlockingContext")
+                                sb.append(chunk)
+                            }
+                            value.discard()
+                            sb.toString()
+                        }
+                        else -> value
+                    }
+                    if (parameter.name == "id")
+                        idAssigner.createId(resolvedValue as Long)
+                    else {
+
+                        val clazz = parameter.type.javaType as Class<*>
+                        if (resolvedValue != null && clazz.isEnum) {
+                            createEnumValue(clazz, resolvedValue)
+                        } else
+                            resolvedValue
+                    }
+                }
+                try {
+                    constructor.callBy(resolvedParameters)
+                } catch (e: IllegalArgumentException) {
+                    throw R2dbcRepoException(
+                        "error invoking constructor for $tableName. parameters:$resolvedParameters",
+                        e
+                    )
+                }
+            }
+        }
+
+        private fun createEnumValue(clazz: Class<*>, resolvedValue: Any?) =
+            (@Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST")
+            valueOf<Any>(clazz as Class<Any>, resolvedValue as String))
+    }
+
+    private val finder = Finder()
 
     /**
      * creates a new record in the database.
@@ -141,66 +210,19 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
      * @param property the property to filter by
      * @param propertyValue the value of
      */
-    public suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
-        val query = selectString + snakeCaseForProperty[property] + "=$1"
-        val queryResult = try {
-            connection.createStatement(query).bind("$1", propertyValue).execute()
-                .awaitSingle()
-        } catch (e: Exception) {
-            throw R2dbcRepoException("error executing select: $query", e)
-        }
-        val parameters = queryResult.map { row, _ ->
-            snakeCaseStringForConstructorParameter.mapValues { entry ->
-                row.get(entry.value)
-            }
-        }.asFlow()
-        return parameters.map {
-            val resolvedParameters: Map<KParameter, Any> = it.mapValues { (parameter, value) ->
-                val resolvedValue = when (value) {
-                    is Clob -> {
-                        val sb = StringBuilder()
-                        value.stream().asFlow().collect { chunk ->
-                            @Suppress("BlockingMethodInNonBlockingContext")
-                            sb.append(chunk)
-                        }
-                        value.discard()
-                        sb.toString()
-                    }
-                    else -> value
-                }
-                if (parameter.name == "id")
-                    idAssigner.createId(resolvedValue as Long)
-                else {
+    public suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> =
+        finder.findBy(property, propertyValue)
 
-                    val clazz = parameter.type.javaType as Class<*>
-                    if (resolvedValue != null && clazz.isEnum) {
-                        createEnumValue(clazz, resolvedValue)
-                    } else
-                        resolvedValue
-                }
-            }
-            try {
-                constructor.callBy(resolvedParameters)
-            } catch (e: IllegalArgumentException) {
-                throw R2dbcRepoException("error invoking constructor for $tableName. parameters:$resolvedParameters", e)
-            }
-        }
-    }
-
-    private fun createEnumValue(clazz: Class<*>, resolvedValue: Any?) =
-        (@Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST")
-        valueOf<Any>(clazz as Class<Any>, resolvedValue as String))
 
     private fun bindValueOrNull(
-        entry: KProperty1<out T, *>,
-        instance: T,
         statement: Statement,
-        index: Int
+        index: Int,
+        value: Any?,
+        kClass: KClass<*>,
+        fieldName: String
     ): Statement {
-        val value = entry.call(instance)
         return try {
             if (value == null) {
-                val kClass = entry.returnType.classifier as KClass<*>
                 val clazz = if (kClass.isSubclassOf(Enum::class)) String::class.java else kClass.java
                 statement.bindNull(index, clazz)
             } else {
@@ -209,7 +231,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
             }
         } catch (e: java.lang.IllegalArgumentException) {
             throw R2dbcRepoException(
-                "error binding value $value to field $entry with index $index",
+                "error binding value $value to field $fieldName with index $index",
                 e
             )
         }
