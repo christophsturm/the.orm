@@ -8,5 +8,6 @@ gradle-app.setting
 out/
 /.idea/libraries/
 /.idea/modules/
+/.idea/.*
 /.idea/*.xml
 /*.iml
