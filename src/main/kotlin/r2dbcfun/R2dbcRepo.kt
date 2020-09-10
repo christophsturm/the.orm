@@ -36,14 +36,14 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
             R2dbcRepo(connection, T::class, PKClass::class)
     }
 
-    private val propertyForName = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
-    private val propertiesExceptId = propertyForName.filter { it.key != "id" }.values
+    private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
+    private val propertiesExceptId = ArrayList(properties.filter { it.key != "id" }.values)
     private val snakeCaseForProperty = kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
     private fun makeUpdateString(): String {
-        val propertiesWithoutId = propertyForName.keys.filter { it != "id" }
+        val propertiesWithoutId = properties.keys.filter { it != "id" }
         val propertiesString = propertiesWithoutId.withIndex()
             .joinToString { indexedProperty -> "${indexedProperty.value.toSnakeCase()}=$${indexedProperty.index + 2}" }
 
@@ -73,7 +73,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
         "select ${constructor.parameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where "
 
     @Suppress("UNCHECKED_CAST")
-    private val idProperty = propertyForName["id"] as KProperty1<T, Any>
+    private val idProperty = properties["id"] as KProperty1<T, Any>
 
 
     /**
