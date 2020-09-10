@@ -12,6 +12,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.internal.IDHandler
 import java.lang.Enum.valueOf
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -43,17 +44,11 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
 
-
     private val idAssigner = IDHandler(kClass, pkClass)
-    private val constructor = kClass.primaryConstructor
+    private val constr: KFunction<T> = kClass.primaryConstructor
         ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
-    private val snakeCaseStringForConstructorParameter =
-        constructor.parameters.associateBy({ it }, { it.name!!.toSnakeCase() })
 
-    @Suppress("SqlResolve")
-    private val selectString =
-        "select ${constructor.parameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where "
 
     @Suppress("UNCHECKED_CAST")
     private val idProperty = properties["id"] as KProperty1<T, Any>
@@ -133,7 +128,14 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
     private val updater = Updater(propertiesExceptId, idAssigner, idProperty, connection, tableName)
 
-    private inner class Finder {
+    private inner class Finder(val idHandler: IDHandler<T, PKClass>, val constructor: KFunction<T>) {
+        @Suppress("SqlResolve")
+        private val selectString =
+            "select ${constructor.parameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where "
+        private val snakeCaseStringForConstructorParameter =
+            constructor.parameters.associateBy({ it }, { it.name!!.toSnakeCase() })
+
+
         suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
             val query = selectString + snakeCaseForProperty[property] + "=$1"
             val queryResult = try {
@@ -162,7 +164,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
                         else -> value
                     }
                     if (parameter.name == "id")
-                        idAssigner.createId(resolvedValue as Long)
+                        idHandler.createId(resolvedValue as Long)
                     else {
 
                         val clazz = parameter.type.javaType as Class<*>
@@ -188,7 +190,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
             valueOf<Any>(clazz as Class<Any>, resolvedValue as String))
     }
 
-    private val finder = Finder()
+    private val finder = Finder(idAssigner, constr)
 
     /**
      * creates a new record in the database.
