@@ -25,7 +25,7 @@ public interface PK {
 }
 
 public class R2dbcRepo<T : Any, PKClass : PK>(
-    private val connection: Connection,
+    connection: Connection,
     kClass: KClass<T>,
     pkClass: KClass<PKClass>
 ) {
@@ -39,7 +39,6 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
     private val propertiesExceptId = ArrayList(properties.filter { it.key != "id" }.values)
-    private val snakeCaseForProperty = kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
@@ -128,12 +127,19 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
     private val updater = Updater(propertiesExceptId, idAssigner, idProperty, connection, tableName)
 
-    private inner class Finder(val idHandler: IDHandler<T, PKClass>, val constructor: KFunction<T>) {
+    private class Finder<T : Any, PKClass : PK>(
+        val idHandler: IDHandler<T, PKClass>, val constructor: KFunction<T>,
+        val connection: Connection,
+        kClass: KClass<T>,
+        val table: String
+    ) {
         @Suppress("SqlResolve")
         private val selectString =
-            "select ${constructor.parameters.joinToString { it.name!!.toSnakeCase() }} from $tableName where "
+            "select ${constructor.parameters.joinToString { it.name!!.toSnakeCase() }} from $table where "
         private val snakeCaseStringForConstructorParameter =
             constructor.parameters.associateBy({ it }, { it.name!!.toSnakeCase() })
+        private val snakeCaseForProperty =
+            kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
 
         suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
@@ -178,7 +184,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
                     constructor.callBy(resolvedParameters)
                 } catch (e: IllegalArgumentException) {
                     throw R2dbcRepoException(
-                        "error invoking constructor for $tableName. parameters:$resolvedParameters",
+                        "error invoking constructor for $table. parameters:$resolvedParameters",
                         e
                     )
                 }
@@ -190,7 +196,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
             valueOf<Any>(clazz as Class<Any>, resolvedValue as String))
     }
 
-    private val finder = Finder(idAssigner, constr)
+    private val finder = Finder(idAssigner, constr, connection, kClass, tableName)
 
     /**
      * creates a new record in the database.
