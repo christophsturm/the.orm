@@ -48,20 +48,19 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
         ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
 
-
     @Suppress("UNCHECKED_CAST")
     private val idProperty = properties["id"] as KProperty1<T, Any>
 
     private class Inserter<T : Any, PKClass : PK>(
-        val insertProperties: ArrayList<KProperty1<T, *>>,
-        tableName: String,
+        table: String,
         val connection: Connection,
+        val insertProperties: ArrayList<KProperty1<T, *>>,
         val idHandler: IDHandler<T, PKClass>
     ) {
         private val insertStatementString = run {
             val fieldNames = insertProperties.joinToString { it.name.toSnakeCase() }
             val fieldPlaceHolders = (1..insertProperties.size).joinToString { idx -> "$$idx" }
-            "INSERT INTO $tableName($fieldNames) values ($fieldPlaceHolders)"
+            "INSERT INTO $table($fieldNames) values ($fieldPlaceHolders)"
         }
 
         suspend fun create(instance: T): T {
@@ -87,21 +86,21 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
         }
     }
 
-    private val inserter = Inserter(propertiesExceptId, tableName, connection, idAssigner)
+    private val inserter = Inserter(tableName, connection, propertiesExceptId, idAssigner)
 
     private class Updater<T : Any, PKClass : PK>(
+        table: String,
+        val connection: Connection,
         val updateProperties: ArrayList<KProperty1<T, *>>,
         val idHandler: IDHandler<T, PKClass>,
-        val id: KProperty1<T, Any>,
-        val connection: Connection,
-        tableName: String
+        val id: KProperty1<T, Any>
     ) {
         private val updateStatementString = run {
             val propertiesString = updateProperties.withIndex()
                 .joinToString { indexedProperty -> "${indexedProperty.value.name.toSnakeCase()}=$${indexedProperty.index + 2}" }
 
             @Suppress("SqlResolve")
-            "UPDATE $tableName set $propertiesString where id=$1"
+            "UPDATE $table set $propertiesString where id=$1"
         }
 
         suspend fun update(instance: T) {
@@ -125,13 +124,14 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
     }
 
-    private val updater = Updater(propertiesExceptId, idAssigner, idProperty, connection, tableName)
+    private val updater = Updater(tableName, connection, propertiesExceptId, idAssigner, idProperty)
 
     private class Finder<T : Any, PKClass : PK>(
-        val idHandler: IDHandler<T, PKClass>, val constructor: KFunction<T>,
+        val table: String,
         val connection: Connection,
-        kClass: KClass<T>,
-        val table: String
+        val idHandler: IDHandler<T, PKClass>,
+        val constructor: KFunction<T>,
+        kClass: KClass<T>
     ) {
         @Suppress("SqlResolve")
         private val selectString =
@@ -196,7 +196,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
             valueOf<Any>(clazz as Class<Any>, resolvedValue as String))
     }
 
-    private val finder = Finder(idAssigner, constr, connection, kClass, tableName)
+    private val finder = Finder(tableName, connection, idAssigner, constr, kClass)
 
     /**
      * creates a new record in the database.
@@ -230,7 +230,6 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
      */
     public suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> =
         finder.findBy(property, propertyValue)
-
 
 
 }
