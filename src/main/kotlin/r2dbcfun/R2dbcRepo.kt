@@ -95,9 +95,15 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
     private val inserter = Inserter(propertiesExceptId, tableName, connection, idAssigner)
 
-    private inner class Updater {
+    private class Updater<T : Any, PKClass : PK>(
+        val updateProperties: ArrayList<KProperty1<T, *>>,
+        val idHandler: IDHandler<T, PKClass>,
+        val id: KProperty1<T, Any>,
+        val connection: Connection,
+        tableName: String
+    ) {
         private val updateStatementString = run {
-            val propertiesString = propertiesExceptId.withIndex()
+            val propertiesString = updateProperties.withIndex()
                 .joinToString { indexedProperty -> "${indexedProperty.value.name.toSnakeCase()}=$${indexedProperty.index + 2}" }
 
             @Suppress("SqlResolve")
@@ -105,9 +111,9 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
         }
 
         suspend fun update(instance: T) {
-            val statement = propertiesExceptId.foldIndexed(
+            val statement = updateProperties.foldIndexed(
                 connection.createStatement(updateStatementString)
-                    .bind(0, idAssigner.getId(idProperty.call(instance)))
+                    .bind(0, idHandler.getId(id.call(instance)))
             ) { idx, statement, entry ->
                 bindValueOrNull(
                     statement,
@@ -125,7 +131,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
     }
 
-    private val updater = Updater()
+    private val updater = Updater(propertiesExceptId, idAssigner, idProperty, connection, tableName)
 
     private inner class Finder {
         suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
