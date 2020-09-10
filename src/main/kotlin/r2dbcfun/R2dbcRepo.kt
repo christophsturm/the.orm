@@ -42,24 +42,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
-    private fun makeUpdateString(): String {
-        val propertiesWithoutId = properties.keys.filter { it != "id" }
-        val propertiesString = propertiesWithoutId.withIndex()
-            .joinToString { indexedProperty -> "${indexedProperty.value.toSnakeCase()}=$${indexedProperty.index + 2}" }
 
-        @Suppress("SqlResolve")
-        return "UPDATE $tableName set $propertiesString where id=$1"
-    }
-
-    private val updateStatementString = makeUpdateString()
-
-    private fun makeInsertStatementString(): String {
-        val fieldNames = propertiesExceptId.joinToString { it.name.toSnakeCase() }
-        val fieldPlaceHolders = (1..propertiesExceptId.size).joinToString { idx -> "$$idx" }
-        return "INSERT INTO $tableName($fieldNames) values ($fieldPlaceHolders)"
-    }
-
-    private val insertStatementString = makeInsertStatementString()
 
     private val idAssigner = IDHandler(kClass, pkClass)
     private val constructor = kClass.primaryConstructor
@@ -75,43 +58,72 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
     @Suppress("UNCHECKED_CAST")
     private val idProperty = properties["id"] as KProperty1<T, Any>
 
+    private inner class Inserter {
+        private val insertStatementString = run {
+            val fieldNames = propertiesExceptId.joinToString { it.name.toSnakeCase() }
+            val fieldPlaceHolders = (1..propertiesExceptId.size).joinToString { idx -> "$$idx" }
+            "INSERT INTO $tableName($fieldNames) values ($fieldPlaceHolders)"
+        }
+
+        suspend fun create(instance: T): T {
+            val statement = propertiesExceptId.foldIndexed(
+                connection.createStatement(insertStatementString)
+            )
+            { idx, statement, property ->
+                bindValueOrNull(property, instance, statement, idx)
+            }
+            val id = try {
+                statement.executeInsert()
+            } catch (e: Exception) {
+                throw R2dbcRepoException("error executing insert: $insertStatementString", e)
+            }
+
+            return idAssigner.assignId(instance, id)
+        }
+    }
+
+    private val inserter = Inserter()
+
+    private inner class Updater {
+        private val updateStatementString = run {
+            val propertiesWithoutId = properties.keys.filter { it != "id" }
+            val propertiesString = propertiesWithoutId.withIndex()
+                .joinToString { indexedProperty -> "${indexedProperty.value.toSnakeCase()}=$${indexedProperty.index + 2}" }
+
+            @Suppress("SqlResolve")
+            "UPDATE $tableName set $propertiesString where id=$1"
+        }
+
+        suspend fun update(instance: T) {
+            val statement = propertiesExceptId.foldIndexed(
+                connection.createStatement(updateStatementString)
+                    .bind(0, idAssigner.getId(idProperty.call(instance)))
+            ) { idx, statement, entry ->
+                bindValueOrNull(entry, instance, statement, idx + 1)
+            }
+            val rowsUpdated = statement.execute().awaitSingle().rowsUpdated.awaitSingle()
+            if (rowsUpdated != 1)
+                throw R2dbcRepoException("rowsUpdated was $rowsUpdated instead of 1")
+
+        }
+
+    }
+
+    private val updater = Updater()
 
     /**
      * creates a new record in the database.
      * @param instance the instance that will be used to set the fields of the newly created record
      * @return a copy of the instance with an assigned id field.
      */
-    public suspend fun create(instance: T): T {
-        val statement = propertiesExceptId.foldIndexed(
-            connection.createStatement(insertStatementString)
-        )
-        { idx, statement, property ->
-            bindValueOrNull(property, instance, statement, idx)
-        }
-        val id = try {
-            statement.executeInsert()
-        } catch (e: Exception) {
-            throw R2dbcRepoException("error executing insert: $insertStatementString", e)
-        }
-
-        return idAssigner.assignId(instance, id)
-    }
+    public suspend fun create(instance: T): T = inserter.create(instance)
 
     /**
      * updates a record in the database.
      * @param instance the instance that will be used to update the record
      */
     public suspend fun update(instance: T) {
-        val statement = propertiesExceptId.foldIndexed(
-            connection.createStatement(updateStatementString)
-                .bind(0, idAssigner.getId(idProperty.call(instance)))
-        ) { idx, statement, entry ->
-            bindValueOrNull(entry, instance, statement, idx + 1)
-        }
-        val rowsUpdated = statement.execute().awaitSingle().rowsUpdated.awaitSingle()
-        if (rowsUpdated != 1)
-            throw R2dbcRepoException("rowsUpdated was $rowsUpdated instead of 1")
-
+        updater.update(instance)
     }
 
     /**
