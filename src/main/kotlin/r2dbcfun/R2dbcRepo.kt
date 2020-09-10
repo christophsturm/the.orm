@@ -97,9 +97,8 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
     private inner class Updater {
         private val updateStatementString = run {
-            val propertiesWithoutId = properties.keys.filter { it != "id" }
-            val propertiesString = propertiesWithoutId.withIndex()
-                .joinToString { indexedProperty -> "${indexedProperty.value.toSnakeCase()}=$${indexedProperty.index + 2}" }
+            val propertiesString = propertiesExceptId.withIndex()
+                .joinToString { indexedProperty -> "${indexedProperty.value.name.toSnakeCase()}=$${indexedProperty.index + 2}" }
 
             @Suppress("SqlResolve")
             "UPDATE $tableName set $propertiesString where id=$1"
