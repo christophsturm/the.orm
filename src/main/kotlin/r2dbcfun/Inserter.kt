@@ -7,9 +7,9 @@ import kotlin.reflect.KProperty1
 
 internal class Inserter<T : Any, PKClass : PK>(
     table: String,
-    val connection: Connection,
-    val insertProperties: ArrayList<KProperty1<T, *>>,
-    val idHandler: IDHandler<T, PKClass>
+    private val connection: Connection,
+    private val insertProperties: ArrayList<KProperty1<T, *>>,
+    private val idHandler: IDHandler<T, PKClass>
 ) {
     private val insertStatementString = run {
         val fieldNames = insertProperties.joinToString { it.name.toSnakeCase() }

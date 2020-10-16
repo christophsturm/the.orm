@@ -8,10 +8,10 @@ import kotlin.reflect.KProperty1
 
 internal class Updater<T : Any, PKClass : PK>(
     table: String,
-    val connection: Connection,
-    val updateProperties: ArrayList<KProperty1<T, *>>,
-    val idHandler: IDHandler<T, PKClass>,
-    val id: KProperty1<T, Any>
+    private val connection: Connection,
+    private val updateProperties: ArrayList<KProperty1<T, *>>,
+    private val idHandler: IDHandler<T, PKClass>,
+    private val id: KProperty1<T, Any>
 ) {
     private val updateStatementString = run {
         val propertiesString = updateProperties.withIndex()

@@ -16,10 +16,10 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.javaType
 
 internal class Finder<T : Any, PKClass : PK>(
-    val table: String,
-    val connection: Connection,
-    val idHandler: IDHandler<T, PKClass>,
-    val constructor: KFunction<T>,
+    private val table: String,
+    private val connection: Connection,
+    private val idHandler: IDHandler<T, PKClass>,
+    private val constructor: KFunction<T>,
     kClass: KClass<T>
 ) {
     @Suppress("SqlResolve")
