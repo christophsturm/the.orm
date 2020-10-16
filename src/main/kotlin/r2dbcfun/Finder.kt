@@ -81,6 +81,6 @@ internal class Finder<T : Any, PKClass : PK>(
     }
 
     private fun createEnumValue(clazz: Class<*>, resolvedValue: Any?) =
-        @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST")
+        @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST", "RemoveExplicitTypeArguments")
         (java.lang.Enum.valueOf<Any>(clazz as Class<Any>, resolvedValue as String))
 }
