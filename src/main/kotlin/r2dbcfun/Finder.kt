@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.internal.IDHandler
-import java.lang.Enum
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -82,6 +81,6 @@ internal class Finder<T : Any, PKClass : PK>(
     }
 
     private fun createEnumValue(clazz: Class<*>, resolvedValue: Any?) =
-        (@Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST")
-        (Enum.valueOf<Any>(clazz as Class<Any>, resolvedValue as String)))
+        @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST")
+        (java.lang.Enum.valueOf<Any>(clazz as Class<Any>, resolvedValue as String))
 }
