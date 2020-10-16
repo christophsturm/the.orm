@@ -21,7 +21,7 @@ plugins {
     kotlin("jvm").version("1.4.10")
     id("com.github.ben-manes.versions") version "0.33.0"
     id("info.solidsoft.pitest") version "1.5.2"
-    id("com.adarshr.test-logger") version "2.1.0"
+    id("com.adarshr.test-logger") version "2.1.1"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
     kotlin("plugin.serialization").version("1.4.10")
@@ -52,10 +52,10 @@ dependencies {
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
-    testRuntimeOnly("org.postgresql:postgresql:42.2.17")
+    testRuntimeOnly("org.postgresql:postgresql:42.2.18")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.5.RELEASE")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.flywaydb:flyway-core:7.0.2")
+    testImplementation("org.flywaydb:flyway-core:7.0.3")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
