@@ -50,15 +50,7 @@ internal class Finder<T : Any, PKClass : PK>(
         return parameters.map { values ->
             val resolvedParameters = values.associateTo(HashMap()) { (fieldInfo, result) ->
                 val resolvedValue = when (result) {
-                    is Clob -> {
-                        val sb = StringBuilder()
-                        result.stream().asFlow().collect { chunk ->
-                            @Suppress("BlockingMethodInNonBlockingContext")
-                            sb.append(chunk)
-                        }
-                        result.discard()
-                        sb.toString()
-                    }
+                    is Clob -> resolveClob(result)
                     else -> result
                 }
                 val value = if (fieldInfo.snakeCaseName == "id")
@@ -81,6 +73,16 @@ internal class Finder<T : Any, PKClass : PK>(
                 )
             }
         }
+    }
+
+    private suspend fun resolveClob(result: Clob): String {
+        val sb = StringBuilder()
+        result.stream().asFlow().collect { chunk ->
+            @Suppress("BlockingMethodInNonBlockingContext")
+            sb.append(chunk)
+        }
+        result.discard()
+        return sb.toString()
     }
 
 
