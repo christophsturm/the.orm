@@ -77,7 +77,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
      * @param property the property to filter by
      * @param propertyValue the value of
      */
-    public suspend fun <V> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> =
+    public suspend fun <V : Any> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> =
         finder.findBy(property, propertyValue)
 
 
