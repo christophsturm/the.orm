@@ -9,8 +9,6 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.internal.IDHandler
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
-import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.javaType
@@ -83,19 +81,8 @@ internal class Finder<T : Any, PKClass : PK>(
         return sb.toString()
     }
 
-
     private fun createEnumValue(clazz: Class<*>, resolvedValue: Any?) =
         @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST", "RemoveExplicitTypeArguments")
         (java.lang.Enum.valueOf<Any>(clazz as Class<Any>, resolvedValue as String))
 }
 
-internal class ClassInfo<T>(val constructor: KFunction<T>) {
-    data class FieldInfo(val constructorParameter: KParameter, val snakeCaseName: String) {
-        constructor(parameter: KParameter) : this(parameter, parameter.name!!.toSnakeCase())
-    }
-
-    val fieldInfo =
-        constructor.parameters.map { FieldInfo(it) }
-
-
-}
