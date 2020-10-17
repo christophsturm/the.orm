@@ -5,10 +5,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
 import r2dbcfun.internal.IDHandler
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.primaryConstructor
 
 public interface PK {
     public val id: Long
@@ -34,8 +32,6 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
 
     private val idAssigner = IDHandler(kClass, pkClass)
-    private val constr: KFunction<T> = kClass.primaryConstructor
-        ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
 
     @Suppress("UNCHECKED_CAST")
@@ -45,7 +41,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
     private val updater = Updater(tableName, connection, propertiesExceptId, idAssigner, idProperty)
 
-    private val finder = Finder(tableName, connection, idAssigner, kClass, ClassInfo(constr))
+    private val finder = Finder(tableName, connection, idAssigner, kClass, ClassInfo(kClass))
 
     /**
      * creates a new record in the database.
