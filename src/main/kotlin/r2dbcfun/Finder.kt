@@ -19,17 +19,15 @@ internal class Finder<T : Any, PKClass : PK>(
     private val table: String,
     private val connection: Connection,
     private val idHandler: IDHandler<T, PKClass>,
-    private val constructor: KFunction<T>,
-    kClass: KClass<T>
+    kClass: KClass<T>,
+    private val classInfo: ClassInfo<T>
 ) {
     @Suppress("SqlResolve")
     private val selectStringPrefix =
-        "select ${constructor.parameters.joinToString { it.name!!.toSnakeCase() }} from $table where "
+        "select ${classInfo.fieldInfo.joinToString { it.snakeCaseName }} from $table where "
 
     private val snakeCaseForProperty =
         kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
-
-    private val classInfo = ClassInfo(constructor)
 
     suspend fun <V : Any> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
         val query = selectStringPrefix + snakeCaseForProperty[property] + "=$1"
@@ -65,7 +63,7 @@ internal class Finder<T : Any, PKClass : PK>(
                 Pair(fieldInfo.constructorParameter, value)
             }
             try {
-                constructor.callBy(resolvedParameters)
+                classInfo.constructor.callBy(resolvedParameters)
             } catch (e: IllegalArgumentException) {
                 throw R2dbcRepoException(
                     "error invoking constructor for $table. parameters:$resolvedParameters",
@@ -91,7 +89,7 @@ internal class Finder<T : Any, PKClass : PK>(
         (java.lang.Enum.valueOf<Any>(clazz as Class<Any>, resolvedValue as String))
 }
 
-internal class ClassInfo<T>(constructor: KFunction<T>) {
+internal class ClassInfo<T>(val constructor: KFunction<T>) {
     data class FieldInfo(val constructorParameter: KParameter, val snakeCaseName: String) {
         constructor(parameter: KParameter) : this(parameter, parameter.name!!.toSnakeCase())
     }

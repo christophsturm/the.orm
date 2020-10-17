@@ -45,7 +45,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
     private val updater = Updater(tableName, connection, propertiesExceptId, idAssigner, idProperty)
 
-    private val finder = Finder(tableName, connection, idAssigner, constr, kClass)
+    private val finder = Finder(tableName, connection, idAssigner, kClass, ClassInfo(constr))
 
     /**
      * creates a new record in the database.
