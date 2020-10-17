@@ -11,7 +11,6 @@ import r2dbcfun.internal.IDHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.jvm.javaType
 
 internal class Finder<T : Any, PKClass : PK>(
     private val table: String,
@@ -52,11 +51,7 @@ internal class Finder<T : Any, PKClass : PK>(
                 val value = if (fieldInfo.snakeCaseName == "id")
                     idHandler.createId(resolvedValue as Long)
                 else {
-                    val clazz = fieldInfo.constructorParameter.type.javaType as Class<*>
-                    if (resolvedValue != null && clazz.isEnum) {
-                        createEnumValue(clazz, resolvedValue)
-                    } else
-                        resolvedValue
+                    fieldInfo.instanceCreator.valueToConstructorParameter(resolvedValue)
                 }
                 Pair(fieldInfo.constructorParameter, value)
             }
@@ -80,9 +75,5 @@ internal class Finder<T : Any, PKClass : PK>(
         result.discard()
         return sb.toString()
     }
-
-    private fun createEnumValue(clazz: Class<*>, resolvedValue: Any?) =
-        @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST", "RemoveExplicitTypeArguments")
-        (java.lang.Enum.valueOf<Any>(clazz as Class<Any>, resolvedValue as String))
 }
 
