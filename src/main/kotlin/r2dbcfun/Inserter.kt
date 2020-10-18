@@ -20,7 +20,7 @@ internal class Inserter<T : Any, PKClass : PK>(
             connection.createStatement(insertStatementString)
         )
         { idx, statement, property ->
-            property.bindValueOrNull(statement, idx, instance)
+            property.bindValue(statement, idx, instance)
         }
         val id = try {
             statement.executeInsert()

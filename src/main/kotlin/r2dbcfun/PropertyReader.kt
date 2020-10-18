@@ -9,7 +9,15 @@ internal class PropertyReader<T>(private val property: KProperty1<T, *>) {
     val name = property.name
     private val kClass = property.returnType.classifier as KClass<*>
 
-    internal fun bindValueOrNull(
+    private val isEnum = kClass.isSubclassOf(Enum::class)
+
+
+    private val dbClass = if (isEnum) String::class.java else kClass.java // enums are strings from the dbs view
+
+    /**
+     * bind this property's value to a Statement
+     */
+    internal fun bindValue(
         statement: Statement,
         index: Int,
         instance: T
@@ -17,11 +25,9 @@ internal class PropertyReader<T>(private val property: KProperty1<T, *>) {
         val value = property.call(instance)
         return try {
             if (value == null) {
-                val clazz = if (kClass.isSubclassOf(Enum::class)) String::class.java else kClass.java
-                statement.bindNull(index, clazz)
+                statement.bindNull(index, dbClass)
             } else {
-
-                statement.bind(index, if (value::class.isSubclassOf(Enum::class)) value.toString() else value)
+                statement.bind(index, if (isEnum) value.toString() else value)
             }
         } catch (e: java.lang.IllegalArgumentException) {
             throw R2dbcRepoException(
