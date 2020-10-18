@@ -81,15 +81,16 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
 }
 
-internal class PropertyReader<T>(val property: KProperty1<T, *>) {
+internal class PropertyReader<T>(private val property: KProperty1<T, *>) {
     val name = property.name
     private val kClass = property.returnType.classifier as KClass<*>
 
     internal fun bindValueOrNull(
         statement: Statement,
         index: Int,
-        value: Any?
+        instance: T
     ): Statement {
+        val value = property.call(instance)
         return try {
             if (value == null) {
                 val clazz = if (kClass.isSubclassOf(Enum::class)) String::class.java else kClass.java

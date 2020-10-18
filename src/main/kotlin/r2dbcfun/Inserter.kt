@@ -10,7 +10,7 @@ internal class Inserter<T : Any, PKClass : PK>(
     private val idHandler: IDHandler<T, PKClass>
 ) {
     private val insertStatementString = run {
-        val fieldNames = insertProperties.joinToString { it.property.name.toSnakeCase() }
+        val fieldNames = insertProperties.joinToString { it.name.toSnakeCase() }
         val fieldPlaceHolders = (1..insertProperties.size).joinToString { idx -> "$$idx" }
         "INSERT INTO $table($fieldNames) values ($fieldPlaceHolders)"
     }
@@ -20,11 +20,7 @@ internal class Inserter<T : Any, PKClass : PK>(
             connection.createStatement(insertStatementString)
         )
         { idx, statement, property ->
-            property.bindValueOrNull(
-                statement,
-                idx,
-                property.property.call(instance)
-            )
+            property.bindValueOrNull(statement, idx, instance)
         }
         val id = try {
             statement.executeInsert()
