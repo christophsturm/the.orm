@@ -25,12 +25,11 @@ internal class Updater<T : Any, PKClass : PK>(
             connection.createStatement(updateStatementString)
                 .bind(0, idHandler.getId(id.call(instance)))
         ) { idx, statement, entry ->
-            bindValueOrNull(
+            entry.bindValueOrNull(
                 statement,
                 idx + 1,
-                entry.property.call(instance),
-                entry.kClass,
-                entry.name
+                entry.property.call(instance)
+
             )
         }
         val rowsUpdated = statement.execute().awaitSingle().rowsUpdated.awaitSingle()

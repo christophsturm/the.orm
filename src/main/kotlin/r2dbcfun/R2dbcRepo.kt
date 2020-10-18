@@ -1,12 +1,14 @@
 package r2dbcfun
 
 import io.r2dbc.spi.Connection
+import io.r2dbc.spi.Statement
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
 import r2dbcfun.internal.IDHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.isSubclassOf
 
 public interface PK {
     public val id: Long
@@ -81,7 +83,28 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
 internal class PropertyReader<T>(val property: KProperty1<T, *>) {
     val name = property.name
-    val kClass = property.returnType.classifier as KClass<*>
+    private val kClass = property.returnType.classifier as KClass<*>
+
+    internal fun bindValueOrNull(
+        statement: Statement,
+        index: Int,
+        value: Any?
+    ): Statement {
+        return try {
+            if (value == null) {
+                val clazz = if (kClass.isSubclassOf(Enum::class)) String::class.java else kClass.java
+                statement.bindNull(index, clazz)
+            } else {
+
+                statement.bind(index, if (value::class.isSubclassOf(Enum::class)) value.toString() else value)
+            }
+        } catch (e: java.lang.IllegalArgumentException) {
+            throw R2dbcRepoException(
+                "error binding value $value to field $name with index $index",
+                e
+            )
+        }
+    }
 
 }
 
