@@ -26,7 +26,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
     }
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
-    private val propertiesExceptId = ArrayList(properties.filter { it.key != "id" }.values)
+    private val propertiesExceptId = ArrayList(properties.filter { it.key != "id" }.values.map { PropertyReader(it) })
 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
@@ -76,6 +76,12 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
     public suspend fun <V : Any> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> =
         finder.findBy(property, propertyValue)
 
+
+}
+
+internal class PropertyReader<T>(val property: KProperty1<T, *>) {
+    val name = property.name
+    val kClass = property.returnType.classifier as KClass<*>
 
 }
 

@@ -2,17 +2,15 @@ package r2dbcfun
 
 import io.r2dbc.spi.Connection
 import r2dbcfun.internal.IDHandler
-import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
 
 internal class Inserter<T : Any, PKClass : PK>(
     table: String,
     private val connection: Connection,
-    private val insertProperties: ArrayList<KProperty1<T, *>>,
+    private val insertProperties: ArrayList<PropertyReader<T>>,
     private val idHandler: IDHandler<T, PKClass>
 ) {
     private val insertStatementString = run {
-        val fieldNames = insertProperties.joinToString { it.name.toSnakeCase() }
+        val fieldNames = insertProperties.joinToString { it.property.name.toSnakeCase() }
         val fieldPlaceHolders = (1..insertProperties.size).joinToString { idx -> "$$idx" }
         "INSERT INTO $table($fieldNames) values ($fieldPlaceHolders)"
     }
@@ -25,8 +23,8 @@ internal class Inserter<T : Any, PKClass : PK>(
             bindValueOrNull(
                 statement,
                 idx,
-                property.call(instance),
-                property.returnType.classifier as KClass<*>,
+                property.property.call(instance),
+                property.kClass,
                 property.name
             )
         }

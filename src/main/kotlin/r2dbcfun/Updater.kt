@@ -3,13 +3,12 @@ package r2dbcfun
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.internal.IDHandler
-import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 internal class Updater<T : Any, PKClass : PK>(
     table: String,
     private val connection: Connection,
-    private val updateProperties: ArrayList<KProperty1<T, *>>,
+    private val updateProperties: ArrayList<PropertyReader<T>>,
     private val idHandler: IDHandler<T, PKClass>,
     private val id: KProperty1<T, Any>
 ) {
@@ -29,8 +28,8 @@ internal class Updater<T : Any, PKClass : PK>(
             bindValueOrNull(
                 statement,
                 idx + 1,
-                entry.call(instance),
-                entry.returnType.classifier as KClass<*>,
+                entry.property.call(instance),
+                entry.kClass,
                 entry.name
             )
         }
