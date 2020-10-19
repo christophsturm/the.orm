@@ -20,11 +20,8 @@ internal class IDHandler<T : Any, PKType : PK>(kClass: KClass<T>, pkClass: KClas
     private val pkIdGetter: KProperty1.Getter<out PK, Long>
 
     init {
-        if (pkClass != idParameter.type.classifier as KClass<*>)
-
-
-            if (!pkClass.isSubclassOf(PK::class))
-                throw R2dbcRepoException("PK Classes must implement the PK interface")
+        if (!pkClass.isSubclassOf(PK::class))
+            throw R2dbcRepoException("PK Classes must implement the PK interface")
         pkConstructor = pkClass.primaryConstructor
             ?: throw RuntimeException("No primary constructor found for ${pkClass.simpleName}")
         val parameters = pkConstructor.parameters
