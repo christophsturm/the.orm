@@ -26,10 +26,9 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
     }
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
-    private val propertiesExceptId = properties.filter { it.key != "id" }.values.map { PropertyReader(it) }
+    private val propertyReaders = properties.filter { it.key != "id" }.values.map { PropertyReader(it) }
 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
-
 
     private val idAssigner = IDHandler(kClass, pkClass)
 
@@ -37,9 +36,9 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
     @Suppress("UNCHECKED_CAST")
     private val idProperty = properties["id"] as KProperty1<T, Any>
 
-    private val inserter = Inserter(tableName, connection, propertiesExceptId, idAssigner)
+    private val inserter = Inserter(tableName, connection, propertyReaders, idAssigner)
 
-    private val updater = Updater(tableName, connection, propertiesExceptId, idAssigner, idProperty)
+    private val updater = Updater(tableName, connection, propertyReaders, idAssigner, idProperty)
 
     private val finder = Finder(tableName, connection, idAssigner, kClass, ClassInfo(kClass))
 
@@ -75,7 +74,6 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
      */
     public suspend fun <V : Any> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> =
         finder.findBy(property, propertyValue)
-
 
 }
 
