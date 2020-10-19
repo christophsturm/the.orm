@@ -15,14 +15,12 @@ internal class IDHandler<T : Any, PKType : PK>(kClass: KClass<T>, pkClass: KClas
     private val copyFunction: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
     private val idParameter = copyFunction.parameters.single { it.name == "id" }
     private val instanceParameter = copyFunction.instanceParameter!!
-    private val pkConstructor: KFunction<PKType>
+    private val pkConstructor = pkClass.primaryConstructor
+        ?: throw RuntimeException("No primary constructor found for ${pkClass.simpleName}")
     private val pkIdGetter: KProperty1.Getter<out PK, Long>
 
     init {
-        pkConstructor = pkClass.primaryConstructor
-            ?: throw RuntimeException("No primary constructor found for ${pkClass.simpleName}")
-        val parameters = pkConstructor.parameters
-        if (parameters.singleOrNull()?.type?.classifier as? KClass<*> != Long::class)
+        if (pkConstructor.parameters.singleOrNull()?.type?.classifier as? KClass<*> != Long::class)
             throw R2dbcRepoException("PK classes must have a single field of type long")
         @Suppress("UNCHECKED_CAST")
         pkIdGetter = pkClass.memberProperties.single().getter as KProperty1.Getter<out PK, Long>
