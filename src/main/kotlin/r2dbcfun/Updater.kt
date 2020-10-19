@@ -8,9 +8,9 @@ import kotlin.reflect.KProperty1
 internal class Updater<T : Any, PKClass : PK>(
     table: String,
     private val connection: Connection,
-    private val updateProperties: ArrayList<PropertyReader<T>>,
+    private val updateProperties: List<PropertyReader<T>>,
     private val idHandler: IDHandler<T, PKClass>,
-    private val id: KProperty1<T, Any>
+    private val idProperty: KProperty1<T, Any>
 ) {
     private val updateStatementString = run {
         val propertiesString = updateProperties.withIndex()
@@ -23,9 +23,9 @@ internal class Updater<T : Any, PKClass : PK>(
     suspend fun update(instance: T) {
         val statement = updateProperties.foldIndexed(
             connection.createStatement(updateStatementString)
-                .bind(0, idHandler.getId(id.call(instance)))
+                .bind(0, idHandler.getId(idProperty.call(instance)))
         ) { idx, statement, entry ->
-            entry.bindValueOrNull(statement, idx + 1, instance)
+            entry.bindValue(statement, idx + 1, instance)
         }
         val rowsUpdated = statement.execute().awaitSingle().rowsUpdated.awaitSingle()
         if (rowsUpdated != 1)
