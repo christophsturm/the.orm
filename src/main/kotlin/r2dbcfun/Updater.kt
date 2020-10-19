@@ -5,11 +5,11 @@ import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.internal.IDHandler
 import kotlin.reflect.KProperty1
 
-internal class Updater<T : Any, PKClass : PK>(
+internal class Updater<T : Any>(
     table: String,
     private val connection: Connection,
     private val updateProperties: List<PropertyReader<T>>,
-    private val idHandler: IDHandler<T, PKClass>,
+    private val idHandler: IDHandler<T>,
     private val idProperty: KProperty1<T, Any>
 ) {
     private val updateStatementString = run {

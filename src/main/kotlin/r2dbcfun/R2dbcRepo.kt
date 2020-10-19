@@ -30,7 +30,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
-    private val idAssigner = IDHandler(kClass, pkClass)
+    private val idAssigner = IDHandler(kClass)
 
 
     @Suppress("UNCHECKED_CAST")

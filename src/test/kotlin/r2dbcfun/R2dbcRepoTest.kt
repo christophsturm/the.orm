@@ -178,7 +178,7 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
         }
         context("fail fast error handling") {
-            test("fails fast if PK has more than one constructor") {
+            test("fails fast if PK has more than one field") {
                 data class MismatchPK(override val id: Long, val blah: String) : PK
                 data class Mismatch(val id: MismatchPK)
                 runBlocking {
