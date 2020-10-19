@@ -8,12 +8,29 @@ import kotlin.reflect.jvm.javaType
 
 internal class ClassInfo<T : Any>(kClass: KClass<T>) {
     companion object {
+        // from the r2dbc spec: https://r2dbc.io/spec/0.8.1.RELEASE/spec/html/#datatypes
+        val supportedJavaTypes = setOf<Class<*>>(
+            String::class.java,
+            io.r2dbc.spi.Clob::class.java,
+            Boolean::class.java,
+            java.nio.ByteBuffer::class.java,
+            io.r2dbc.spi.Blob::class.java,
+            Int::class.java,
+            Byte::class.java,
+            Short::class.java,
+            Long::class.java
+        )
+
         private fun makeCreator(parameter: KParameter): InstanceCreator {
+
             val clazz = parameter.type.javaType as Class<*>
             return if (clazz.isEnum)
                 EnumCreator(clazz)
-            else
+            else {
+                if (parameter.name != "id" && !supportedJavaTypes.contains(clazz))
+                    throw R2dbcRepoException("type ${clazz.simpleName} not supported")
                 InlineCreator()
+            }
         }
     }
 
