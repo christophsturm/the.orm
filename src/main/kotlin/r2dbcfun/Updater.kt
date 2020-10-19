@@ -10,7 +10,7 @@ internal class Updater<T : Any, PKClass : PK>(
     private val connection: Connection,
     private val updateProperties: ArrayList<PropertyReader<T>>,
     private val idHandler: IDHandler<T, PKClass>,
-    private val id: KProperty1<T, Any>
+    private val idProperty: KProperty1<T, Any>
 ) {
     private val updateStatementString = run {
         val propertiesString = updateProperties.withIndex()
@@ -23,7 +23,7 @@ internal class Updater<T : Any, PKClass : PK>(
     suspend fun update(instance: T) {
         val statement = updateProperties.foldIndexed(
             connection.createStatement(updateStatementString)
-                .bind(0, idHandler.getId(id.call(instance)))
+                .bind(0, idHandler.getId(idProperty.call(instance)))
         ) { idx, statement, entry ->
             entry.bindValue(statement, idx + 1, instance)
         }
