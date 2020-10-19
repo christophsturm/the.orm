@@ -12,10 +12,10 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
-internal class Finder<T : Any, PKClass : PK>(
+internal class Finder<T : Any>(
     private val table: String,
     private val connection: Connection,
-    private val idHandler: IDHandler<T, PKClass>,
+    private val idHandler: IDHandler<T>,
     kClass: KClass<T>,
     private val classInfo: ClassInfo<T>
 ) {

@@ -3,11 +3,11 @@ package r2dbcfun
 import io.r2dbc.spi.Connection
 import r2dbcfun.internal.IDHandler
 
-internal class Inserter<T : Any, PKClass : PK>(
+internal class Inserter<T : Any>(
     table: String,
     private val connection: Connection,
     private val insertProperties: List<PropertyReader<T>>,
-    private val idHandler: IDHandler<T, PKClass>
+    private val idHandler: IDHandler<T>
 ) {
     private val insertStatementString = run {
         val fieldNames = insertProperties.joinToString { it.name.toSnakeCase() }

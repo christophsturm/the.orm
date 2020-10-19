@@ -12,17 +12,16 @@ public interface PK {
     public val id: Long
 }
 
-public class R2dbcRepo<T : Any, PKClass : PK>(
+public class R2dbcRepo<T : Any>(
     connection: Connection,
-    kClass: KClass<T>,
-    pkClass: KClass<PKClass>
+    kClass: KClass<T>
 ) {
     public companion object {
         /**
          * creates a Repo for <T> and Primary Key <PKClass>
          */
-        public inline fun <reified T : Any, reified PKClass : PK> create(connection: Connection): R2dbcRepo<T, PKClass> =
-            R2dbcRepo(connection, T::class, PKClass::class)
+        public inline fun <reified T : Any> create(connection: Connection): R2dbcRepo<T> =
+            R2dbcRepo(connection, T::class)
     }
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
@@ -30,7 +29,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
-    private val idAssigner = IDHandler(kClass, pkClass)
+    private val idAssigner = IDHandler(kClass)
 
 
     @Suppress("UNCHECKED_CAST")
@@ -61,10 +60,12 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
      * loads an object from the database
      * @param id the primary key of the object to load
      */
-    public suspend fun findById(id: PK): T = try {
-        findBy(idProperty, id.id).single()
-    } catch (e: NoSuchElementException) {
-        throw NotFoundException("No $tableName found for id ${id.id}")
+    public suspend fun findById(id: PK): T {
+        return try {
+            findBy(idProperty, id.id).single()
+        } catch (e: NoSuchElementException) {
+            throw NotFoundException("No $tableName found for id ${id.id}")
+        }
     }
 
     /**

@@ -66,7 +66,7 @@ class R2dbcRepoTest : JUnit5Minutests {
 
     private fun ContextBuilder<Connection>.repoTests() {
         class Fixture(val connection: Connection) {
-            val repo = R2dbcRepo.create<User, UserPK>(connection)
+            val repo = R2dbcRepo.create<User>(connection)
             val timeout = CoroutinesTimeout(if (TestConfig.CI) 10000 else 500)
         }
         derivedContext<Fixture>("a repo with a data class") {
@@ -178,12 +178,12 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
         }
         context("fail fast error handling") {
-            test("fails fast if PK has more than one constructor") {
+            test("fails fast if PK has more than one field") {
                 data class MismatchPK(override val id: Long, val blah: String) : PK
                 data class Mismatch(val id: MismatchPK)
                 runBlocking {
                     expectCatching {
-                        R2dbcRepo.create<Mismatch, MismatchPK>(fixture)
+                        R2dbcRepo.create<Mismatch>(fixture)
                     }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
                         .contains("PK classes must have a single field of type long")
                 }
