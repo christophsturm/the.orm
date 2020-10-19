@@ -6,7 +6,7 @@ import r2dbcfun.internal.IDHandler
 internal class Inserter<T : Any, PKClass : PK>(
     table: String,
     private val connection: Connection,
-    private val insertProperties: ArrayList<PropertyReader<T>>,
+    private val insertProperties: List<PropertyReader<T>>,
     private val idHandler: IDHandler<T, PKClass>
 ) {
     private val insertStatementString = run {

@@ -26,7 +26,7 @@ public class R2dbcRepo<T : Any, PKClass : PK>(
     }
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
-    private val propertiesExceptId = ArrayList(properties.filter { it.key != "id" }.values.map { PropertyReader(it) })
+    private val propertiesExceptId = properties.filter { it.key != "id" }.values.map { PropertyReader(it) }
 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 

@@ -8,7 +8,7 @@ import kotlin.reflect.KProperty1
 internal class Updater<T : Any, PKClass : PK>(
     table: String,
     private val connection: Connection,
-    private val updateProperties: ArrayList<PropertyReader<T>>,
+    private val updateProperties: List<PropertyReader<T>>,
     private val idHandler: IDHandler<T, PKClass>,
     private val idProperty: KProperty1<T, Any>
 ) {
