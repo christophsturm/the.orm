@@ -51,7 +51,7 @@ internal class Finder<T : Any>(
                 val value = if (fieldInfo.snakeCaseName == "id")
                     idHandler.createId(resolvedValue as Long)
                 else {
-                    fieldInfo.instanceCreator.valueToConstructorParameter(resolvedValue)
+                    fieldInfo.fieldConverter.valueToConstructorParameter(resolvedValue)
                 }
                 Pair(fieldInfo.constructorParameter, value)
             }

@@ -29,17 +29,17 @@ public class R2dbcRepo<T : Any>(
 
     private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
 
-    private val idAssigner = IDHandler(kClass)
+    private val idHandler = IDHandler(kClass)
 
 
     @Suppress("UNCHECKED_CAST")
     private val idProperty = properties["id"] as KProperty1<T, Any>
 
-    private val inserter = Inserter(tableName, connection, propertyReaders, idAssigner)
+    private val inserter = Inserter(tableName, connection, propertyReaders, idHandler)
 
-    private val updater = Updater(tableName, connection, propertyReaders, idAssigner, idProperty)
+    private val updater = Updater(tableName, connection, propertyReaders, idHandler, idProperty)
 
-    private val finder = Finder(tableName, connection, idAssigner, kClass, ClassInfo(kClass))
+    private val finder = Finder(tableName, connection, idHandler, kClass, ClassInfo(kClass))
 
     /**
      * creates a new record in the database.
