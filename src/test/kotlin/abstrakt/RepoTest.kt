@@ -186,7 +186,7 @@ class RepoTest : JUnit5Minutests {
                 runBlocking {
                     expectCatching {
                         Repo.create<Mismatch>(fixture)
-                    }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
+                    }.isFailure().isA<RepoException>().message.isNotNull()
                         .contains("PK classes must have a single field of type long")
                 }
 
@@ -197,7 +197,7 @@ class RepoTest : JUnit5Minutests {
                 runBlocking {
                     expectCatching {
                         Repo.create<ClassWithUnsupportedType>(fixture)
-                    }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
+                    }.isFailure().isA<RepoException>().message.isNotNull()
                         .contains("type Unsupported not supported")
                 }
             }

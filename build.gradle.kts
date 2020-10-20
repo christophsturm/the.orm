@@ -29,7 +29,7 @@ plugins {
 
 }
 
-group = "r2dbcfun"
+group = "abstrakt"
 version = "0.1"
 
 
@@ -109,7 +109,7 @@ publishing {
             from(components["java"])
             artifact(tasks["sourceJar"])
             groupId = project.group as String
-            artifactId = "r2dbcfun"
+            artifactId = "abstrakt"
             version = project.version as String
         }
     }
@@ -123,7 +123,7 @@ bintray {
     setPublications("mavenJava")
     pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
         repo = "maven"
-        name = "r2dbcfun"
+        name = "abstrakt"
         version(delegateClosureOf<BintrayExtension.VersionConfig> {
             name = project.version as String
         })
@@ -137,9 +137,9 @@ plugins.withId("info.solidsoft.pitest") {
         jvmArgs.set(listOf("-Xmx512m"))
         testPlugin.set("junit5")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
-        targetClasses.set(setOf("r2dbcfun.*"))  //by default "${project.group}.*"
-        excludedClasses.set(setOf("""r2dbcfun.Finder${'$'}findBy*"""))
-        targetTests.set(setOf("r2dbcfun.*Test", "r2dbcfun.**.*Test"))
+        targetClasses.set(setOf("abstrakt.*"))  //by default "${project.group}.*"
+        excludedClasses.set(setOf("""abstrakt.Finder${'$'}findBy*"""))
+        targetTests.set(setOf("abstrakt.*Test", "abstrakt.**.*Test"))
         pitestVersion.set("1.5.2")
         threads.set(System.getenv("PITEST_THREADS")?.toInt() ?: Runtime.getRuntime().availableProcessors())
         outputFormats.set(setOf("XML", "HTML"))

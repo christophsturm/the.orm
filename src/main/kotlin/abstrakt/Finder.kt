@@ -32,7 +32,7 @@ internal class Finder<T : Any>(
             connection.createStatement(query).bind("$1", propertyValue).execute()
                 .awaitSingle()
         } catch (e: Exception) {
-            throw R2dbcRepoException("error executing select: $query", e)
+            throw RepoException("error executing select: $query", e)
         }
 
         data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: Any?)
@@ -58,7 +58,7 @@ internal class Finder<T : Any>(
             try {
                 classInfo.constructor.callBy(resolvedParameters)
             } catch (e: IllegalArgumentException) {
-                throw R2dbcRepoException(
+                throw RepoException(
                     "error invoking constructor for $table. parameters:$resolvedParameters",
                     e
                 )

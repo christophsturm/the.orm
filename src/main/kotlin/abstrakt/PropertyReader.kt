@@ -30,7 +30,7 @@ internal class PropertyReader<T>(private val property: KProperty1<T, *>) {
                 statement.bind(index, if (isEnum) value.toString() else value)
             }
         } catch (e: java.lang.IllegalArgumentException) {
-            throw R2dbcRepoException(
+            throw RepoException(
                 "error binding value $value to field $name with index $index",
                 e
             )

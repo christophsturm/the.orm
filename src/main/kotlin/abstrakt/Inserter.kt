@@ -25,7 +25,7 @@ internal class Inserter<T : Any>(
         val id = try {
             statement.executeInsert()
         } catch (e: Exception) {
-            throw R2dbcRepoException("error executing insert: $insertStatementString", e)
+            throw RepoException("error executing insert: $insertStatementString", e)
         }
 
         return idHandler.assignId(instance, id)

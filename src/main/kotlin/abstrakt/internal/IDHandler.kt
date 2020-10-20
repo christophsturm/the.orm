@@ -1,6 +1,6 @@
 package abstrakt.internal
 
-import abstrakt.R2dbcRepoException
+import abstrakt.RepoException
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty1
@@ -23,7 +23,7 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
             pkConstructor = pkClass.primaryConstructor!!
             val parameters = pkConstructor.parameters
             if (parameters.singleOrNull()?.type?.classifier as? KClass<*> != Long::class)
-                throw R2dbcRepoException("PK classes must have a single field of type long")
+                throw RepoException("PK classes must have a single field of type long")
             pkIdGetter = pkClass.memberProperties.single().getter
         } else {
             pkConstructor = null

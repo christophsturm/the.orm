@@ -29,7 +29,7 @@ internal class Updater<T : Any>(
         }
         val rowsUpdated = statement.execute().awaitSingle().rowsUpdated.awaitSingle()
         if (rowsUpdated != 1)
-            throw R2dbcRepoException("rowsUpdated was $rowsUpdated instead of 1")
+            throw RepoException("rowsUpdated was $rowsUpdated instead of 1")
 
     }
 
