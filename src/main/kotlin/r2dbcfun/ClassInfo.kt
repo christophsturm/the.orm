@@ -9,7 +9,7 @@ import kotlin.reflect.jvm.javaType
 internal class ClassInfo<T : Any>(kClass: KClass<T>) {
     companion object {
         // from the r2dbc spec: https://r2dbc.io/spec/0.8.1.RELEASE/spec/html/#datatypes
-        val supportedJavaTypes = setOf<Class<*>>(
+        private val supportedJavaTypes = setOf<Class<*>>(
             String::class.java,
             io.r2dbc.spi.Clob::class.java,
             Boolean::class.java,
@@ -21,38 +21,38 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
             Long::class.java
         )
 
-        private fun makeCreator(parameter: KParameter): InstanceCreator {
-
+        private fun makeConverter(parameter: KParameter): FieldConverter {
             val clazz = parameter.type.javaType as Class<*>
             return if (clazz.isEnum)
-                EnumCreator(clazz)
+                EnumConverter(clazz)
             else {
-                if (parameter.name != "id" && !supportedJavaTypes.contains(clazz))
+                if (parameter.name != "id" // Primary key can be a pk class which is currently not handled here
+                    && !supportedJavaTypes.contains(clazz)
+                )
                     throw R2dbcRepoException("type ${clazz.simpleName} not supported")
-                InlineCreator()
+                PassthroughFieldConverter()
             }
         }
     }
 
     data class FieldInfo(
-        val constructorParameter: KParameter,
-        val snakeCaseName: String,
-        val instanceCreator: InstanceCreator
+        val constructorParameter: KParameter, val snakeCaseName: String, val fieldConverter: FieldConverter
     ) {
-        constructor(parameter: KParameter) : this(parameter, parameter.name!!.toSnakeCase(), makeCreator(parameter))
-
+        constructor(parameter: KParameter) : this(parameter, parameter.name!!.toSnakeCase(), makeConverter(parameter))
     }
 
     val constructor: KFunction<T> = kClass.primaryConstructor
         ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
-    val fieldInfo =
-        constructor.parameters.map { FieldInfo(it) }
+    val fieldInfo = constructor.parameters.map { FieldInfo(it) }
 
 
 }
 
-internal class EnumCreator(private val clazz: Class<*>) : InstanceCreator {
+/**
+ * converts strings from the database to enums in the mapped class
+ */
+internal class EnumConverter(private val clazz: Class<*>) : FieldConverter {
     override fun valueToConstructorParameter(value: Any?): Any? {
         if (value == null)
             return null
@@ -62,11 +62,14 @@ internal class EnumCreator(private val clazz: Class<*>) : InstanceCreator {
     }
 }
 
-internal class InlineCreator : InstanceCreator {
+/**
+ * converter for fields that need no conversion
+ */
+internal class PassthroughFieldConverter : FieldConverter {
     override fun valueToConstructorParameter(value: Any?): Any? = value
 }
 
-internal interface InstanceCreator {
+internal interface FieldConverter {
     fun valueToConstructorParameter(value: Any?): Any?
 
 }
