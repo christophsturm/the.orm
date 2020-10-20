@@ -187,6 +187,17 @@ class R2dbcRepoTest : JUnit5Minutests {
                     }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
                         .contains("PK classes must have a single field of type long")
                 }
+
+            }
+            test("fails if class contains unsupported fields") {
+                data class Unsupported(val field: String)
+                data class ClassWithUnsupportedType(val id: Long, val unsupported: Unsupported)
+                runBlocking {
+                    expectCatching {
+                        R2dbcRepo.create<ClassWithUnsupportedType>(fixture)
+                    }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
+                        .contains("type Unsupported not supported")
+                }
             }
         }
 
