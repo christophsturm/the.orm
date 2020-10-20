@@ -1,4 +1,4 @@
-package r2dbcfun
+package abstrakt
 
 internal fun String.toSnakeCase(): String = this.foldIndexed(StringBuilder(this.length + 5)) { idx, target, char ->
     when {

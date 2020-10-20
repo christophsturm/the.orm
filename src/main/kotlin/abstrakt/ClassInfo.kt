@@ -1,4 +1,4 @@
-package r2dbcfun
+package abstrakt
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction

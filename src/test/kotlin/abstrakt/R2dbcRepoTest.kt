@@ -1,4 +1,4 @@
-package r2dbcfun
+package abstrakt
 
 import dev.minutest.ContextBuilder
 import dev.minutest.junit.JUnit5Minutests

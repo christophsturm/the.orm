@@ -1,4 +1,4 @@
-package r2dbcfun.internal
+package abstrakt.internal
 
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

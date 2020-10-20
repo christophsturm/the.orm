@@ -1,9 +1,9 @@
-package r2dbcfun
+package abstrakt
 
+import abstrakt.internal.IDHandler
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
-import r2dbcfun.internal.IDHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties

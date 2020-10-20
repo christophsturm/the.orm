@@ -1,7 +1,7 @@
-package r2dbcfun
+package abstrakt
 
+import abstrakt.internal.IDHandler
 import io.r2dbc.spi.Connection
-import r2dbcfun.internal.IDHandler
 
 internal class Inserter<T : Any>(
     table: String,

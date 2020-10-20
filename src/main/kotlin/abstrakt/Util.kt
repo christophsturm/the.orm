@@ -1,4 +1,4 @@
-package r2dbcfun
+package abstrakt
 
 import io.r2dbc.spi.Result
 import io.r2dbc.spi.Statement

@@ -1,6 +1,6 @@
-package r2dbcfun.internal
+package abstrakt.internal
 
-import r2dbcfun.R2dbcRepoException
+import abstrakt.R2dbcRepoException
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty1

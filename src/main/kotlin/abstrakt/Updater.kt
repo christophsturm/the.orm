@@ -1,8 +1,8 @@
-package r2dbcfun
+package abstrakt
 
+import abstrakt.internal.IDHandler
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.reactive.awaitSingle
-import r2dbcfun.internal.IDHandler
 import kotlin.reflect.KProperty1
 
 internal class Updater<T : Any>(

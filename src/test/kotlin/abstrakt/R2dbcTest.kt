@@ -1,6 +1,6 @@
 @file:Suppress("SqlResolve")
 
-package r2dbcfun
+package abstrakt
 
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -19,7 +19,7 @@ import strikt.assertions.isEqualTo
 
 /**
  * this is just the r2dbc playground that started this project.
- * @see r2dbcfun.R2dbcRepoTest for api usage.
+ * @see abstrakt.R2dbcRepoTest for api usage.
  **/
 
 @ExperimentalCoroutinesApi

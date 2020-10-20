@@ -1,4 +1,4 @@
-package r2dbcfun
+package abstrakt
 
 public open class R2dbcRepoException : RuntimeException {
     public constructor(message: String) : super(message)

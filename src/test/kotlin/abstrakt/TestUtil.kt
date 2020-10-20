@@ -1,4 +1,4 @@
-package r2dbcfun
+package abstrakt
 
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
