@@ -9,7 +9,7 @@ import kotlin.reflect.jvm.javaType
 internal class ClassInfo<T : Any>(kClass: KClass<T>) {
     companion object {
         // from the r2dbc spec: https://r2dbc.io/spec/0.8.1.RELEASE/spec/html/#datatypes
-        val supportedJavaTypes = setOf<Class<*>>(
+        private val supportedJavaTypes = setOf<Class<*>>(
             String::class.java,
             io.r2dbc.spi.Clob::class.java,
             Boolean::class.java,

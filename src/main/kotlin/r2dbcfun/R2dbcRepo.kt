@@ -18,7 +18,7 @@ public class R2dbcRepo<T : Any>(
 ) {
     public companion object {
         /**
-         * creates a Repo for <T> and Primary Key <PKClass>
+         * creates a Repo for the entity <T>
          */
         public inline fun <reified T : Any> create(connection: Connection): R2dbcRepo<T> =
             R2dbcRepo(connection, T::class)

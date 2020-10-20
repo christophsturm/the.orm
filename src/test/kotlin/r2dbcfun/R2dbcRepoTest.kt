@@ -50,6 +50,8 @@ class R2dbcRepoTest : JUnit5Minutests {
 
     enum class Color {
         RED,
+
+        @Suppress("unused")
         BLUE
     }
 
