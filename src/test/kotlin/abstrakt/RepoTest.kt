@@ -32,7 +32,7 @@ object TestConfig {
 
 @Suppress("SqlResolve")
 @ExperimentalCoroutinesApi
-class R2dbcRepoTest : JUnit5Minutests {
+class RepoTest : JUnit5Minutests {
     init {
         BlockHound.install()
     }
@@ -68,7 +68,7 @@ class R2dbcRepoTest : JUnit5Minutests {
 
     private fun ContextBuilder<Connection>.repoTests() {
         class Fixture(val connection: Connection) {
-            val repo = R2dbcRepo.create<User>(connection)
+            val repo = Repo.create<User>(connection)
             val timeout = CoroutinesTimeout(if (TestConfig.CI) 10000 else 500)
         }
         derivedContext<Fixture>("a repo with a data class") {
@@ -185,7 +185,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 data class Mismatch(val id: MismatchPK)
                 runBlocking {
                     expectCatching {
-                        R2dbcRepo.create<Mismatch>(fixture)
+                        Repo.create<Mismatch>(fixture)
                     }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
                         .contains("PK classes must have a single field of type long")
                 }
@@ -196,7 +196,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 data class ClassWithUnsupportedType(val id: Long, val unsupported: Unsupported)
                 runBlocking {
                     expectCatching {
-                        R2dbcRepo.create<ClassWithUnsupportedType>(fixture)
+                        Repo.create<ClassWithUnsupportedType>(fixture)
                     }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
                         .contains("type Unsupported not supported")
                 }

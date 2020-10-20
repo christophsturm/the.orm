@@ -19,7 +19,7 @@ import strikt.assertions.isEqualTo
 
 /**
  * this is just the r2dbc playground that started this project.
- * @see abstrakt.R2dbcRepoTest for api usage.
+ * @see abstrakt.RepoTest for api usage.
  **/
 
 @ExperimentalCoroutinesApi

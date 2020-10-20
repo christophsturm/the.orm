@@ -12,7 +12,7 @@ public interface PK {
     public val id: Long
 }
 
-public class R2dbcRepo<T : Any>(
+public class Repo<T : Any>(
     connection: Connection,
     kClass: KClass<T>
 ) {
@@ -20,8 +20,8 @@ public class R2dbcRepo<T : Any>(
         /**
          * creates a Repo for the entity <T>
          */
-        public inline fun <reified T : Any> create(connection: Connection): R2dbcRepo<T> =
-            R2dbcRepo(connection, T::class)
+        public inline fun <reified T : Any> create(connection: Connection): Repo<T> =
+            Repo(connection, T::class)
     }
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
