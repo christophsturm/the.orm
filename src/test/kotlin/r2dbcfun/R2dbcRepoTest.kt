@@ -70,11 +70,10 @@ class R2dbcRepoTest : JUnit5Minutests {
     private fun ContextBuilder<Connection>.repoTests() {
         class Fixture(val connection: Connection) {
             val repo = R2dbcRepo.create<User>(connection)
-            val timeout = CoroutinesTimeout(if (TestConfig.CI) 10000 else 500)
+            val timeout = CoroutinesTimeout(if (TestConfig.PITEST) 100000 else if (TestConfig.CI) 10000 else 500)
         }
         derivedContext<Fixture>("a repo with a data class") {
-            if (!TestConfig.PITEST) // don't apply timeout rule when running pitest
-                applyRule { timeout }
+            applyRule { timeout }
             deriveFixture {
                 val connection = this
                 runBlocking {
