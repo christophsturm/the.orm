@@ -28,6 +28,7 @@ import strikt.assertions.message
 object TestConfig {
     val H2_ONLY = System.getenv("H2_ONLY") != null
     val CI = System.getenv("CI") != null
+    val PITEST = System.getenv("PITEST") != null
 }
 
 @Suppress("SqlResolve")
@@ -72,7 +73,8 @@ class R2dbcRepoTest : JUnit5Minutests {
             val timeout = CoroutinesTimeout(if (TestConfig.CI) 10000 else 500)
         }
         derivedContext<Fixture>("a repo with a data class") {
-            applyRule { timeout }
+            if (!TestConfig.PITEST) // don't apply timeout rule when running pitest
+                applyRule { timeout }
             deriveFixture {
                 val connection = this
                 runBlocking {

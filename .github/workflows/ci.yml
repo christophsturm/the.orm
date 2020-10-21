@@ -23,4 +23,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}
           restore-keys: ${{ runner.os }}-gradle
       - name: Build with Gradle
-        run: PITEST_THREADS=2 ./gradlew build pitest
+        run: |
+          ./gradlew build
+          PITEST_THREADS=2 PITEST=true ./gradlew pitest
