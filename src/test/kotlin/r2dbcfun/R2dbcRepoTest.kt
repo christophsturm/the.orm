@@ -1,6 +1,7 @@
 package r2dbcfun
 
 import dev.minutest.ContextBuilder
+import dev.minutest.TestContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.junit.experimental.applyRule
 import dev.minutest.rootContext
@@ -11,7 +12,6 @@ import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.Serializable
 import reactor.blockhound.BlockHound
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -24,6 +24,7 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.message
+import kotlin.reflect.KClass
 
 object TestConfig {
     val H2_ONLY = System.getenv("H2_ONLY") != null
@@ -41,13 +42,8 @@ class R2dbcRepoTest : JUnit5Minutests {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
-    @Serializable // test that it works with serializable classes
     data class UserPK(override val id: Long) : PK
 
-    // HasPK interface it optional
-    interface HasPK {
-        val id: PK?
-    }
 
     enum class Color {
         RED,
@@ -56,30 +52,24 @@ class R2dbcRepoTest : JUnit5Minutests {
         BLUE
     }
 
-    @Serializable
     data class User(
-        override val id: UserPK? = null,
+        val id: UserPK? = null,
         val name: String,
         val email: String?,
         val isCool: Boolean = false,
         val bio: String? = null,
         val favoriteColor: Color? = null
-    ) : HasPK
+    )
 
+
+    class Fixture<T : Any>(val connection: Connection, entity: KClass<T>) {
+        val repo = R2dbcRepo(connection, entity)
+        val timeout = CoroutinesTimeout(if (TestConfig.PITEST) 100000 else if (TestConfig.CI) 10000 else 500)
+    }
 
     private fun ContextBuilder<Connection>.repoTests() {
-        class Fixture(val connection: Connection) {
-            val repo = R2dbcRepo.create<User>(connection)
-            val timeout = CoroutinesTimeout(if (TestConfig.PITEST) 100000 else if (TestConfig.CI) 10000 else 500)
-        }
-        derivedContext<Fixture>("a repo with a data class") {
-            applyRule { timeout }
-            deriveFixture {
-                val connection = this
-                runBlocking {
-                    Fixture(connection)
-                }
-            }
+        derivedContext<Fixture<User>>("a repo with a data class") {
+            makeFixture(User::class)
             context("Creating Rows") {
                 test("can insert data class and return primary key") {
                     runBlocking {
@@ -204,6 +194,16 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
         }
 
+    }
+
+    private fun <T : Any> TestContextBuilder<Connection, Fixture<T>>.makeFixture(kClass: KClass<T>) {
+        applyRule { timeout }
+        deriveFixture {
+            val connection = this
+            runBlocking {
+                Fixture<T>(connection, kClass)
+            }
+        }
     }
 
     @Suppress("unused")
