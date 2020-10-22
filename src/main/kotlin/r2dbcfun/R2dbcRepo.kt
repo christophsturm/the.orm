@@ -27,7 +27,7 @@ public class R2dbcRepo<T : Any>(
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
     private val propertyReaders = properties.filter { it.key != "id" }.values.map { PropertyReader(it) }
 
-    private val tableName = "${kClass.simpleName!!.toLowerCase()}s"
+    private val tableName = "${kClass.simpleName!!.toSnakeCase().toLowerCase()}s"
 
     private val idHandler = IDHandler(kClass)
 
