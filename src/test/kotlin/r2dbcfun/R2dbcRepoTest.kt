@@ -25,6 +25,7 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.message
+import java.time.LocalDate
 import kotlin.reflect.KClass
 
 
@@ -60,7 +61,8 @@ class R2dbcRepoTest : JUnit5Minutests {
         val email: String?,
         val isCool: Boolean = false,
         val bio: String? = null,
-        val favoriteColor: Color? = null
+        val favoriteColor: Color? = null,
+        val birthday: LocalDate
     )
 
 
@@ -75,18 +77,27 @@ class R2dbcRepoTest : JUnit5Minutests {
             context("Creating Rows") {
                 test("can insert data class and return primary key") {
                     runBlocking {
-                        val user = repo.create(User(name = "chris", email = "my email", bio = reallyLongString))
+                        val user = repo.create(
+                            User(
+                                name = "chris",
+                                email = "my email",
+                                bio = reallyLongString,
+                                birthday = LocalDate.parse("2020-06-20")
+                            )
+                        )
                         expectThat(user).and {
                             get { id }.isEqualTo(UserPK(1))
                             get { name }.isEqualTo("chris")
                             get { email }.isEqualTo("my email")
+                            get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
                         }
                     }
                 }
 
                 test("supports nullable values") {
                     runBlocking {
-                        val user = repo.create(User(name = "chris", email = null))
+                        val user =
+                            repo.create(User(name = "chris", email = null, birthday = LocalDate.parse("2020-06-20")))
                         expectThat(user).and {
                             get { id }.isEqualTo(UserPK(1))
                             get { name }.isEqualTo("chris")
@@ -98,11 +109,18 @@ class R2dbcRepoTest : JUnit5Minutests {
             context("loading data objects") {
                 test("can load data object by id") {
                     runBlocking {
-                        repo.create(User(name = "anotherUser", email = "my email"))
+                        repo.create(
+                            User(
+                                name = "anotherUser",
+                                email = "my email",
+                                birthday = LocalDate.parse("2020-06-20")
+                            )
+                        )
                         val id = repo.create(
                             User(
-                                name = "chris", email = "my email", bio = reallyLongString, isCool = false,
-                                favoriteColor = Color.RED
+                                name = "chris", email = "my email", isCool = false, bio = reallyLongString,
+                                favoriteColor = Color.RED,
+                                birthday = LocalDate.parse("2020-06-20")
                             )
                         ).id!!
                         val user = repo.findById(id)
@@ -113,13 +131,26 @@ class R2dbcRepoTest : JUnit5Minutests {
                             get { isCool }.isFalse()
                             get { bio }.isEqualTo(reallyLongString)
                             get { favoriteColor }.isEqualTo(Color.RED)
+                            get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
                         }
                     }
                 }
                 test("can load data object by field value") {
                     runBlocking {
-                        val firstUser = repo.create(User(name = "chris", email = "my email"))
-                        val secondUser = repo.create(User(name = "chris", email = "different email"))
+                        val firstUser = repo.create(
+                            User(
+                                name = "chris",
+                                email = "my email",
+                                birthday = LocalDate.parse("2020-06-20")
+                            )
+                        )
+                        val secondUser = repo.create(
+                            User(
+                                name = "chris",
+                                email = "different email",
+                                birthday = LocalDate.parse("2020-06-20")
+                            )
+                        )
                         val users = repo.findBy(User::name, "chris").toCollection(mutableListOf())
                         expectThat(users).containsExactlyInAnyOrder(firstUser, secondUser)
                     }
@@ -135,7 +166,12 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
             context("updating objects") {
                 test("can update objects") {
-                    val originalUser = User(name = "chris", email = "my email", bio = reallyLongString)
+                    val originalUser = User(
+                        name = "chris",
+                        email = "my email",
+                        bio = reallyLongString,
+                        birthday = LocalDate.parse("2020-06-20")
+                    )
                     runBlocking {
                         val id = repo.create(originalUser).id!!
                         val readBackUser = repo.findById(id)
@@ -157,8 +193,9 @@ class R2dbcRepoTest : JUnit5Minutests {
                     runBlocking {
                         val id = repo.create(
                             User(
-                                name = "chris", email = "my email", bio = reallyLongString, isCool = false,
-                                favoriteColor = Color.RED
+                                name = "chris", email = "my email", isCool = false, bio = reallyLongString,
+                                favoriteColor = Color.RED,
+                                birthday = LocalDate.parse("2020-06-20")
                             )
                         ).id!!
                         val color =

@@ -6,7 +6,8 @@ create table users
     email          varchar(100),
     is_cool        boolean,
     bio            text,
-    favorite_color varchar(10)
+    favorite_color varchar(10),
+    birthday       date
 );
 
 alter table users
