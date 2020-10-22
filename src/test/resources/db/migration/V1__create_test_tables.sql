@@ -12,6 +12,19 @@ create table users
 alter table users
     add primary key (id);
 
+
+create sequence serializable_users_id_seq no maxvalue;
+
+create table serializable_users
+(
+    id    bigint       not null default nextval('serializable_users_id_seq'),
+    name  varchar(100) not null,
+    email varchar(100)
+);
+
+alter table serializable_users
+    add primary key (id);
+
 create sequence mismatchs_id_seq no maxvalue;
 
 create table mismatchs

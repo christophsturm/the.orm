@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
 import reactor.blockhound.BlockHound
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -25,6 +26,7 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.message
 import kotlin.reflect.KClass
+
 
 object TestConfig {
     val H2_ONLY = System.getenv("H2_ONLY") != null
@@ -62,14 +64,14 @@ class R2dbcRepoTest : JUnit5Minutests {
     )
 
 
-    class Fixture<T : Any>(val connection: Connection, entity: KClass<T>) {
-        val repo = R2dbcRepo(connection, entity)
+    class Fixture<T : Any>(val connection: Connection, type: KClass<T>) {
+        val repo = R2dbcRepo(connection, type)
         val timeout = CoroutinesTimeout(if (TestConfig.PITEST) 100000 else if (TestConfig.CI) 10000 else 500)
     }
 
     private fun ContextBuilder<Connection>.repoTests() {
-        derivedContext<Fixture<User>>("a repo with a data class") {
-            makeFixture(User::class)
+        derivedContext<Fixture<User>>("a repo with a user data class") {
+            makeFixture()
             context("Creating Rows") {
                 test("can insert data class and return primary key") {
                     runBlocking {
@@ -170,6 +172,32 @@ class R2dbcRepoTest : JUnit5Minutests {
                 }
             }
         }
+
+        @Serializable
+        data class SerializableUserPK(override val id: Long) : PK
+
+        @Serializable
+        data class SerializableUser(
+            val id: SerializableUserPK? = null,
+            val name: String,
+            val email: String?
+        )
+
+        derivedContext<Fixture<SerializableUser>>("interop with kotlinx.serializable") {
+            makeFixture()
+            test("can insert data class and return primary key") {
+                runBlocking {
+                    val user = repo.create(SerializableUser(name = "chris", email = "my email"))
+                    expectThat(user).and {
+                        get { id }.isEqualTo(SerializableUserPK(1))
+                        get { name }.isEqualTo("chris")
+                        get { email }.isEqualTo("my email")
+                    }
+                }
+            }
+
+        }
+
         context("fail fast error handling") {
             test("fails fast if PK has more than one field") {
                 data class MismatchPK(override val id: Long, val blah: String) : PK
@@ -196,12 +224,12 @@ class R2dbcRepoTest : JUnit5Minutests {
 
     }
 
-    private fun <T : Any> TestContextBuilder<Connection, Fixture<T>>.makeFixture(kClass: KClass<T>) {
+    private inline fun <reified T : Any> TestContextBuilder<Connection, Fixture<T>>.makeFixture() {
         applyRule { timeout }
         deriveFixture {
             val connection = this
             runBlocking {
-                Fixture<T>(connection, kClass)
+                Fixture(connection, T::class)
             }
         }
     }
