@@ -25,4 +25,4 @@ jobs:
       - name: Build with Gradle
         run: |
           ./gradlew build
-          PITEST_THREADS=2 PITEST=true ./gradlew pitest
+#          PITEST_THREADS=2 PITEST=true ./gradlew pitest
