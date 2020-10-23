@@ -1,5 +1,6 @@
 package r2dbcfun
 
+import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -18,7 +19,8 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
             Int::class.java,
             Byte::class.java,
             Short::class.java,
-            Long::class.java
+            Long::class.java,
+            LocalDate::class.java
         )
 
         private fun makeConverter(parameter: KParameter): FieldConverter {

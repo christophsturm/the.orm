@@ -1,6 +1,7 @@
 package r2dbcfun
 
 import dev.minutest.ContextBuilder
+import dev.minutest.TestContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.junit.experimental.applyRule
 import dev.minutest.rootContext
@@ -24,10 +25,14 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.message
+import java.time.LocalDate
+import kotlin.reflect.KClass
+
 
 object TestConfig {
     val H2_ONLY = System.getenv("H2_ONLY") != null
     val CI = System.getenv("CI") != null
+    val PITEST = System.getenv("PITEST") != null
 }
 
 @Suppress("SqlResolve")
@@ -40,13 +45,8 @@ class R2dbcRepoTest : JUnit5Minutests {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
-    @Serializable // test that it works with serializable classes
     data class UserPK(override val id: Long) : PK
 
-    // HasPK interface it optional
-    interface HasPK {
-        val id: PK?
-    }
 
     enum class Color {
         RED,
@@ -55,45 +55,49 @@ class R2dbcRepoTest : JUnit5Minutests {
         BLUE
     }
 
-    @Serializable
     data class User(
-        override val id: UserPK? = null,
+        val id: UserPK? = null,
         val name: String,
         val email: String?,
         val isCool: Boolean = false,
         val bio: String? = null,
-        val favoriteColor: Color? = null
-    ) : HasPK
+        val favoriteColor: Color? = null,
+        val birthday: LocalDate
+    )
 
+
+    class Fixture<T : Any>(val connection: Connection, type: KClass<T>) {
+        val repo = R2dbcRepo(connection, type)
+        val timeout = CoroutinesTimeout(if (TestConfig.PITEST) 500000 else if (TestConfig.CI) 50000 else 500)
+    }
 
     private fun ContextBuilder<Connection>.repoTests() {
-        class Fixture(val connection: Connection) {
-            val repo = R2dbcRepo.create<User>(connection)
-            val timeout = CoroutinesTimeout(if (TestConfig.CI) 10000 else 500)
-        }
-        derivedContext<Fixture>("a repo with a data class") {
-            applyRule { timeout }
-            deriveFixture {
-                val connection = this
-                runBlocking {
-                    Fixture(connection)
-                }
-            }
+        derivedContext<Fixture<User>>("a repo with a user data class") {
+            makeFixture()
             context("Creating Rows") {
                 test("can insert data class and return primary key") {
                     runBlocking {
-                        val user = repo.create(User(name = "chris", email = "my email", bio = reallyLongString))
+                        val user = repo.create(
+                            User(
+                                name = "chris",
+                                email = "my email",
+                                bio = reallyLongString,
+                                birthday = LocalDate.parse("2020-06-20")
+                            )
+                        )
                         expectThat(user).and {
                             get { id }.isEqualTo(UserPK(1))
                             get { name }.isEqualTo("chris")
                             get { email }.isEqualTo("my email")
+                            get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
                         }
                     }
                 }
 
                 test("supports nullable values") {
                     runBlocking {
-                        val user = repo.create(User(name = "chris", email = null))
+                        val user =
+                            repo.create(User(name = "chris", email = null, birthday = LocalDate.parse("2020-06-20")))
                         expectThat(user).and {
                             get { id }.isEqualTo(UserPK(1))
                             get { name }.isEqualTo("chris")
@@ -105,11 +109,18 @@ class R2dbcRepoTest : JUnit5Minutests {
             context("loading data objects") {
                 test("can load data object by id") {
                     runBlocking {
-                        repo.create(User(name = "anotherUser", email = "my email"))
+                        repo.create(
+                            User(
+                                name = "anotherUser",
+                                email = "my email",
+                                birthday = LocalDate.parse("2020-06-20")
+                            )
+                        )
                         val id = repo.create(
                             User(
-                                name = "chris", email = "my email", bio = reallyLongString, isCool = false,
-                                favoriteColor = Color.RED
+                                name = "chris", email = "my email", isCool = false, bio = reallyLongString,
+                                favoriteColor = Color.RED,
+                                birthday = LocalDate.parse("2020-06-20")
                             )
                         ).id!!
                         val user = repo.findById(id)
@@ -120,13 +131,26 @@ class R2dbcRepoTest : JUnit5Minutests {
                             get { isCool }.isFalse()
                             get { bio }.isEqualTo(reallyLongString)
                             get { favoriteColor }.isEqualTo(Color.RED)
+                            get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
                         }
                     }
                 }
                 test("can load data object by field value") {
                     runBlocking {
-                        val firstUser = repo.create(User(name = "chris", email = "my email"))
-                        val secondUser = repo.create(User(name = "chris", email = "different email"))
+                        val firstUser = repo.create(
+                            User(
+                                name = "chris",
+                                email = "my email",
+                                birthday = LocalDate.parse("2020-06-20")
+                            )
+                        )
+                        val secondUser = repo.create(
+                            User(
+                                name = "chris",
+                                email = "different email",
+                                birthday = LocalDate.parse("2020-06-20")
+                            )
+                        )
                         val users = repo.findBy(User::name, "chris").toCollection(mutableListOf())
                         expectThat(users).containsExactlyInAnyOrder(firstUser, secondUser)
                     }
@@ -142,7 +166,12 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
             context("updating objects") {
                 test("can update objects") {
-                    val originalUser = User(name = "chris", email = "my email", bio = reallyLongString)
+                    val originalUser = User(
+                        name = "chris",
+                        email = "my email",
+                        bio = reallyLongString,
+                        birthday = LocalDate.parse("2020-06-20")
+                    )
                     runBlocking {
                         val id = repo.create(originalUser).id!!
                         val readBackUser = repo.findById(id)
@@ -164,8 +193,9 @@ class R2dbcRepoTest : JUnit5Minutests {
                     runBlocking {
                         val id = repo.create(
                             User(
-                                name = "chris", email = "my email", bio = reallyLongString, isCool = false,
-                                favoriteColor = Color.RED
+                                name = "chris", email = "my email", isCool = false, bio = reallyLongString,
+                                favoriteColor = Color.RED,
+                                birthday = LocalDate.parse("2020-06-20")
                             )
                         ).id!!
                         val color =
@@ -179,6 +209,32 @@ class R2dbcRepoTest : JUnit5Minutests {
                 }
             }
         }
+
+        @Serializable
+        data class SerializableUserPK(override val id: Long) : PK
+
+        @Serializable
+        data class SerializableUser(
+            val id: SerializableUserPK? = null,
+            val name: String,
+            val email: String?
+        )
+
+        derivedContext<Fixture<SerializableUser>>("interop with kotlinx.serializable") {
+            makeFixture()
+            test("can insert data class and return primary key") {
+                runBlocking {
+                    val user = repo.create(SerializableUser(name = "chris", email = "my email"))
+                    expectThat(user).and {
+                        get { id }.isEqualTo(SerializableUserPK(1))
+                        get { name }.isEqualTo("chris")
+                        get { email }.isEqualTo("my email")
+                    }
+                }
+            }
+
+        }
+
         context("fail fast error handling") {
             test("fails fast if PK has more than one field") {
                 data class MismatchPK(override val id: Long, val blah: String) : PK
@@ -203,6 +259,16 @@ class R2dbcRepoTest : JUnit5Minutests {
             }
         }
 
+    }
+
+    private inline fun <reified T : Any> TestContextBuilder<Connection, Fixture<T>>.makeFixture() {
+        applyRule { timeout }
+        deriveFixture {
+            val connection = this
+            runBlocking {
+                Fixture(connection, T::class)
+            }
+        }
     }
 
     @Suppress("unused")

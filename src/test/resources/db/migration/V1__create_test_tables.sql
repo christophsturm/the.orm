@@ -6,10 +6,24 @@ create table users
     email          varchar(100),
     is_cool        boolean,
     bio            text,
-    favorite_color varchar(10)
+    favorite_color varchar(10),
+    birthday       date
 );
 
 alter table users
+    add primary key (id);
+
+
+create sequence serializable_users_id_seq no maxvalue;
+
+create table serializable_users
+(
+    id    bigint       not null default nextval('serializable_users_id_seq'),
+    name  varchar(100) not null,
+    email varchar(100)
+);
+
+alter table serializable_users
     add primary key (id);
 
 create sequence mismatchs_id_seq no maxvalue;

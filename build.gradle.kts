@@ -64,6 +64,12 @@ dependencies {
     testImplementation("io.projectreactor.tools:blockhound:1.0.4.RELEASE")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
+    val log4j2Version = "2.13.3"
+    testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
+    testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
+    testImplementation("org.apache.logging.log4j:log4j-jul:$log4j2Version")
+    testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version")
+
     "pitest"("org.pitest:pitest-junit5-plugin:0.12")
 
 }
@@ -86,6 +92,7 @@ tasks {
             includeEngines("junit-jupiter")
         }
 
+        ignoreFailures = System.getenv("CI") != null
         testLogging {
             testLogging {
                 exceptionFormat = FULL
