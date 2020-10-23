@@ -92,6 +92,7 @@ tasks {
             includeEngines("junit-jupiter")
         }
 
+        ignoreFailures = System.getenv("CI") != null
         testLogging {
             testLogging {
                 exceptionFormat = FULL
