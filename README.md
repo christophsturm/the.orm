@@ -32,7 +32,7 @@ Kotlin Code:
         val bio: String? = null
     )
 
-    val repo = R2dbcRepo.create<User, UserPK>(connection)
+    val repo = R2dbcRepo.create<User>(connection)
 
     val firstUser = repo.create(User(name = "chris", email = "my email"))
     val secondUser = repo.create(User(name = "chris", email = "different email"))
