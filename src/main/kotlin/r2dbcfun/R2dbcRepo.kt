@@ -13,7 +13,7 @@ public interface PK {
 }
 
 public class R2dbcRepo<T : Any>(
-    connection: Connection,
+    private val connection: Connection,
     kClass: KClass<T>
 ) {
     public companion object {
@@ -39,7 +39,7 @@ public class R2dbcRepo<T : Any>(
 
     private val updater = Updater(tableName, connection, propertyReaders, idHandler, idProperty)
 
-    private val finder = Finder(tableName, connection, idHandler, kClass, ClassInfo(kClass))
+    private val finder = Finder(tableName, idHandler, kClass, ClassInfo(kClass))
 
     /**
      * creates a new record in the database.
@@ -74,7 +74,7 @@ public class R2dbcRepo<T : Any>(
      * @param propertyValue the value of
      */
     public suspend fun <V : Any> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> =
-        finder.findBy(property, propertyValue)
+        finder.findBy(connection, property, propertyValue)
 
 }
 

@@ -14,7 +14,6 @@ import kotlin.reflect.full.declaredMemberProperties
 
 internal class Finder<T : Any>(
     private val table: String,
-    private val connection: Connection,
     private val idHandler: IDHandler<T>,
     kClass: KClass<T>,
     private val classInfo: ClassInfo<T>
@@ -26,7 +25,7 @@ internal class Finder<T : Any>(
     private val snakeCaseForProperty =
         kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
-    suspend fun <V : Any> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> {
+    suspend fun <V : Any> findBy(connection: Connection, property: KProperty1<T, V>, propertyValue: V): Flow<T> {
         val query = selectStringPrefix + snakeCaseForProperty[property] + "=$1"
         val queryResult = try {
             connection.createStatement(query).bind("$1", propertyValue).execute()
