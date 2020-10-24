@@ -5,7 +5,6 @@ import r2dbcfun.internal.IDHandler
 
 internal class Inserter<T : Any>(
     table: String,
-    private val connection: Connection,
     private val insertProperties: List<PropertyReader<T>>,
     private val idHandler: IDHandler<T>
 ) {
@@ -15,7 +14,7 @@ internal class Inserter<T : Any>(
         "INSERT INTO $table($fieldNames) values ($fieldPlaceHolders)"
     }
 
-    suspend fun create(instance: T): T {
+    suspend fun create(connection: Connection, instance: T): T {
         val statement = insertProperties.foldIndexed(
             connection.createStatement(insertStatementString)
         )

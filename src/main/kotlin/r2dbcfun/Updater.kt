@@ -7,7 +7,6 @@ import kotlin.reflect.KProperty1
 
 internal class Updater<T : Any>(
     table: String,
-    private val connection: Connection,
     private val updateProperties: List<PropertyReader<T>>,
     private val idHandler: IDHandler<T>,
     private val idProperty: KProperty1<T, Any>
@@ -20,7 +19,7 @@ internal class Updater<T : Any>(
         "UPDATE $table set $propertiesString where id=$1"
     }
 
-    suspend fun update(instance: T) {
+    suspend fun update(connection: Connection, instance: T) {
         val statement = updateProperties.foldIndexed(
             connection.createStatement(updateStatementString)
                 .bind(0, idHandler.getId(idProperty.call(instance)))

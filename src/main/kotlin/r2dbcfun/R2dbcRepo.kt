@@ -35,9 +35,9 @@ public class R2dbcRepo<T : Any>(
     @Suppress("UNCHECKED_CAST")
     private val idProperty = properties["id"] as KProperty1<T, Any>
 
-    private val inserter = Inserter(tableName, connection, propertyReaders, idHandler)
+    private val inserter = Inserter(tableName, propertyReaders, idHandler)
 
-    private val updater = Updater(tableName, connection, propertyReaders, idHandler, idProperty)
+    private val updater = Updater(tableName, propertyReaders, idHandler, idProperty)
 
     private val finder = Finder(tableName, idHandler, kClass, ClassInfo(kClass))
 
@@ -46,14 +46,14 @@ public class R2dbcRepo<T : Any>(
      * @param instance the instance that will be used to set the fields of the newly created record
      * @return a copy of the instance with an assigned id field.
      */
-    public suspend fun create(instance: T): T = inserter.create(instance)
+    public suspend fun create(instance: T): T = inserter.create(connection, instance)
 
     /**
      * updates a record in the database.
      * @param instance the instance that will be used to update the record
      */
     public suspend fun update(instance: T) {
-        updater.update(instance)
+        updater.update(connection, instance)
     }
 
     /**
