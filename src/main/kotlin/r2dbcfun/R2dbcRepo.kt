@@ -13,7 +13,7 @@ public interface PK {
 }
 
 public class R2dbcRepo<T : Any>(
-    connection: Connection,
+    private val connection: Connection,
     kClass: KClass<T>
 ) {
     public companion object {
@@ -35,25 +35,25 @@ public class R2dbcRepo<T : Any>(
     @Suppress("UNCHECKED_CAST")
     private val idProperty = properties["id"] as KProperty1<T, Any>
 
-    private val inserter = Inserter(tableName, connection, propertyReaders, idHandler)
+    private val inserter = Inserter(tableName, propertyReaders, idHandler)
 
-    private val updater = Updater(tableName, connection, propertyReaders, idHandler, idProperty)
+    private val updater = Updater(tableName, propertyReaders, idHandler, idProperty)
 
-    private val finder = Finder(tableName, connection, idHandler, kClass, ClassInfo(kClass))
+    private val finder = Finder(tableName, idHandler, kClass, ClassInfo(kClass))
 
     /**
      * creates a new record in the database.
      * @param instance the instance that will be used to set the fields of the newly created record
      * @return a copy of the instance with an assigned id field.
      */
-    public suspend fun create(instance: T): T = inserter.create(instance)
+    public suspend fun create(instance: T): T = inserter.create(connection, instance)
 
     /**
      * updates a record in the database.
      * @param instance the instance that will be used to update the record
      */
     public suspend fun update(instance: T) {
-        updater.update(instance)
+        updater.update(connection, instance)
     }
 
     /**
@@ -74,7 +74,7 @@ public class R2dbcRepo<T : Any>(
      * @param propertyValue the value of
      */
     public suspend fun <V : Any> findBy(property: KProperty1<T, V>, propertyValue: V): Flow<T> =
-        finder.findBy(property, propertyValue)
+        finder.findBy(connection, property, propertyValue)
 
 }
 
