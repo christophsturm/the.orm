@@ -67,7 +67,7 @@ class R2dbcRepoTest : JUnit5Minutests {
 
 
     class Fixture<T : Any>(val connection: Connection, type: KClass<T>) {
-        val repo = R2dbcRepo(connection, type)
+        val repo = R2dbcRepo(type)
         val timeout = CoroutinesTimeout(if (TestConfig.PITEST) 500000 else if (TestConfig.CI) 50000 else 500)
     }
 
@@ -78,6 +78,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 test("can insert data class and return primary key") {
                     runBlocking {
                         val user = repo.create(
+                            connection,
                             User(
                                 name = "chris",
                                 email = "my email",
@@ -97,7 +98,10 @@ class R2dbcRepoTest : JUnit5Minutests {
                 test("supports nullable values") {
                     runBlocking {
                         val user =
-                            repo.create(User(name = "chris", email = null, birthday = LocalDate.parse("2020-06-20")))
+                            repo.create(
+                                connection,
+                                User(name = "chris", email = null, birthday = LocalDate.parse("2020-06-20"))
+                            )
                         expectThat(user).and {
                             get { id }.isEqualTo(UserPK(1))
                             get { name }.isEqualTo("chris")
@@ -110,6 +114,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 test("can load data object by id") {
                     runBlocking {
                         repo.create(
+                            connection,
                             User(
                                 name = "anotherUser",
                                 email = "my email",
@@ -117,13 +122,14 @@ class R2dbcRepoTest : JUnit5Minutests {
                             )
                         )
                         val id = repo.create(
+                            connection,
                             User(
                                 name = "chris", email = "my email", isCool = false, bio = reallyLongString,
                                 favoriteColor = Color.RED,
                                 birthday = LocalDate.parse("2020-06-20")
                             )
                         ).id!!
-                        val user = repo.findById(id)
+                        val user = repo.findById(connection, id)
                         expectThat(user).and {
                             get { id }.isEqualTo(id)
                             get { name }.isEqualTo("chris")
@@ -138,6 +144,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 test("can load data object by field value") {
                     runBlocking {
                         val firstUser = repo.create(
+                            connection,
                             User(
                                 name = "chris",
                                 email = "my email",
@@ -145,20 +152,21 @@ class R2dbcRepoTest : JUnit5Minutests {
                             )
                         )
                         val secondUser = repo.create(
+                            connection,
                             User(
                                 name = "chris",
                                 email = "different email",
                                 birthday = LocalDate.parse("2020-06-20")
                             )
                         )
-                        val users = repo.findBy(User::name, "chris").toCollection(mutableListOf())
+                        val users = repo.findBy(connection, User::name, "chris").toCollection(mutableListOf())
                         expectThat(users).containsExactlyInAnyOrder(firstUser, secondUser)
                     }
                 }
                 test("throws NotFoundException when id does not exist") {
                     runBlocking {
                         expectCatching {
-                            repo.findById(UserPK(1))
+                            repo.findById(connection, UserPK(1))
                         }.isFailure().isA<NotFoundException>().message.isNotNull().isEqualTo("No users found for id 1")
 
                     }
@@ -173,10 +181,10 @@ class R2dbcRepoTest : JUnit5Minutests {
                         birthday = LocalDate.parse("2020-06-20")
                     )
                     runBlocking {
-                        val id = repo.create(originalUser).id!!
-                        val readBackUser = repo.findById(id)
-                        repo.update(readBackUser.copy(name = "updated name", email = null))
-                        val readBackUpdatedUser = repo.findById(id)
+                        val id = repo.create(connection, originalUser).id!!
+                        val readBackUser = repo.findById(connection, id)
+                        repo.update(connection, readBackUser.copy(name = "updated name", email = null))
+                        val readBackUpdatedUser = repo.findById(connection, id)
                         expectThat(readBackUpdatedUser).isEqualTo(
                             originalUser.copy(
                                 id = id,
@@ -192,6 +200,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 test("enum fields are serialized as upper case strings") {
                     runBlocking {
                         val id = repo.create(
+                            connection,
                             User(
                                 name = "chris", email = "my email", isCool = false, bio = reallyLongString,
                                 favoriteColor = Color.RED,
@@ -224,7 +233,7 @@ class R2dbcRepoTest : JUnit5Minutests {
             makeFixture()
             test("can insert data class and return primary key") {
                 runBlocking {
-                    val user = repo.create(SerializableUser(name = "chris", email = "my email"))
+                    val user = repo.create(connection, SerializableUser(name = "chris", email = "my email"))
                     expectThat(user).and {
                         get { id }.isEqualTo(SerializableUserPK(1))
                         get { name }.isEqualTo("chris")
@@ -241,7 +250,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 data class Mismatch(val id: MismatchPK)
                 runBlocking {
                     expectCatching {
-                        R2dbcRepo.create<Mismatch>(fixture)
+                        R2dbcRepo.create<Mismatch>()
                     }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
                         .contains("PK classes must have a single field of type long")
                 }
@@ -252,7 +261,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                 data class ClassWithUnsupportedType(val id: Long, val unsupported: Unsupported)
                 runBlocking {
                     expectCatching {
-                        R2dbcRepo.create<ClassWithUnsupportedType>(fixture)
+                        R2dbcRepo.create<ClassWithUnsupportedType>()
                     }.isFailure().isA<R2dbcRepoException>().message.isNotNull()
                         .contains("type Unsupported not supported")
                 }
