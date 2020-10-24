@@ -26,9 +26,29 @@ internal class Finder<T : Any>(
         kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
     suspend fun <V : Any> findBy(connection: Connection, property: KProperty1<T, V>, propertyValue: V): Flow<T> {
-        val query = selectStringPrefix + snakeCaseForProperty[property] + "=$1"
+        val suffix = snakeCaseForProperty[property] + "=$1"
+        val properties = listOf(propertyValue)
+        return findBy(connection, suffix, properties)
+    }
+
+    suspend fun <V : Any> findBy(
+        connection: Connection,
+        query: String,
+        properties: List<V>
+    ): Flow<T> {
+        val query = selectStringPrefix + query
+        val statement = try {
+            properties.foldIndexed(connection.createStatement(query)) { idx, statement, property ->
+                statement.bind(
+                    idx,
+                    property
+                )
+            }
+        } catch (e: Exception) {
+            throw R2dbcRepoException("error creating statement", e)
+        }
         val queryResult = try {
-            connection.createStatement(query).bind("$1", propertyValue).execute()
+            statement.execute()
                 .awaitSingle()
         } catch (e: Exception) {
             throw R2dbcRepoException("error executing select: $query", e)
@@ -74,5 +94,6 @@ internal class Finder<T : Any>(
         result.discard()
         return sb.toString()
     }
+
 }
 

@@ -38,7 +38,7 @@ public class R2dbcRepo<T : Any>(
 
     private val updater = Updater(tableName, propertyReaders, idHandler, idProperty)
 
-    private val finder = Finder(tableName, idHandler, kClass, ClassInfo(kClass))
+    internal val finder = Finder(tableName, idHandler, kClass, ClassInfo(kClass))
 
     /**
      * creates a new record in the database.
