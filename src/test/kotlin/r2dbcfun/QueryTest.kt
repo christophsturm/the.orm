@@ -7,6 +7,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
+import r2dbcfun.Query.Condition
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -22,49 +25,39 @@ class QueryTest : JUnit5Minutests {
             test("first query api") {
                 runBlocking {
                     val connection = prepareH2().create().awaitSingle()
-                    val users: Flow<User> =
-                        selectFrom<User>().where(
-                            User::name.like("blah%").and(User::birthday.between(date1, date2))
-                        ).fromConnection(connection)
+                    find(User::name.like("blah%"), User::birthday.between(date1, date2))
+                        .fromConnection(connection)
                 }
             }
             test("it generates sql from a query") {
-                val query = selectFrom<User>().where(
-                    User::name.like("blah%").and(User::birthday.between(date1, date2))
-                )
+                val query = find(User::name.like("blah%"), (User::birthday.between(date1, date2)))
+                expectThat(query.queryString).isEqualTo("name like(?) and birthday between ? and ?")
             }
         }
     }
 }
 
-private fun <T, V> KProperty1<T, V>.between2(date1: V, date2: V): V? {
-    TODO("blah")
-}
+
+private inline fun <reified T : Any> find(vararg conditions: Condition<T, *>) = Query(T::class, conditions.toList())
 
 
-private inline fun <reified T : Any> selectFrom() = Query(T::class)
+private fun <T, V : Any> KProperty1<T, V>.between(date1: V, date2: V) =
+    Condition(this, "between ? and ?", listOf(date1, date2))
 
 
-private fun <T, V> KProperty1<T, V>.between(date1: V, date2: V) = BetweenCondition(this, date1, date2)
+private fun <T, V : Any> KProperty1<T, V>.like(v: V): Condition<T, V> = Condition(this, "like(?)", listOf(v))
 
-class BetweenCondition<T, V>(kProperty1: KProperty1<T, V>, date1: V, date2: V)
 
-private fun <T, V> KProperty1<T, V>.like(v: V): QueryBuilder = QueryBuilder()
+class Query<T : Any>(kClass: KClass<T>, conditions: List<Condition<T, *>>) {
+    data class Condition<T, V>(val property: KProperty1<T, V>, val queryFragment: String, val parameters: List<Any>)
 
-class QueryBuilder {
-    fun and(between: Any?): QueryBuilder = this
-    infix fun and(between: LocalDate?): QueryBuilder = this
-
-}
-
-class Query<T : Any>(kClass: KClass<T>) {
     private val finder = R2dbcRepo(kClass).finder
-    fun where(and: QueryBuilder) = this
+    internal val queryString =
+        conditions.joinToString(separator = " and ") { "${finder.snakeCaseForProperty[it.property]} ${it.queryFragment}" }
+    private val parameters = conditions.flatMap { it.parameters }
     suspend fun fromConnection(connection: Connection): Flow<T> {
-        val queryString = "1=1"
-        val parameters = listOf<Any>()
         return finder.findBy(connection, queryString, parameters)
     }
-
 }
+
 

@@ -1,3 +1,5 @@
+@file:Suppress("unused", "UNUSED_PARAMETER")
+
 package r2dbcfun.exp
 
 import dev.minutest.experimental.SKIP
@@ -49,10 +51,6 @@ private fun <T> Find2(function: FindThing2.() -> Unit) {
 }
 
 class FindThing2 {
-    fun where(and: r2dbcfun.QueryBuilder) {
-        TODO("Not yet implemented")
-    }
-
     fun and(between: LocalDate?) {
         TODO("Not yet implemented")
     }
