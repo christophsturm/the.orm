@@ -1,17 +1,18 @@
 @file:Suppress("unused", "UNUSED_PARAMETER")
 
+// this is just for playing around with a new query language. it compiles but does not run.
+// just pretend that it does not exist.
+
 package r2dbcfun.exp
 
 import dev.minutest.experimental.SKIP
 import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import r2dbcfun.User
 import java.time.LocalDate
 import kotlin.reflect.KProperty1
 
-@ExperimentalCoroutinesApi
 class Query2Test : JUnit5Minutests {
 
     @Suppress("unused")
@@ -20,9 +21,9 @@ class Query2Test : JUnit5Minutests {
             val date1 = LocalDate.now()
             val date2 = LocalDate.now()
             test("other query api") {
-                Find2<User> {
+                find<User> {
                     User::name.like("blah%")
-                    and(User::birthday.between2(date1, date2))
+                    User::birthday.between2(date1, date2)
                 }
             }
         }
@@ -46,7 +47,7 @@ class QueryBuilder {
 
 }
 
-private fun <T> Find2(function: FindThing2.() -> Unit) {
+private fun <T> find(function: FindThing2.() -> Unit) {
     TODO("Not yet implemented")
 }
 
