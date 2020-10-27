@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val junit5Version = "5.7.0"
 val junitPlatformVersion = "1.7.0"
-val coroutinesVersion = "1.3.9"
+val coroutinesVersion = "1.4.0"
 val kotlinVersion = "1.4.10"
 val serializationVersion = "1.0.0"
 val testcontainersVersion = "1.15.0-rc2"
