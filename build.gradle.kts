@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val junit5Version = "5.7.0"
 val junitPlatformVersion = "1.7.0"
-val coroutinesVersion = "1.3.9"
+val coroutinesVersion = "1.4.0"
 val kotlinVersion = "1.4.10"
 val serializationVersion = "1.0.0"
 val testcontainersVersion = "1.15.0-rc2"
@@ -21,7 +21,7 @@ plugins {
     kotlin("jvm").version("1.4.10")
     id("com.github.ben-manes.versions") version "0.33.0"
     id("info.solidsoft.pitest") version "1.5.2"
-    id("com.adarshr.test-logger") version "2.1.0"
+    id("com.adarshr.test-logger") version "2.1.1"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
     kotlin("plugin.serialization").version("1.4.10")
@@ -45,17 +45,17 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    api("io.r2dbc:r2dbc-spi:0.8.2.RELEASE")
+    api("io.r2dbc:r2dbc-spi:0.8.3.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     testImplementation("io.strikt:strikt-core:0.28.0")
     testImplementation("dev.minutest:minutest:1.11.0")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
-    testRuntimeOnly("org.postgresql:postgresql:42.2.17")
-    testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.5.RELEASE")
+    testRuntimeOnly("org.postgresql:postgresql:42.2.18")
+    testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.6.RELEASE")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.flywaydb:flyway-core:7.0.2")
+    testImplementation("org.flywaydb:flyway-core:7.0.4")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
