@@ -37,17 +37,27 @@ internal class Finder<T : Any>(
         properties: List<V>
     ): Flow<T> {
         val query = selectStringPrefix + queryConditions
+        return findBy(properties, connection, query)
+    }
+
+    // TODO make properties nullable
+    internal suspend fun findBy(
+        properties: List<Any>,
+        connection: Connection,
+        sql: String
+    ): Flow<T> {
         val statement = try {
-            properties.foldIndexed(connection.createStatement(query)) { idx, statement, property ->
-                statement.bind(idx, property)
-            }
+            properties.flatMap { if (it is Pair<*, *>) listOf(it.first, it.second) else listOf(it) }
+                .foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
+                    statement.bind(idx, property)
+                }
         } catch (e: Exception) {
             throw R2dbcRepoException("error creating statement", e)
         }
         val queryResult = try {
             statement.execute().awaitSingle()
         } catch (e: Exception) {
-            throw R2dbcRepoException("error executing select: $query", e)
+            throw R2dbcRepoException("error executing select: $sql", e)
         }
 
         data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: Any?)
