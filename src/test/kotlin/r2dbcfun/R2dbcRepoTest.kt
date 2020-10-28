@@ -148,7 +148,6 @@ class R2dbcRepoTest : JUnit5Minutests {
                         val date2 = LocalDate.parse("2020-06-21")
                         val findByUserNameLikeAndBirthdayBetween =
                             repo.queryFactory.query(User::name.like(), User::birthday.between())
-                        expectThat(findByUserNameLikeAndBirthdayBetween.query.selectString).isEqualTo("select id, name, email, is_cool, bio, favorite_color, birthday from users where name like($1) and birthday between $2 and $3")
                         runBlocking {
                             // create 3 users with different birthdays so that only the middle date fits the between condition
                             repo.create(

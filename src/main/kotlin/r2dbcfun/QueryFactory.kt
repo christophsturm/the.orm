@@ -36,7 +36,7 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
         p1: Condition<P1>,
         p2: Condition<P2>
     ) {
-        internal val query = Query(kClass, ClassInfo(kClass), finder, p1, p2)
+        internal val query = Query(kClass, finder, p1, p2)
         public suspend fun find(connection: Connection, p1: P1, p2: P2): Flow<T> = query.find(connection, p1, p2)
     }
 
@@ -44,7 +44,6 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
     // internal api
     public class Query<T : Any> internal constructor(
         kClass: KClass<T>,
-        private val classInfo: ClassInfo<T>,
         private val finder: Finder<T>,
         private vararg val conditions: Condition<*>
     ) {
@@ -58,7 +57,7 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
 
             val queryString =
                 conditions.joinToString(separator = " and ") { "${snakeCaseForProperty[it.prop]} ${it.conditionString}" }
-            "select ${classInfo.fieldInfo.joinToString { it.snakeCaseName }} from $tableName where " + queryString
+            "select ${snakeCaseForProperty.values.joinToString { it }} from $tableName where " + queryString
         }.toIndexedPlaceholders()
 
 
