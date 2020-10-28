@@ -24,7 +24,7 @@ class QueryTest : JUnit5Minutests {
             val date1 = LocalDate.now()
             val date2 = LocalDate.now()
             test("it generates sql from a query") {
-                val query = find(User::name.like("blah%"), (User::birthday.between(date1, date2)))
+                val query = find(User::name.like("blah%"), User::birthday.between(date1, date2))
                 expectThat(query.queryString).isEqualTo("name like(?) and birthday between ? and ?")
             }
         }
@@ -35,18 +35,18 @@ class QueryTest : JUnit5Minutests {
 private inline fun <reified T : Any> find(vararg conditions: Condition<T, *>) = Query(T::class, conditions.toList())
 
 
-private fun <T, V : Any> KProperty1<T, V>.between(date1: V, date2: V) =
+private fun <T, V> KProperty1<T, V>.between(date1: V, date2: V) =
     Condition(this, "between ? and ?", listOf(date1, date2))
 
 
-private fun <T, V : Any> KProperty1<T, V>.like(v: V): Condition<T, V> = Condition(this, "like(?)", listOf(v))
+private fun <T, V> KProperty1<T, V>.like(v: V): Condition<T, V> = Condition(this, "like(?)", listOf(v))
 
 
 class Query<T : Any>(kClass: KClass<T>, conditions: List<Condition<T, *>>) {
     private val snakeCaseForProperty =
         kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
-    data class Condition<T, V>(val property: KProperty1<T, V>, val queryFragment: String, val parameters: List<Any>)
+    data class Condition<T, V>(val property: KProperty1<T, V>, val queryFragment: String, val parameters: List<Any?>)
 
     internal val queryString =
         conditions.joinToString(separator = " and ") { "${snakeCaseForProperty[it.property]} ${it.queryFragment}" }

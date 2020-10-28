@@ -7,19 +7,19 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
-public fun <T : Any> KProperty1<T, String>.like(): QueryFactory.Condition<String> =
+public fun <T : Any> KProperty1<T, String?>.like(): QueryFactory.Condition<String> =
     QueryFactory.likeCondition(this)
 
 public fun <T : Any, V> KProperty1<T, V>.equals(): QueryFactory.Condition<V> =
     QueryFactory.equalsCondition(this)
 
-public fun <T : Any> KProperty1<T, LocalDate>.between(): QueryFactory.Condition<Pair<LocalDate, LocalDate>> =
+public fun <T : Any> KProperty1<T, LocalDate?>.between(): QueryFactory.Condition<Pair<LocalDate, LocalDate>> =
     QueryFactory.Condition("between ? and ?", this)
 
 
 public class QueryFactory<T : Any> internal constructor(kClass: KClass<T>, private val finder: Finder<T>) {
     public companion object {
-        public fun <T : Any> likeCondition(property: KProperty1<T, String>): Condition<String> =
+        public fun <T : Any> likeCondition(property: KProperty1<T, String?>): Condition<String> =
             Condition("like(?)", property)
 
         public fun <T : Any, V> equalsCondition(property: KProperty1<T, V>): Condition<V> =
@@ -37,7 +37,7 @@ public class QueryFactory<T : Any> internal constructor(kClass: KClass<T>, priva
     public fun <P1> query(p1: Condition<P1>): OneParameterQuery<P1> =
         OneParameterQuery(p1)
 
-    public fun <P1 : Any, P2 : Any> query(p1: Condition<P1>, p2: Condition<P2>): TwoParameterQuery<P1, P2> =
+    public fun <P1, P2> query(p1: Condition<P1>, p2: Condition<P2>): TwoParameterQuery<P1, P2> =
         TwoParameterQuery(p1, p2)
 
     @Suppress("unused")
@@ -50,7 +50,7 @@ public class QueryFactory<T : Any> internal constructor(kClass: KClass<T>, priva
         public suspend operator fun invoke(connection: Connection, p1: P1?): Flow<T> = query.find(connection, p1)
     }
 
-    public inner class TwoParameterQuery<P1 : Any, P2 : Any>(
+    public inner class TwoParameterQuery<P1, P2>(
         p1: Condition<P1>,
         p2: Condition<P2>
     ) {

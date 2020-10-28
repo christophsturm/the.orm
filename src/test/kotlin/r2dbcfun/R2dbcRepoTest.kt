@@ -55,7 +55,7 @@ data class User(
     val isCool: Boolean? = false,
     val bio: String? = null,
     val favoriteColor: Color? = null,
-    val birthday: LocalDate = LocalDate.parse("2000-01-01")
+    val birthday: LocalDate? = null
 )
 
 @Suppress("SqlResolve")
