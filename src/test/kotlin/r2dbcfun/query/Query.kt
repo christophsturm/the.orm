@@ -19,9 +19,9 @@ fun <T : Any> KProperty1<T, LocalDate>.between() =
 
 data class Condition<Type>(val conditionString: String, val prop: KProperty1<*, *>)
 
-class TwoParameterQuery<T : Any, P1 : Any, P2 : Any>(kClass: KClass<T>, p1: Condition<P1>, p2: Condition<P2>) :
-    Query<T>(kClass, p1, p2) {
-    suspend fun find(connection: Connection, p1: P1, p2: P2) = super.find(connection, p1, p2)
+class TwoParameterQuery<T : Any, P1 : Any, P2 : Any>(kClass: KClass<T>, p1: Condition<P1>, p2: Condition<P2>) {
+    internal val query = Query(kClass, p1, p2)
+    suspend fun find(connection: Connection, p1: P1, p2: P2) = query.find(connection, p1, p2)
 }
 
 

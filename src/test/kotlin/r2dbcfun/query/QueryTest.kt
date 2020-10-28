@@ -21,7 +21,7 @@ class QueryTest : JUnit5Minutests {
             val date2 = LocalDate.now()
             test("first query api") {
                 val query = query(User::class, User::name.like(), User::birthday.between())
-                expectThat(query.selectString).isEqualTo("select id, name, email, is_cool, bio, favorite_color, birthday from users where name like(?) and birthday between ? and ?")
+                expectThat(query.query.selectString).isEqualTo("select id, name, email, is_cool, bio, favorite_color, birthday from users where name like(?) and birthday between ? and ?")
                 runBlocking {
                     val connection = prepareH2().create().awaitSingle()
                     query.find(connection, "blah%", Pair(date1, date2))
