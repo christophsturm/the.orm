@@ -17,12 +17,12 @@ internal class Finder<T : Any>(
 
     // TODO make properties nullable
     internal suspend fun findBy(
-        properties: List<Any>,
         connection: Connection,
-        sql: String
+        sql: String,
+        parameterValues: List<Any>
     ): Flow<T> {
         @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS") val statement = try {
-            properties.flatMap { if (it is Pair<*, *>) listOf(it.first, it.second) else listOf(it) }
+            parameterValues.flatMap { if (it is Pair<*, *>) listOf(it.first, it.second) else listOf(it) }
                 .foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
                     statement.bind(idx, property)
                 }

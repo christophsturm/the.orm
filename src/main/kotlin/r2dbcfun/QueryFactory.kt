@@ -27,11 +27,12 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
 
     }
 
-    public fun <P1 : Any, P2 : Any> query(p1: Condition<P1>, p2: Condition<P2>): TwoParameterQuery<P1, P2> =
-        TwoParameterQuery(p1, p2)
 
     public fun <P1 : Any> query(p1: Condition<P1>): OneParameterQuery<P1> =
         OneParameterQuery(p1)
+
+    public fun <P1 : Any, P2 : Any> query(p1: Condition<P1>, p2: Condition<P2>): TwoParameterQuery<P1, P2> =
+        TwoParameterQuery(p1, p2)
 
     @Suppress("unused")
     public data class Condition<Type>(val conditionString: String, val prop: KProperty1<*, *>)
@@ -72,7 +73,7 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
 
 
         public suspend fun find(connection: Connection, vararg parameter: Any): Flow<T> =
-            finder.findBy(parameter.asList(), connection, selectString)
+            finder.findBy(connection, selectString, parameter.asList())
 
     }
 
