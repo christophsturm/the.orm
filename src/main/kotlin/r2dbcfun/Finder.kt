@@ -9,7 +9,6 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.internal.IDHandler
 import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
 internal class Finder<T : Any>(
@@ -24,21 +23,6 @@ internal class Finder<T : Any>(
 
     internal val snakeCaseForProperty =
         kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
-
-    suspend fun <V : Any> findBy(connection: Connection, property: KProperty1<T, V>, propertyValue: V): Flow<T> {
-        val suffix = snakeCaseForProperty[property] + "=$1"
-        val properties = listOf(propertyValue)
-        return findBy(connection, suffix, properties)
-    }
-
-    suspend fun <V : Any> findBy(
-        connection: Connection,
-        queryConditions: String,
-        properties: List<V>
-    ): Flow<T> {
-        val query = selectStringPrefix + queryConditions
-        return findBy(properties, connection, query)
-    }
 
     // TODO make properties nullable
     internal suspend fun findBy(
