@@ -58,7 +58,7 @@ public class R2dbcRepo<T : Any>(
         updater.update(connection, instance)
     }
 
-    private val findById = QueryFactory.Query(kClass, finder, equalsCondition(idProperty))
+    private val findById = queryFactory.Query(equalsCondition(idProperty))
     /**
      * loads an object from the database
      * @param id the primary key of the object to load

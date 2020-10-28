@@ -1,6 +1,6 @@
 package r2dbcfun.exp.query
 
-// one of the query languages thast i did not like so much in the end.
+// one of the query languages that  did not like so much in the end.
 
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
