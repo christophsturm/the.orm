@@ -15,17 +15,15 @@ internal class Finder<T : Any>(
     private val classInfo: ClassInfo<T>
 ) {
 
-    // TODO make properties nullable
     internal suspend fun findBy(
         connection: Connection,
         sql: String,
-        parameterValues: List<Any>
+        parameterValues: Sequence<Any?>
     ): Flow<T> {
-        @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS") val statement = try {
-            parameterValues.flatMap { if (it is Pair<*, *>) listOf(it.first, it.second) else listOf(it) }
-                .foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
-                    statement.bind(idx, property)
-                }
+        val statement = try {
+            parameterValues.foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
+                statement.bind(idx, property)
+            }
         } catch (e: Exception) {
             throw R2dbcRepoException("error creating statement", e)
         }

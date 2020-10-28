@@ -72,8 +72,11 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
         }.toIndexedPlaceholders()
 
 
-        public suspend fun find(connection: Connection, vararg parameter: Any): Flow<T> =
-            finder.findBy(connection, selectString, parameter.asList())
+        public suspend fun find(connection: Connection, vararg parameter: Any?): Flow<T> =
+            finder.findBy(
+                connection,
+                selectString,
+                parameter.asSequence().flatMap { if (it is Pair<*, *>) listOf(it.first, it.second) else listOf(it) })
 
     }
 
