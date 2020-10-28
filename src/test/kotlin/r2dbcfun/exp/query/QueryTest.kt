@@ -5,7 +5,6 @@ package r2dbcfun.exp.query
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import r2dbcfun.R2dbcRepo
 import r2dbcfun.User
 import r2dbcfun.exp.query.Query.Condition
 import r2dbcfun.toSnakeCase
@@ -44,15 +43,14 @@ private fun <T, V : Any> KProperty1<T, V>.like(v: V): Condition<T, V> = Conditio
 
 
 class Query<T : Any>(kClass: KClass<T>, conditions: List<Condition<T, *>>) {
-    internal val snakeCaseForProperty =
+    private val snakeCaseForProperty =
         kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
     data class Condition<T, V>(val property: KProperty1<T, V>, val queryFragment: String, val parameters: List<Any>)
 
-    private val finder = R2dbcRepo(kClass).finder
     internal val queryString =
         conditions.joinToString(separator = " and ") { "${snakeCaseForProperty[it.property]} ${it.queryFragment}" }
-    private val parameters = conditions.flatMap { it.parameters }
+//    private val parameters = conditions.flatMap { it.parameters }
 /*    suspend fun fromConnection(connection: Connection): Flow<T> {
         return finder.findBy(connection, queryString, parameters)
     }*/

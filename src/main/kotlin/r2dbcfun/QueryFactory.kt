@@ -36,7 +36,7 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
         p1: Condition<P1>,
         p2: Condition<P2>
     ) {
-        internal val query = Query(kClass, finder, p1, p2)
+        private val query = Query(kClass, finder, p1, p2)
         public suspend fun find(connection: Connection, p1: P1, p2: P2): Flow<T> = query.find(connection, p1, p2)
     }
 
@@ -47,13 +47,13 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
         private val finder: Finder<T>,
         private vararg val conditions: Condition<*>
     ) {
-        internal val snakeCaseForProperty =
+        private val snakeCaseForProperty =
             kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
         @Suppress("SqlResolve")
         private val tableName = "${kClass.simpleName!!.toSnakeCase().toLowerCase()}s"
 
-        internal val selectString = run {
+        private val selectString = run {
 
             val queryString =
                 conditions.joinToString(separator = " and ") { "${snakeCaseForProperty[it.prop]} ${it.conditionString}" }
