@@ -13,12 +13,11 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
-import r2dbcfun.query.between
-import r2dbcfun.query.like
 import reactor.blockhound.BlockHound
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
+import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -144,15 +143,44 @@ class R2dbcRepoTest : JUnit5Minutests {
                         }
                     }
                 }
-                context("query") {
-                    val date1 = LocalDate.now()
-                    val date2 = LocalDate.now()
+                context("query language") {
                     test("first query api") {
-                        val query = repo.queryFactory.query(User::name.like(), User::birthday.between())
-                        expectThat(query.query.selectString).isEqualTo("select id, name, email, is_cool, bio, favorite_color, birthday from users where name like(?) and birthday between ? and ?")
+                        val date1 = LocalDate.parse("2020-06-19")
+                        val date2 = LocalDate.parse("2020-06-21")
+                        val findByUserNameLikeAndBirthdayBetween =
+                            repo.queryFactory.query(User::name.like(), User::birthday.between())
+                        expectThat(findByUserNameLikeAndBirthdayBetween.query.selectString).isEqualTo("select id, name, email, is_cool, bio, favorite_color, birthday from users where name like(?) and birthday between ? and ?")
                         runBlocking {
-                            val connection = prepareH2().create().awaitSingle()
-                            query.find(connection, "blah%", Pair(date1, date2))
+                            // create 3 users with different birthdays so that only the middle date fits the between condition
+                            repo.create(
+                                connection,
+                                User(
+                                    name = "chris",
+                                    email = "my email",
+                                    birthday = LocalDate.parse("2020-06-18")
+                                )
+                            )
+                            val userThatWillBeFound = repo.create(
+                                connection,
+                                User(
+                                    name = "jakob",
+                                    email = "different email",
+                                    birthday = LocalDate.parse("2020-06-20")
+                                )
+                            )
+                            repo.create(
+                                connection,
+                                User(
+                                    name = "chris",
+                                    email = "different email",
+                                    birthday = LocalDate.parse("2020-06-22")
+                                )
+                            )
+
+                            expectThat(
+                                findByUserNameLikeAndBirthdayBetween.find(connection, "%", Pair(date1, date2))
+                                    .toCollection(mutableListOf())
+                            ).containsExactly(userThatWillBeFound)
                         }
                     }
                 }
