@@ -1,13 +1,13 @@
-package r2dbcfun
+package r2dbcfun.exp.query
+
+// one of the query languages thast i did not like so much in the end.
 
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.r2dbc.spi.Connection
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.coroutines.runBlocking
-import r2dbcfun.Query.Condition
+import r2dbcfun.R2dbcRepo
+import r2dbcfun.User
+import r2dbcfun.exp.query.Query.Condition
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.LocalDate
@@ -22,13 +22,6 @@ class QueryTest : JUnit5Minutests {
         context("query") {
             val date1 = LocalDate.now()
             val date2 = LocalDate.now()
-            test("first query api") {
-                runBlocking {
-                    val connection = prepareH2().create().awaitSingle()
-                    find(User::name.like("blah%"), User::birthday.between(date1, date2))
-                        .fromConnection(connection)
-                }
-            }
             test("it generates sql from a query") {
                 val query = find(User::name.like("blah%"), (User::birthday.between(date1, date2)))
                 expectThat(query.queryString).isEqualTo("name like(?) and birthday between ? and ?")
@@ -55,9 +48,9 @@ class Query<T : Any>(kClass: KClass<T>, conditions: List<Condition<T, *>>) {
     internal val queryString =
         conditions.joinToString(separator = " and ") { "${finder.snakeCaseForProperty[it.property]} ${it.queryFragment}" }
     private val parameters = conditions.flatMap { it.parameters }
-    suspend fun fromConnection(connection: Connection): Flow<T> {
+/*    suspend fun fromConnection(connection: Connection): Flow<T> {
         return finder.findBy(connection, queryString, parameters)
-    }
+    }*/
 }
 
 

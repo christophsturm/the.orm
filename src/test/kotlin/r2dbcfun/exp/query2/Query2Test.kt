@@ -3,7 +3,7 @@
 // this is just for playing around with a new query language. it compiles but does not run.
 // just pretend that it does not exist.
 
-package r2dbcfun.exp
+package r2dbcfun.exp.query2
 
 import dev.minutest.experimental.SKIP
 import dev.minutest.experimental.minus
