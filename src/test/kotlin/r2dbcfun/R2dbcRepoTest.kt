@@ -176,7 +176,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                             )
 
                             expectThat(
-                                findByUserNameLikeAndBirthdayBetween.find(connection, "%", Pair(date1, date2))
+                                findByUserNameLikeAndBirthdayBetween(connection, "%", Pair(date1, date2))
                                     .toCollection(mutableListOf())
                             ).containsExactly(userThatWillBeFound)
                         }

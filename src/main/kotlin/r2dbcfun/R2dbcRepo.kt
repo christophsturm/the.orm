@@ -58,14 +58,14 @@ public class R2dbcRepo<T : Any>(
         updater.update(connection, instance)
     }
 
-    private val findById = queryFactory.Query(equalsCondition(idProperty))
+    private val findById = queryFactory.query(equalsCondition(idProperty))
     /**
      * loads an object from the database
      * @param id the primary key of the object to load
      */
     public suspend fun findById(connection: Connection, id: PK): T {
         return try {
-            findById.find(connection, id.id).single()
+            findById(connection, id.id).single()
         } catch (e: NoSuchElementException) {
             throw NotFoundException("No $tableName found for id ${id.id}")
         }

@@ -30,16 +30,26 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
     public fun <P1 : Any, P2 : Any> query(p1: Condition<P1>, p2: Condition<P2>): TwoParameterQuery<P1, P2> =
         TwoParameterQuery(p1, p2)
 
+    public fun <P1 : Any> query(p1: Condition<P1>): OneParameterQuery<P1> =
+        OneParameterQuery(p1)
 
     @Suppress("unused")
     public data class Condition<Type>(val conditionString: String, val prop: KProperty1<*, *>)
+
+    public inner class OneParameterQuery<P1 : Any>(
+        p1: Condition<P1>
+    ) {
+        private val query = Query(p1)
+        public suspend operator fun invoke(connection: Connection, p1: P1): Flow<T> = query.find(connection, p1)
+    }
 
     public inner class TwoParameterQuery<P1 : Any, P2 : Any>(
         p1: Condition<P1>,
         p2: Condition<P2>
     ) {
         private val query = Query(p1, p2)
-        public suspend fun find(connection: Connection, p1: P1, p2: P2): Flow<T> = query.find(connection, p1, p2)
+        public suspend operator fun invoke(connection: Connection, p1: P1, p2: P2): Flow<T> =
+            query.find(connection, p1, p2)
     }
 
 
