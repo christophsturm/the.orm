@@ -18,7 +18,6 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.containsExactly
-import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
@@ -185,28 +184,6 @@ class R2dbcRepoTest : JUnit5Minutests {
                     }
                 }
 
-                test("can load data object by field value") {
-                    runBlocking {
-                        val firstUser = repo.create(
-                            connection,
-                            User(
-                                name = "chris",
-                                email = "my email",
-                                birthday = LocalDate.parse("2020-06-20")
-                            )
-                        )
-                        val secondUser = repo.create(
-                            connection,
-                            User(
-                                name = "chris",
-                                email = "different email",
-                                birthday = LocalDate.parse("2020-06-20")
-                            )
-                        )
-                        val users = repo.findBy(connection, User::name, "chris").toCollection(mutableListOf())
-                        expectThat(users).containsExactlyInAnyOrder(firstUser, secondUser)
-                    }
-                }
                 test("throws NotFoundException when id does not exist") {
                     runBlocking {
                         expectCatching {
