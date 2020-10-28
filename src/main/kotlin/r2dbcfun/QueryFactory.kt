@@ -10,9 +10,12 @@ import kotlin.reflect.full.declaredMemberProperties
 public fun <T : Any> KProperty1<T, String>.like(): QueryFactory.Condition<String> =
     QueryFactory.likeCondition(this)
 
+public fun <T : Any, V> KProperty1<T, V>.equals(): QueryFactory.Condition<V> =
+    QueryFactory.equalsCondition(this)
 
 public fun <T : Any> KProperty1<T, LocalDate>.between(): QueryFactory.Condition<Pair<LocalDate, LocalDate>> =
     QueryFactory.Condition("between ? and ?", this)
+
 
 public class QueryFactory<T : Any> internal constructor(private val kClass: KClass<T>, private val finder: Finder<T>) {
     public companion object {
