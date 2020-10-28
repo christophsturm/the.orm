@@ -8,16 +8,17 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
 public fun <T : Any> KProperty1<T, String>.like(): QueryFactory.Condition<String> =
-    QueryFactory.Condition<String>("like(?)", this)
+    QueryFactory.Condition("like(?)", this)
 
 public fun <T : Any> KProperty1<T, LocalDate>.between(): QueryFactory.Condition<Pair<LocalDate, LocalDate>> =
-    QueryFactory.Condition<Pair<LocalDate, LocalDate>>("between ? and ?", this)
+    QueryFactory.Condition("between ? and ?", this)
 
-public class QueryFactory<T : Any>(private val tableName: String, private val kClass: KClass<T>) {
+public class QueryFactory<T : Any>(private val kClass: KClass<T>) {
     public fun <P1 : Any, P2 : Any> query(p1: Condition<P1>, p2: Condition<P2>): TwoParameterQuery<T, P1, P2> =
         TwoParameterQuery(kClass, p1, p2)
 
 
+    @Suppress("unused")
     public data class Condition<Type>(val conditionString: String, val prop: KProperty1<*, *>)
 
     public class TwoParameterQuery<T : Any, P1 : Any, P2 : Any>(

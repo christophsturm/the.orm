@@ -40,7 +40,7 @@ public class R2dbcRepo<T : Any>(
 
     internal val finder = Finder(tableName, idHandler, kClass, ClassInfo(kClass))
 
-    public val queryFactory: QueryFactory<T> = QueryFactory<T>(tableName, kClass)
+    public val queryFactory: QueryFactory<T> = QueryFactory(kClass)
 
     /**
      * creates a new record in the database.
