@@ -32,11 +32,12 @@ Kotlin Code:
         val bio: String? = null
     )
 
-    val repo = R2dbcRepo.create<User>(connection)
+    val repo = R2dbcRepo.create<User>()
 
-    val firstUser = repo.create(User(name = "chris", email = "my email"))
-    val secondUser = repo.create(User(name = "chris", email = "different email"))
-    val users = repo.findBy(User::name, "chris").toCollection(mutableListOf())
+    val firstUser = repo.create(connection, User(name = "christoph", email = "my email"))
+    val secondUser = repo.create(connection, User(name = "christian", email = "different email"))
+    val findByName = repo.queryFactory.createQuery(User::name.like())
+    val users = findByName(connection, "chris%").toCollection(mutableListOf())
     expectThat(users).containsExactlyInAnyOrder(firstUser, secondUser)
 ```
 
@@ -65,6 +66,7 @@ Database Structure:
 // run the query
                                 findByUserNameLikeAndBirthdayBetween(connection, "fred%", Pair(date1, date2))
 ```
+
 for more examples look at the [unit tests](src/test/kotlin/r2dbcfun/R2dbcRepoTest.kt)
 
 Supported databases: H2 and PostgreSQL
