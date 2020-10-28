@@ -34,10 +34,10 @@ public class QueryFactory<T : Any> internal constructor(kClass: KClass<T>, priva
     private val tableName = "${kClass.simpleName!!.toSnakeCase().toLowerCase()}s"
 
     private val selectPrefix = "select ${snakeCaseForProperty.values.joinToString { it }} from $tableName where "
-    public fun <P1> query(p1: Condition<P1>): OneParameterQuery<P1> =
+    public fun <P1> createQuery(p1: Condition<P1>): OneParameterQuery<P1> =
         OneParameterQuery(p1)
 
-    public fun <P1, P2> query(p1: Condition<P1>, p2: Condition<P2>): TwoParameterQuery<P1, P2> =
+    public fun <P1, P2> createQuery(p1: Condition<P1>, p2: Condition<P2>): TwoParameterQuery<P1, P2> =
         TwoParameterQuery(p1, p2)
 
     @Suppress("unused")

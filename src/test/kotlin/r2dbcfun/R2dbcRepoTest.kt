@@ -168,7 +168,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                             val date1 = LocalDate.parse("2020-06-19")
                             val date2 = LocalDate.parse("2020-06-21")
                             val findByUserNameLikeAndBirthdayBetween =
-                                repo.queryFactory.query(User::name.like(), User::birthday.between())
+                                repo.queryFactory.createQuery(User::name.like(), User::birthday.between())
 
                             expectThat(
                                 findByUserNameLikeAndBirthdayBetween(connection, "%", Pair(date1, date2))
@@ -186,7 +186,7 @@ class R2dbcRepoTest : JUnit5Minutests {
                             val userOfUndefinedCoolness =
                                 create(User(name = "userOfUndefinedCoolness", email = "email", isCool = null))
                             val findByCoolness =
-                                repo.queryFactory.query(User::isCool.equals())
+                                repo.queryFactory.createQuery(User::isCool.equals())
                             expectThat(findByCoolness(connection, null).single()).isEqualTo(userOfUndefinedCoolness)
                         }
 
