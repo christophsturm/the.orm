@@ -46,7 +46,7 @@ public class QueryFactory<T : Any>(private val kClass: KClass<T>) {
             val queryString =
                 conditions.joinToString(separator = " and ") { "${snakeCaseForProperty[it.prop]} ${it.conditionString}" }
             "select ${classInfo.fieldInfo.joinToString { it.snakeCaseName }} from $tableName where " + queryString
-        }
+        }.toIndexedPlaceholders()
         private val finder = R2dbcRepo(kClass).finder
 
 
