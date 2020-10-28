@@ -18,15 +18,13 @@ internal class Finder<T : Any>(
     internal suspend fun findBy(
         connection: Connection,
         sql: String,
-        parameterValues: Sequence<Any?>
+        parameterValues: Sequence<Any>
     ): Flow<T> {
         val statement = try {
-            parameterValues.foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
-                if (property == null)
-                    throw R2dbcRepoException("query by null values currently not supported")
-                else
+            parameterValues.filter { it != Unit }
+                .foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
                     statement.bind(idx, property)
-            }
+                }
         } catch (e: Exception) {
             throw R2dbcRepoException("error creating statement", e)
         }

@@ -2,8 +2,6 @@ package r2dbcfun
 
 import dev.minutest.ContextBuilder
 import dev.minutest.TestContextBuilder
-import dev.minutest.experimental.SKIP
-import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.junit.experimental.applyRule
 import dev.minutest.rootContext
@@ -177,17 +175,23 @@ class R2dbcRepoTest : JUnit5Minutests {
                         }
                     }
                     // currently unsure how to get queries by null values running
-                    SKIP - test("can query null values") {
+                    test("can query null values") {
                         runBlocking {
-                            @Suppress("UNUSED_VARIABLE") val coolUser =
+                            val coolUser =
                                 create(User(name = "coolUser", email = "email", isCool = true))
-                            @Suppress("UNUSED_VARIABLE") val uncoolUser =
+                            val uncoolUser =
                                 create(User(name = "uncoolUser", email = "email", isCool = false))
                             val userOfUndefinedCoolness =
                                 create(User(name = "userOfUndefinedCoolness", email = "email", isCool = null))
                             val findByCoolness =
                                 repo.queryFactory.createQuery(User::isCool.equals())
-                            expectThat(findByCoolness(connection, null).single()).isEqualTo(userOfUndefinedCoolness)
+                            val findByNullCoolness =
+                                repo.queryFactory.createQuery(User::isCool.isNull())
+                            expectThat(findByNullCoolness(connection, Unit).single()).isEqualTo(userOfUndefinedCoolness)
+// this does not compile because equaling by null makes no sense anyway:
+// expectThat(findByCoolness(connection, null).single()).isEqualTo(userOfUndefinedCoolness)
+                            expectThat(findByCoolness(connection, false).single()).isEqualTo(uncoolUser)
+                            expectThat(findByCoolness(connection, true).single()).isEqualTo(coolUser)
                         }
 
                     }
