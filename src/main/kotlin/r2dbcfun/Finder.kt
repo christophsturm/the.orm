@@ -22,7 +22,10 @@ internal class Finder<T : Any>(
     ): Flow<T> {
         val statement = try {
             parameterValues.foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
-                statement.bind(idx, property)
+                if (property == null)
+                    throw R2dbcRepoException("query by null values currently not supported")
+                else
+                    statement.bind(idx, property)
             }
         } catch (e: Exception) {
             throw R2dbcRepoException("error creating statement", e)

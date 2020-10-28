@@ -17,7 +17,7 @@ public fun <T : Any> KProperty1<T, LocalDate>.between(): QueryFactory.Condition<
     QueryFactory.Condition("between ? and ?", this)
 
 
-public class QueryFactory<T : Any> internal constructor(private val kClass: KClass<T>, private val finder: Finder<T>) {
+public class QueryFactory<T : Any> internal constructor(kClass: KClass<T>, private val finder: Finder<T>) {
     public companion object {
         public fun <T : Any> likeCondition(property: KProperty1<T, String>): Condition<String> =
             Condition("like(?)", property)
@@ -27,8 +27,14 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
 
     }
 
+    private val snakeCaseForProperty =
+        kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
-    public fun <P1 : Any> query(p1: Condition<P1>): OneParameterQuery<P1> =
+    @Suppress("SqlResolve")
+    private val tableName = "${kClass.simpleName!!.toSnakeCase().toLowerCase()}s"
+
+    private val selectPrefix = "select ${snakeCaseForProperty.values.joinToString { it }} from $tableName where "
+    public fun <P1> query(p1: Condition<P1>): OneParameterQuery<P1> =
         OneParameterQuery(p1)
 
     public fun <P1 : Any, P2 : Any> query(p1: Condition<P1>, p2: Condition<P2>): TwoParameterQuery<P1, P2> =
@@ -37,11 +43,11 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
     @Suppress("unused")
     public data class Condition<Type>(val conditionString: String, val prop: KProperty1<*, *>)
 
-    public inner class OneParameterQuery<P1 : Any>(
+    public inner class OneParameterQuery<P1>(
         p1: Condition<P1>
     ) {
         private val query = Query(p1)
-        public suspend operator fun invoke(connection: Connection, p1: P1): Flow<T> = query.find(connection, p1)
+        public suspend operator fun invoke(connection: Connection, p1: P1?): Flow<T> = query.find(connection, p1)
     }
 
     public inner class TwoParameterQuery<P1 : Any, P2 : Any>(
@@ -49,7 +55,7 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
         p2: Condition<P2>
     ) {
         private val query = Query(p1, p2)
-        public suspend operator fun invoke(connection: Connection, p1: P1, p2: P2): Flow<T> =
+        public suspend operator fun invoke(connection: Connection, p1: P1?, p2: P2?): Flow<T> =
             query.find(connection, p1, p2)
     }
 
@@ -58,17 +64,13 @@ public class QueryFactory<T : Any> internal constructor(private val kClass: KCla
     public inner class Query internal constructor(
         private vararg val conditions: Condition<*>
     ) {
-        private val snakeCaseForProperty =
-            kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
-        @Suppress("SqlResolve")
-        private val tableName = "${kClass.simpleName!!.toSnakeCase().toLowerCase()}s"
+
 
         private val selectString = run {
-
             val queryString =
                 conditions.joinToString(separator = " and ") { "${snakeCaseForProperty[it.prop]} ${it.conditionString}" }
-            "select ${snakeCaseForProperty.values.joinToString { it }} from $tableName where " + queryString
+            selectPrefix + queryString
         }.toIndexedPlaceholders()
 
 

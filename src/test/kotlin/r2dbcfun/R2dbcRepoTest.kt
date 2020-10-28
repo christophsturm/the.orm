@@ -2,12 +2,15 @@ package r2dbcfun
 
 import dev.minutest.ContextBuilder
 import dev.minutest.TestContextBuilder
+import dev.minutest.experimental.SKIP
+import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.junit.experimental.applyRule
 import dev.minutest.rootContext
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.debug.junit4.CoroutinesTimeout
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -49,10 +52,10 @@ data class User(
     val id: UserPK? = null,
     val name: String,
     val email: String?,
-    val isCool: Boolean = false,
+    val isCool: Boolean? = false,
     val bio: String? = null,
     val favoriteColor: Color? = null,
-    val birthday: LocalDate
+    val birthday: LocalDate = LocalDate.parse("2000-01-01")
 )
 
 @Suppress("SqlResolve")
@@ -144,10 +147,6 @@ class R2dbcRepoTest : JUnit5Minutests {
                 }
                 context("query language") {
                     test("has a typesafe query api") {
-                        val date1 = LocalDate.parse("2020-06-19")
-                        val date2 = LocalDate.parse("2020-06-21")
-                        val findByUserNameLikeAndBirthdayBetween =
-                            repo.queryFactory.query(User::name.like(), User::birthday.between())
                         runBlocking {
                             // create 3 users with different birthdays so that only the middle date fits the between condition
                             create(User(name = "chris", email = "my email", birthday = LocalDate.parse("2020-06-18")))
@@ -166,11 +165,31 @@ class R2dbcRepoTest : JUnit5Minutests {
                                     birthday = LocalDate.parse("2020-06-22")
                                 )
                             )
+                            val date1 = LocalDate.parse("2020-06-19")
+                            val date2 = LocalDate.parse("2020-06-21")
+                            val findByUserNameLikeAndBirthdayBetween =
+                                repo.queryFactory.query(User::name.like(), User::birthday.between())
+
                             expectThat(
                                 findByUserNameLikeAndBirthdayBetween(connection, "%", Pair(date1, date2))
                                     .toCollection(mutableListOf())
                             ).containsExactly(userThatWillBeFound)
                         }
+                    }
+                    // currently unsure how to get queries by null values running
+                    SKIP - test("can query null values") {
+                        runBlocking {
+                            @Suppress("UNUSED_VARIABLE") val coolUser =
+                                create(User(name = "coolUser", email = "email", isCool = true))
+                            @Suppress("UNUSED_VARIABLE") val uncoolUser =
+                                create(User(name = "uncoolUser", email = "email", isCool = false))
+                            val userOfUndefinedCoolness =
+                                create(User(name = "userOfUndefinedCoolness", email = "email", isCool = null))
+                            val findByCoolness =
+                                repo.queryFactory.query(User::isCool.equals())
+                            expectThat(findByCoolness(connection, null).single()).isEqualTo(userOfUndefinedCoolness)
+                        }
+
                     }
                 }
 
