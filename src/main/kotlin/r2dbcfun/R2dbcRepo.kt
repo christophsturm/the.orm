@@ -39,7 +39,7 @@ public class R2dbcRepo<T : Any>(
     private val updater = Updater(tableName, propertyReaders, idHandler, idProperty)
 
     internal val classInfo = ClassInfo(kClass)
-    internal val finder = Finder(tableName, idHandler, kClass, classInfo)
+    internal val finder = Finder(tableName, idHandler, classInfo)
 
     public val queryFactory: QueryFactory<T> = QueryFactory(kClass, finder)
 

@@ -8,21 +8,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.internal.IDHandler
-import kotlin.reflect.KClass
-import kotlin.reflect.full.declaredMemberProperties
 
 internal class Finder<T : Any>(
     private val table: String,
     private val idHandler: IDHandler<T>,
-    kClass: KClass<T>,
     private val classInfo: ClassInfo<T>
 ) {
-    @Suppress("SqlResolve")
-    private val selectStringPrefix =
-        "select ${classInfo.fieldInfo.joinToString { it.snakeCaseName }} from $table where "
-
-    internal val snakeCaseForProperty =
-        kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
     // TODO make properties nullable
     internal suspend fun findBy(
@@ -30,7 +21,7 @@ internal class Finder<T : Any>(
         connection: Connection,
         sql: String
     ): Flow<T> {
-        val statement = try {
+        @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS") val statement = try {
             properties.flatMap { if (it is Pair<*, *>) listOf(it.first, it.second) else listOf(it) }
                 .foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
                     statement.bind(idx, property)
