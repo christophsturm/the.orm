@@ -13,6 +13,8 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
+import r2dbcfun.query.between
+import r2dbcfun.query.like
 import reactor.blockhound.BlockHound
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -142,6 +144,19 @@ class R2dbcRepoTest : JUnit5Minutests {
                         }
                     }
                 }
+                context("query") {
+                    val date1 = LocalDate.now()
+                    val date2 = LocalDate.now()
+                    test("first query api") {
+                        val query = repo.queryFactory.query(User::name.like(), User::birthday.between())
+                        expectThat(query.query.selectString).isEqualTo("select id, name, email, is_cool, bio, favorite_color, birthday from users where name like(?) and birthday between ? and ?")
+                        runBlocking {
+                            val connection = prepareH2().create().awaitSingle()
+                            query.find(connection, "blah%", Pair(date1, date2))
+                        }
+                    }
+                }
+
                 test("can load data object by field value") {
                     runBlocking {
                         val firstUser = repo.create(
