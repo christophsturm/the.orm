@@ -66,10 +66,10 @@ class R2dbcRepoTest : JUnit5Minutests {
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
 
-
     class Fixture<T : Any>(val connection: Connection, type: KClass<T>) {
         val repo = R2dbcRepo(type)
         val timeout = CoroutinesTimeout(if (TestConfig.PITEST) 500000 else if (TestConfig.CI) 50000 else 500)
+        suspend fun create(instance: T): T = repo.create(connection, instance)
     }
 
     private fun ContextBuilder<Connection>.repoTests() {
@@ -143,38 +143,29 @@ class R2dbcRepoTest : JUnit5Minutests {
                     }
                 }
                 context("query language") {
-                    test("first query api") {
+                    test("has a typesafe query api") {
                         val date1 = LocalDate.parse("2020-06-19")
                         val date2 = LocalDate.parse("2020-06-21")
                         val findByUserNameLikeAndBirthdayBetween =
                             repo.queryFactory.query(User::name.like(), User::birthday.between())
                         runBlocking {
                             // create 3 users with different birthdays so that only the middle date fits the between condition
-                            repo.create(
-                                connection,
-                                User(
-                                    name = "chris",
-                                    email = "my email",
-                                    birthday = LocalDate.parse("2020-06-18")
+                            create(User(name = "chris", email = "my email", birthday = LocalDate.parse("2020-06-18")))
+                            val userThatWillBeFound =
+                                create(
+                                    User(
+                                        name = "jakob",
+                                        email = "different email",
+                                        birthday = LocalDate.parse("2020-06-20")
+                                    )
                                 )
-                            )
-                            val userThatWillBeFound = repo.create(
-                                connection,
-                                User(
-                                    name = "jakob",
-                                    email = "different email",
-                                    birthday = LocalDate.parse("2020-06-20")
-                                )
-                            )
-                            repo.create(
-                                connection,
+                            create(
                                 User(
                                     name = "chris",
                                     email = "different email",
                                     birthday = LocalDate.parse("2020-06-22")
                                 )
                             )
-
                             expectThat(
                                 findByUserNameLikeAndBirthdayBetween(connection, "%", Pair(date1, date2))
                                     .toCollection(mutableListOf())
@@ -289,6 +280,7 @@ class R2dbcRepoTest : JUnit5Minutests {
         }
 
     }
+
 
     private inline fun <reified T : Any> TestContextBuilder<Connection, Fixture<T>>.makeFixture() {
         applyRule { timeout }
