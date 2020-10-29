@@ -13,7 +13,7 @@ val junit5Version = "5.7.0"
 val junitPlatformVersion = "1.7.0"
 val coroutinesVersion = "1.4.0"
 val kotlinVersion = "1.4.10"
-val serializationVersion = "1.0.0"
+val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.0-rc2"
 
 plugins {
@@ -56,7 +56,7 @@ dependencies {
     testRuntimeOnly("org.postgresql:postgresql:42.2.18")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.6.RELEASE")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.flywaydb:flyway-core:7.0.4")
+    testImplementation("org.flywaydb:flyway-core:7.1.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
