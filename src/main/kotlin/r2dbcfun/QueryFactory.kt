@@ -70,8 +70,6 @@ public class QueryFactory<T : Any> internal constructor(kClass: KClass<T>, priva
     public inner class Query internal constructor(
         private vararg val conditions: Condition<*>
     ) {
-        private val types =
-            conditions.map { condition -> (condition.prop.getter.returnType.classifier as KClass<*>).java }
         private val selectString = run {
             val queryString =
                 conditions.joinToString(separator = " and ") { "${snakeCaseForProperty[it.prop]} ${it.conditionString}" }
