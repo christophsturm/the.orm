@@ -174,7 +174,6 @@ class R2dbcRepoTest : JUnit5Minutests {
                             ).containsExactly(userThatWillBeFound)
                         }
                     }
-                    // currently unsure how to get queries by null values running
                     test("can query null values") {
                         runBlocking {
                             val coolUser =
