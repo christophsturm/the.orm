@@ -25,8 +25,7 @@ plugins {
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
     kotlin("plugin.serialization").version("1.4.10")
-
-
+    id("tech.formatter-kt.formatter") version "0.6.3"
 }
 
 group = "r2dbcfun"
