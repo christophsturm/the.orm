@@ -1,8 +1,8 @@
 package r2dbcfun
 
 import io.r2dbc.spi.Connection
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
+import r2dbcfun.QueryFactory.Companion.equalsCondition
 import r2dbcfun.internal.IDHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -38,7 +38,10 @@ public class R2dbcRepo<T : Any>(
 
     private val updater = Updater(tableName, propertyReaders, idHandler, idProperty)
 
-    private val finder = Finder(tableName, idHandler, kClass, ClassInfo(kClass))
+    private val classInfo = ClassInfo(kClass)
+    private val finder = Finder(tableName, idHandler, classInfo)
+
+    public val queryFactory: QueryFactory<T> = QueryFactory(kClass, finder)
 
     /**
      * creates a new record in the database.
@@ -55,25 +58,19 @@ public class R2dbcRepo<T : Any>(
         updater.update(connection, instance)
     }
 
+    private val findById = queryFactory.createQuery(equalsCondition(idProperty))
     /**
      * loads an object from the database
      * @param id the primary key of the object to load
      */
     public suspend fun findById(connection: Connection, id: PK): T {
         return try {
-            findBy(connection, idProperty, id.id).single()
+            findById(connection, id.id).single()
         } catch (e: NoSuchElementException) {
             throw NotFoundException("No $tableName found for id ${id.id}")
         }
     }
 
-    /**
-     * finds all objects in the database where property matches propertyValue
-     * @param property the property to filter by
-     * @param propertyValue the value of
-     */
-    public suspend fun <V : Any> findBy(connection: Connection, property: KProperty1<T, V>, propertyValue: V): Flow<T> =
-        finder.findBy(connection, property, propertyValue)
 
 }
 

@@ -14,6 +14,7 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
             String::class.java,
             io.r2dbc.spi.Clob::class.java,
             Boolean::class.java,
+            java.lang.Boolean::class.java, // for nullable booleans
             java.nio.ByteBuffer::class.java,
             io.r2dbc.spi.Blob::class.java,
             Int::class.java,

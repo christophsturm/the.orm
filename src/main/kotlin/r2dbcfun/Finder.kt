@@ -8,30 +8,30 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.internal.IDHandler
-import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.declaredMemberProperties
 
 internal class Finder<T : Any>(
     private val table: String,
     private val idHandler: IDHandler<T>,
-    kClass: KClass<T>,
     private val classInfo: ClassInfo<T>
 ) {
-    @Suppress("SqlResolve")
-    private val selectStringPrefix =
-        "select ${classInfo.fieldInfo.joinToString { it.snakeCaseName }} from $table where "
 
-    private val snakeCaseForProperty =
-        kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
-
-    suspend fun <V : Any> findBy(connection: Connection, property: KProperty1<T, V>, propertyValue: V): Flow<T> {
-        val query = selectStringPrefix + snakeCaseForProperty[property] + "=$1"
-        val queryResult = try {
-            connection.createStatement(query).bind("$1", propertyValue).execute()
-                .awaitSingle()
+    internal suspend fun findBy(
+        connection: Connection,
+        sql: String,
+        parameterValues: Sequence<Any>
+    ): Flow<T> {
+        val statement = try {
+            parameterValues.filter { it != Unit }
+                .foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
+                    statement.bind(idx, property)
+                }
         } catch (e: Exception) {
-            throw R2dbcRepoException("error executing select: $query", e)
+            throw R2dbcRepoException("error creating statement", e)
+        }
+        val queryResult = try {
+            statement.execute().awaitSingle()
+        } catch (e: Exception) {
+            throw R2dbcRepoException("error executing select: $sql", e)
         }
 
         data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: Any?)
@@ -74,5 +74,6 @@ internal class Finder<T : Any>(
         result.discard()
         return sb.toString()
     }
+
 }
 

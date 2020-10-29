@@ -7,3 +7,13 @@ internal fun String.toSnakeCase(): String = this.foldIndexed(StringBuilder(this.
         else -> target.append(char.toLowerCase())
     }
 }.toString()
+
+internal fun String.toIndexedPlaceholders(): String {
+    var idx = 1
+    return this.fold(StringBuilder(this.length + 10)) { target, char ->
+        when (char) {
+            '?' -> target.append("${'$'}${idx++}")
+            else -> target.append(char)
+        }
+    }.toString()
+}

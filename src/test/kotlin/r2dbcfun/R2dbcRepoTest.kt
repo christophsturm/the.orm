@@ -8,6 +8,7 @@ import dev.minutest.rootContext
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.debug.junit4.CoroutinesTimeout
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -17,7 +18,7 @@ import reactor.blockhound.BlockHound
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.containsExactlyInAnyOrder
+import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
@@ -35,6 +36,26 @@ object TestConfig {
     val PITEST = System.getenv("PITEST") != null
 }
 
+data class UserPK(override val id: Long) : PK
+
+
+enum class Color {
+    RED,
+
+    @Suppress("unused")
+    BLUE
+}
+
+data class User(
+    val id: UserPK? = null,
+    val name: String,
+    val email: String?,
+    val isCool: Boolean? = false,
+    val bio: String? = null,
+    val favoriteColor: Color? = null,
+    val birthday: LocalDate? = null
+)
+
 @Suppress("SqlResolve")
 @ExperimentalCoroutinesApi
 class R2dbcRepoTest : JUnit5Minutests {
@@ -45,30 +66,11 @@ class R2dbcRepoTest : JUnit5Minutests {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
-    data class UserPK(override val id: Long) : PK
-
-
-    enum class Color {
-        RED,
-
-        @Suppress("unused")
-        BLUE
-    }
-
-    data class User(
-        val id: UserPK? = null,
-        val name: String,
-        val email: String?,
-        val isCool: Boolean = false,
-        val bio: String? = null,
-        val favoriteColor: Color? = null,
-        val birthday: LocalDate
-    )
-
 
     class Fixture<T : Any>(val connection: Connection, type: KClass<T>) {
         val repo = R2dbcRepo(type)
         val timeout = CoroutinesTimeout(if (TestConfig.PITEST) 500000 else if (TestConfig.CI) 50000 else 500)
+        suspend fun create(instance: T): T = repo.create(connection, instance)
     }
 
     private fun ContextBuilder<Connection>.repoTests() {
@@ -141,28 +143,60 @@ class R2dbcRepoTest : JUnit5Minutests {
                         }
                     }
                 }
-                test("can load data object by field value") {
-                    runBlocking {
-                        val firstUser = repo.create(
-                            connection,
-                            User(
-                                name = "chris",
-                                email = "my email",
-                                birthday = LocalDate.parse("2020-06-20")
+                context("query language") {
+                    test("has a typesafe query api") {
+                        runBlocking {
+                            // create 3 users with different birthdays so that only the middle date fits the between condition
+                            create(User(name = "chris", email = "my email", birthday = LocalDate.parse("2020-06-18")))
+                            val userThatWillBeFound =
+                                create(
+                                    User(
+                                        name = "jakob",
+                                        email = "different email",
+                                        birthday = LocalDate.parse("2020-06-20")
+                                    )
+                                )
+                            create(
+                                User(
+                                    name = "chris",
+                                    email = "different email",
+                                    birthday = LocalDate.parse("2020-06-22")
+                                )
                             )
-                        )
-                        val secondUser = repo.create(
-                            connection,
-                            User(
-                                name = "chris",
-                                email = "different email",
-                                birthday = LocalDate.parse("2020-06-20")
-                            )
-                        )
-                        val users = repo.findBy(connection, User::name, "chris").toCollection(mutableListOf())
-                        expectThat(users).containsExactlyInAnyOrder(firstUser, secondUser)
+                            val date1 = LocalDate.parse("2020-06-19")
+                            val date2 = LocalDate.parse("2020-06-21")
+                            val findByUserNameLikeAndBirthdayBetween =
+                                repo.queryFactory.createQuery(User::name.like(), User::birthday.between())
+
+                            expectThat(
+                                findByUserNameLikeAndBirthdayBetween(connection, "%", Pair(date1, date2))
+                                    .toCollection(mutableListOf())
+                            ).containsExactly(userThatWillBeFound)
+                        }
+                    }
+                    // currently unsure how to get queries by null values running
+                    test("can query null values") {
+                        runBlocking {
+                            val coolUser =
+                                create(User(name = "coolUser", email = "email", isCool = true))
+                            val uncoolUser =
+                                create(User(name = "uncoolUser", email = "email", isCool = false))
+                            val userOfUndefinedCoolness =
+                                create(User(name = "userOfUndefinedCoolness", email = "email", isCool = null))
+                            val findByCoolness =
+                                repo.queryFactory.createQuery(User::isCool.equals())
+                            val findByNullCoolness =
+                                repo.queryFactory.createQuery(User::isCool.isNull())
+                            expectThat(findByNullCoolness(connection, Unit).single()).isEqualTo(userOfUndefinedCoolness)
+// this does not compile because equaling by null makes no sense anyway:
+// expectThat(findByCoolness(connection, null).single()).isEqualTo(userOfUndefinedCoolness)
+                            expectThat(findByCoolness(connection, false).single()).isEqualTo(uncoolUser)
+                            expectThat(findByCoolness(connection, true).single()).isEqualTo(coolUser)
+                        }
+
                     }
                 }
+
                 test("throws NotFoundException when id does not exist") {
                     runBlocking {
                         expectCatching {
@@ -269,6 +303,7 @@ class R2dbcRepoTest : JUnit5Minutests {
         }
 
     }
+
 
     private inline fun <reified T : Any> TestContextBuilder<Connection, Fixture<T>>.makeFixture() {
         applyRule { timeout }
