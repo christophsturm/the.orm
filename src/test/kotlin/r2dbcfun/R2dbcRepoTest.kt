@@ -6,8 +6,6 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.junit.experimental.applyRule
 import dev.minutest.rootContext
 import io.r2dbc.spi.Connection
-import java.time.LocalDate
-import kotlin.reflect.KClass
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.debug.junit4.CoroutinesTimeout
 import kotlinx.coroutines.flow.single
@@ -28,12 +26,8 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.message
-
-object TestConfig {
-    val H2_ONLY = System.getenv("H2_ONLY") != null
-    val CI = System.getenv("CI") != null
-    val PITEST = System.getenv("PITEST") != null
-}
+import java.time.LocalDate
+import kotlin.reflect.KClass
 
 data class UserPK(override val id: Long) : PK
 
@@ -298,6 +292,7 @@ class R2dbcRepoTest : JUnit5Minutests {
         }
 
         @Serializable
+        /** */
         data class SerializableUserPK(override val id: Long) : PK
 
         @Serializable
