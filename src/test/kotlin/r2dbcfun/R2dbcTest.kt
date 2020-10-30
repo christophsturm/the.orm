@@ -19,46 +19,46 @@ import strikt.assertions.isEqualTo
 
 /**
  * this is just the r2dbc playground that started this project.
+ *
  * @see r2dbcfun.R2dbcRepoTest for api usage.
- **/
-
+ */
 @ExperimentalCoroutinesApi
 class R2dbcTest : JUnit5Minutests {
-
     @Suppress("unused")
-    fun tests() = rootContext<ConnectionFactory> {
-        fixture {
-            prepareH2()
-        }
-        test("can insert values and select result") {
-            runBlockingTest {
-                val connection: Connection = fixture.create().awaitSingle()
-                val firstId =
-                    connection.createStatement("insert into users(name) values($1)").bind("$1", "belle")
-                        .executeInsert()
-                val secondId =
-                    connection.createStatement("insert into users(name) values($1)").bind("$1", "sebastian")
-                        .executeInsert()
+    fun tests() =
+        rootContext<ConnectionFactory> {
+            fixture { prepareH2() }
+            test("can insert values and select result") {
+                runBlockingTest {
+                    val connection: Connection = fixture.create().awaitSingle()
+                    val firstId =
+                        connection.createStatement("insert into users(name) values($1)")
+                            .bind("$1", "belle")
+                            .executeInsert()
+                    val secondId =
+                        connection.createStatement("insert into users(name) values($1)")
+                            .bind("$1", "sebastian")
+                            .executeInsert()
 
-                val selectResult: Result = connection.createStatement("select * from users").execute().awaitSingle()
-                val namesFlow = selectResult.map { row, _ -> row.get("NAME", String::class.java) }.asFlow()
-                val names = namesFlow.toCollection(mutableListOf())
-                expectThat(firstId).isEqualTo(1)
-                expectThat(secondId).isEqualTo(2)
-                expectThat(names).containsExactly("belle", "sebastian")
-                connection.close().awaitFirstOrNull()
+                    val selectResult: Result =
+                        connection.createStatement("select * from users").execute().awaitSingle()
+                    val namesFlow =
+                        selectResult.map { row, _ -> row.get("NAME", String::class.java) }.asFlow()
+                    val names = namesFlow.toCollection(mutableListOf())
+                    expectThat(firstId).isEqualTo(1)
+                    expectThat(secondId).isEqualTo(2)
+                    expectThat(names).containsExactly("belle", "sebastian")
+                    connection.close().awaitFirstOrNull()
+                }
+            }
+            test("play with runBlockingTest") {
+                runBlockingTest {
+                    val connection: Connection = fixture.create().awaitSingle()
+                    connection.createStatement("insert into users(name) values($1)")
+                        .bind("$1", "belle")
+                        .executeInsert()
+                    connection.close().awaitFirstOrNull()
+                }
             }
         }
-        test("play with runBlockingTest") {
-            runBlockingTest {
-                val connection: Connection = fixture.create().awaitSingle()
-                connection.createStatement("insert into users(name) values($1)").bind("$1", "belle")
-                    .executeInsert()
-                connection.close().awaitFirstOrNull()
-            }
-        }
-    }
-
-
 }
-

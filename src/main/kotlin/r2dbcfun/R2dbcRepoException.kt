@@ -6,4 +6,3 @@ public open class R2dbcRepoException : RuntimeException {
 }
 
 public class NotFoundException(message: String) : R2dbcRepoException(message)
-

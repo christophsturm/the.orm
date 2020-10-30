@@ -20,40 +20,45 @@ internal class Finder<T : Any>(
         sql: String,
         parameterValues: Sequence<Any>
     ): Flow<T> {
-        val statement = try {
-            parameterValues.filter { it != Unit }
-                .foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
-                    statement.bind(idx, property)
-                }
-        } catch (e: Exception) {
-            throw R2dbcRepoException("error creating statement", e)
-        }
-        val queryResult = try {
-            statement.execute().awaitSingle()
-        } catch (e: Exception) {
-            throw R2dbcRepoException("error executing select: $sql", e)
-        }
+        val statement =
+            try {
+                parameterValues.filter { it != Unit }
+                    .foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
+                        statement.bind(idx, property)
+                    }
+            } catch (e: Exception) {
+                throw R2dbcRepoException("error creating statement", e)
+            }
+        val queryResult =
+            try {
+                statement.execute().awaitSingle()
+            } catch (e: Exception) {
+                throw R2dbcRepoException("error executing select: $sql", e)
+            }
 
         data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: Any?)
 
-        val parameters: Flow<List<ResultPair>> = queryResult.map { row, _ ->
-            classInfo.fieldInfo.map { entry ->
-                ResultPair(entry, row.get(entry.snakeCaseName))
-            }
-        }.asFlow()
+        val parameters: Flow<List<ResultPair>> =
+            queryResult
+                .map { row, _ ->
+                    classInfo.fieldInfo
+                        .map { entry -> ResultPair(entry, row.get(entry.snakeCaseName)) }
+                }
+                .asFlow()
         return parameters.map { values ->
-            val resolvedParameters = values.associateTo(HashMap()) { (fieldInfo, result) ->
-                val resolvedValue = when (result) {
-                    is Clob -> resolveClob(result)
-                    else -> result
+            val resolvedParameters =
+                values.associateTo(HashMap()) { (fieldInfo, result) ->
+                    val resolvedValue = when (result) {
+                        is Clob -> resolveClob(result)
+                        else -> result
+                    }
+                    val value =
+                        if (fieldInfo.snakeCaseName == "id")
+                            idHandler.createId(resolvedValue as Long) else {
+                                fieldInfo.fieldConverter.valueToConstructorParameter(resolvedValue)
+                            }
+                    Pair(fieldInfo.constructorParameter, value)
                 }
-                val value = if (fieldInfo.snakeCaseName == "id")
-                    idHandler.createId(resolvedValue as Long)
-                else {
-                    fieldInfo.fieldConverter.valueToConstructorParameter(resolvedValue)
-                }
-                Pair(fieldInfo.constructorParameter, value)
-            }
             try {
                 classInfo.constructor.callBy(resolvedParameters)
             } catch (e: IllegalArgumentException) {
@@ -67,13 +72,10 @@ internal class Finder<T : Any>(
 
     private suspend fun resolveClob(result: Clob): String {
         val sb = StringBuilder()
-        result.stream().asFlow().collect { chunk ->
-            @Suppress("BlockingMethodInNonBlockingContext")
-            sb.append(chunk)
-        }
+        result.stream()
+            .asFlow()
+            .collect { chunk -> @Suppress("BlockingMethodInNonBlockingContext") sb.append(chunk) }
         result.discard()
         return sb.toString()
     }
-
 }
-
