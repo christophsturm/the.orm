@@ -69,10 +69,8 @@ internal class Finder<T : Any>(
         sql: String
     ): Statement =
         try {
-            parameterValues.filter { it != Unit }
-                .foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
-                    statement.bind(idx, property)
-                }
+            parameterValues.foldIndexed(connection.createStatement(sql))
+                { idx, statement, property -> statement.bind(idx, property) }
         } catch (e: Exception) {
             throw R2dbcRepoException("error creating statement", e)
         }
