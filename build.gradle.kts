@@ -52,7 +52,7 @@ dependencies {
     testRuntimeOnly("org.postgresql:postgresql:42.2.18")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.6.RELEASE")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.flywaydb:flyway-core:7.1.0")
+    testImplementation("org.flywaydb:flyway-core:7.1.1")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
