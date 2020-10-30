@@ -11,17 +11,11 @@ internal class PropertyReader<T>(private val property: KProperty1<T, *>) {
 
     private val isEnum = kClass.isSubclassOf(Enum::class)
 
+    private val dbClass = if (isEnum) String::class.java else kClass.java
+    // enums are strings from the dbs view
 
-    private val dbClass = if (isEnum) String::class.java else kClass.java // enums are strings from the dbs view
-
-    /**
-     * bind this property's value to a Statement
-     */
-    internal fun bindValue(
-        statement: Statement,
-        index: Int,
-        instance: T
-    ): Statement {
+    /** bind this property's value to a Statement */
+    internal fun bindValue(statement: Statement, index: Int, instance: T): Statement {
         val value = property.call(instance)
         return try {
             if (value == null) {
@@ -36,5 +30,4 @@ internal class PropertyReader<T>(private val property: KProperty1<T, *>) {
             )
         }
     }
-
 }

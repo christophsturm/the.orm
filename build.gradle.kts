@@ -8,12 +8,11 @@ import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-
 val junit5Version = "5.7.0"
 val junitPlatformVersion = "1.7.0"
 val coroutinesVersion = "1.4.0"
 val kotlinVersion = "1.4.10"
-val serializationVersion = "1.0.0"
+val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.0-rc2"
 
 plugins {
@@ -25,17 +24,14 @@ plugins {
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
     kotlin("plugin.serialization").version("1.4.10")
-
-
+    id("tech.formatter-kt.formatter") version "0.6.5"
 }
 
 group = "r2dbcfun"
 version = "0.1"
 
-
 repositories {
-    if (ProjectConfig.eap)
-        maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
+    if (ProjectConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
     jcenter()
     mavenCentral()
 }
@@ -56,7 +52,7 @@ dependencies {
     testRuntimeOnly("org.postgresql:postgresql:42.2.18")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.6.RELEASE")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.flywaydb:flyway-core:7.0.4")
+    testImplementation("org.flywaydb:flyway-core:7.1.1")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
@@ -72,33 +68,20 @@ dependencies {
     testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version")
 
     "pitest"("org.pitest:pitest-junit5-plugin:0.12")
-
 }
-configure<JavaPluginConvention> {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-}
-kotlin {
-    explicitApi()
-}
+configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
+kotlin { explicitApi() }
 tasks {
-    withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
-    }
+    withType<KotlinCompile> { kotlinOptions.jvmTarget = "1.8" }
     withType<Test> {
         // for BlockHound https://github.com/reactor/BlockHound/issues/33
         @Suppress("UnstableApiUsage")
         if (JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal)
             jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
-        useJUnitPlatform {
-            includeEngines("junit-jupiter")
-        }
+        useJUnitPlatform { includeEngines("junit-jupiter") }
 
         ignoreFailures = System.getenv("CI") != null
-        testLogging {
-            testLogging {
-                exceptionFormat = FULL
-            }
-        }
+        testLogging { testLogging { exceptionFormat = FULL } }
         maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
     }
     create<Jar>("sourceJar") {
@@ -129,15 +112,18 @@ bintray {
     key = System.getenv("BINTRAY_API_KEY")
     publish = true
     setPublications("mavenJava")
-    pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
-        repo = "maven"
-        name = "r2dbcfun"
-        version(delegateClosureOf<BintrayExtension.VersionConfig> {
-            name = project.version as String
-        })
-    })
+    pkg(
+        delegateClosureOf<BintrayExtension.PackageConfig> {
+            repo = "maven"
+            name = "r2dbcfun"
+            version(
+                delegateClosureOf<BintrayExtension.VersionConfig> {
+                    name = project.version as String
+                }
+            )
+        }
+    )
 }
-
 
 plugins.withId("info.solidsoft.pitest") {
     configure<PitestPluginExtension> {
@@ -145,18 +131,21 @@ plugins.withId("info.solidsoft.pitest") {
         jvmArgs.set(listOf("-Xmx512m"))
         testPlugin.set("junit5")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
-        targetClasses.set(setOf("r2dbcfun.*"))  //by default "${project.group}.*"
+        targetClasses.set(setOf("r2dbcfun.*")) //by default "${project.group}.*"
         excludedClasses.set(setOf("""r2dbcfun.Finder${'$'}findBy*"""))
         targetTests.set(setOf("r2dbcfun.*Test", "r2dbcfun.**.*Test"))
         pitestVersion.set("1.5.2")
-        threads.set(System.getenv("PITEST_THREADS")?.toInt() ?: Runtime.getRuntime().availableProcessors())
+        threads.set(
+            System.getenv("PITEST_THREADS")?.toInt() ?: Runtime.getRuntime().availableProcessors()
+        )
         outputFormats.set(setOf("XML", "HTML"))
     }
 }
 
 tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
-    val filtered = listOf("alpha", "beta", "rc", "cr", "m", "preview", "dev", "eap")
-        .map { qualifier -> Regex("(?i).*[.-]$qualifier[.\\d-]*.*") }
+    val filtered =
+        listOf("alpha", "beta", "rc", "cr", "m", "preview", "dev", "eap")
+            .map { qualifier -> Regex("(?i).*[.-]$qualifier[.\\d-]*.*") }
     if (!ProjectConfig.eap)
         resolutionStrategy {
             componentSelection {
@@ -173,9 +162,7 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
     outputDir = "build/dependencyUpdates"
     reportfileName = "report"
 }
-tasks.wrapper {
-    distributionType = Wrapper.DistributionType.ALL
-}
+tasks.wrapper { distributionType = Wrapper.DistributionType.ALL }
 
 configure<TestLoggerExtension> {
     theme = STANDARD_PARALLEL
