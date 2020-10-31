@@ -78,6 +78,8 @@ public class QueryFactory<T : Any> internal constructor(
         public suspend fun find(connection: Connection, vararg parameter: Any): Flow<T> {
             val parameterValues =
                 parameter.asSequence()
+                    // remove Unit parameters because conditions that have no parameters use it
+                    .filter { it != Unit }
                     .flatMap {
                         if (it is Pair<*, *>)
                             sequenceOf(it.first as Any, it.second as Any)

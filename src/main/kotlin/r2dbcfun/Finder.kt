@@ -2,6 +2,7 @@ package r2dbcfun
 
 import io.r2dbc.spi.Clob
 import io.r2dbc.spi.Connection
+import io.r2dbc.spi.Statement
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
@@ -20,15 +21,7 @@ internal class Finder<T : Any>(
         sql: String,
         parameterValues: Sequence<Any>
     ): Flow<T> {
-        val statement =
-            try {
-                parameterValues.filter { it != Unit }
-                    .foldIndexed(connection.createStatement(sql)) { idx, statement, property ->
-                        statement.bind(idx, property)
-                    }
-            } catch (e: Exception) {
-                throw R2dbcRepoException("error creating statement", e)
-            }
+        val statement = createStatement(parameterValues, connection, sql)
         val queryResult =
             try {
                 statement.execute().awaitSingle()
@@ -69,6 +62,18 @@ internal class Finder<T : Any>(
             }
         }
     }
+
+    private fun createStatement(
+        parameterValues: Sequence<Any>,
+        connection: Connection,
+        sql: String
+    ): Statement =
+        try {
+            parameterValues.foldIndexed(connection.createStatement(sql))
+                { idx, statement, property -> statement.bind(idx, property) }
+        } catch (e: Exception) {
+            throw R2dbcRepoException("error creating statement", e)
+        }
 
     private suspend fun resolveClob(result: Clob): String {
         val sb = StringBuilder()
