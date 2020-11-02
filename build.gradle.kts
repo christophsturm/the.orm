@@ -11,19 +11,20 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val junit5Version = "5.7.0"
 val junitPlatformVersion = "1.7.0"
 val coroutinesVersion = "1.4.0"
-val kotlinVersion = "1.4.10"
+val kotlinVersion = ProjectConfig.kotlinVersion
 val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.0-rc2"
+val log4j2Version = "2.13.3"
 
 plugins {
     java
-    kotlin("jvm").version("1.4.10")
+    kotlin("jvm").version(ProjectConfig.kotlinVersion)
     id("com.github.ben-manes.versions") version "0.34.0"
     id("info.solidsoft.pitest") version "1.5.2"
     id("com.adarshr.test-logger") version "2.1.1"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
-    kotlin("plugin.serialization").version("1.4.10")
+    kotlin("plugin.serialization").version(ProjectConfig.kotlinVersion)
     id("tech.formatter-kt.formatter") version "0.6.6"
 }
 
@@ -61,7 +62,6 @@ dependencies {
     testImplementation("io.projectreactor.tools:blockhound:1.0.4.RELEASE")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-    val log4j2Version = "2.13.3"
     testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-jul:$log4j2Version")
