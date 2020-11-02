@@ -28,7 +28,7 @@ plugins {
 }
 
 group = "r2dbcfun"
-version = "0.1"
+version = "0.2"
 
 repositories {
     if (ProjectConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
