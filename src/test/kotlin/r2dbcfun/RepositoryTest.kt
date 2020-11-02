@@ -8,7 +8,7 @@ import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
 import strikt.assertions.message
 
-class NewRepositoryTest : FunSpec({
+class RepositoryTest : FunSpec({
     context("fail fast error handling") {
         test("fails fast if PK has more than one field") {
             data class MismatchPK(override val id: Long, val blah: String) : PK
@@ -29,7 +29,11 @@ class NewRepositoryTest : FunSpec({
                 .contains("type Unsupported not supported")
         }
         test("fails if class has no id field") {
-
+            expectCatching { Repository.create<Any>() }.isFailure()
+                .isA<RepositoryException>()
+                .message
+                .isNotNull()
+                .contains("class Any has no field named id")
         }
     }
 
