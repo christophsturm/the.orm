@@ -32,7 +32,7 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
                 if (isPK // Primary key can be a pk class which is currently not handled here
                     && !supportedJavaTypes.contains(clazz)
                 )
-                    throw R2dbcRepoException("type ${clazz.simpleName} not supported")
+                    throw RepositoryException("type ${clazz.simpleName} not supported")
                 PassthroughFieldConverter()
             }
         }
