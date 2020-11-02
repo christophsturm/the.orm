@@ -29,6 +29,6 @@ internal class Updater<T : Any>(
                     .bind(0, idHandler.getId(idProperty.call(instance)))
             ) { idx, statement, entry -> entry.bindValue(statement, idx + 1, instance) }
         val rowsUpdated = statement.execute().awaitSingle().rowsUpdated.awaitSingle()
-        if (rowsUpdated != 1) throw R2dbcRepoException("rowsUpdated was $rowsUpdated instead of 1")
+        if (rowsUpdated != 1) throw RepositoryException("rowsUpdated was $rowsUpdated instead of 1")
     }
 }

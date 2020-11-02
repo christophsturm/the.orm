@@ -50,7 +50,7 @@ data class User(
 
 @Suppress("SqlResolve")
 @ExperimentalCoroutinesApi
-class R2dbcRepoTest : JUnit5Minutests {
+class RepositoryTest : JUnit5Minutests {
     init {
         BlockHound.install()
     }
@@ -59,7 +59,7 @@ class R2dbcRepoTest : JUnit5Minutests {
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
     class Fixture<T : Any>(val connection: Connection, type: KClass<T>) {
-        val repo = R2dbcRepo(type)
+        val repo = Repository(type)
         val timeout =
             CoroutinesTimeout(if (TestConfig.PITEST) 500000 else if (TestConfig.CI) 50000 else 500)
         suspend fun create(instance: T): T = repo.create(connection, instance)
@@ -326,8 +326,8 @@ class R2dbcRepoTest : JUnit5Minutests {
                 data class MismatchPK(override val id: Long, val blah: String) : PK
                 data class Mismatch(val id: MismatchPK)
                 runBlocking {
-                    expectCatching { R2dbcRepo.create<Mismatch>() }.isFailure()
-                        .isA<R2dbcRepoException>()
+                    expectCatching { Repository.create<Mismatch>() }.isFailure()
+                        .isA<RepositoryException>()
                         .message
                         .isNotNull()
                         .contains("PK classes must have a single field of type long")
@@ -337,8 +337,8 @@ class R2dbcRepoTest : JUnit5Minutests {
                 data class Unsupported(val field: String)
                 data class ClassWithUnsupportedType(val id: Long, val unsupported: Unsupported)
                 runBlocking {
-                    expectCatching { R2dbcRepo.create<ClassWithUnsupportedType>() }.isFailure()
-                        .isA<R2dbcRepoException>()
+                    expectCatching { Repository.create<ClassWithUnsupportedType>() }.isFailure()
+                        .isA<RepositoryException>()
                         .message
                         .isNotNull()
                         .contains("type Unsupported not supported")

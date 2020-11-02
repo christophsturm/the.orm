@@ -23,7 +23,7 @@ internal class Inserter<T : Any>(
             try {
                 statement.executeInsert()
             } catch (e: Exception) {
-                throw R2dbcRepoException("error executing insert: $insertStatementString", e)
+                throw RepositoryException("error executing insert: $insertStatementString", e)
             }
 
         return idHandler.assignId(instance, id)

@@ -26,7 +26,7 @@ internal class Finder<T : Any>(
             try {
                 statement.execute().awaitSingle()
             } catch (e: Exception) {
-                throw R2dbcRepoException("error executing select: $sql", e)
+                throw RepositoryException("error executing select: $sql", e)
             }
 
         data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: Any?)
@@ -55,7 +55,7 @@ internal class Finder<T : Any>(
             try {
                 classInfo.constructor.callBy(resolvedParameters)
             } catch (e: IllegalArgumentException) {
-                throw R2dbcRepoException(
+                throw RepositoryException(
                     "error invoking constructor for $table. parameters:$resolvedParameters",
                     e
                 )
@@ -72,7 +72,7 @@ internal class Finder<T : Any>(
             parameterValues.foldIndexed(connection.createStatement(sql))
                 { idx, statement, property -> statement.bind(idx, property) }
         } catch (e: Exception) {
-            throw R2dbcRepoException("error creating statement", e)
+            throw RepositoryException("error creating statement", e)
         }
 
     private suspend fun resolveClob(result: Clob): String {

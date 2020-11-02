@@ -32,7 +32,7 @@ Kotlin Code:
         val bio: String? = null
     )
 
-    val repo = R2dbcRepo.create<User>()
+    val repo = Repository.create<User>()
 
     val firstUser = repo.create(connection, User(name = "christoph", email = "my email"))
     val secondUser = repo.create(connection, User(name = "christian", email = "different email"))
@@ -67,6 +67,6 @@ Database Structure:
                                 findByUserNameLikeAndBirthdayBetween(connection, "fred%", Pair(date1, date2))
 ```
 
-for more examples look at the [unit tests](src/test/kotlin/r2dbcfun/R2dbcRepoTest.kt)
+for more examples look at the [unit tests](src/test/kotlin/r2dbcfun/RepositoryTest.kt)
 
 Supported databases: H2 and PostgreSQL

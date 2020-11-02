@@ -12,10 +12,10 @@ public interface PK {
     public val id: Long
 }
 
-public class R2dbcRepo<T : Any>(kClass: KClass<T>) {
+public class Repository<T : Any>(kClass: KClass<T>) {
     public companion object {
         /** creates a Repo for the entity <T> */
-        public inline fun <reified T : Any> create(): R2dbcRepo<T> = R2dbcRepo(T::class)
+        public inline fun <reified T : Any> create(): Repository<T> = Repository(T::class)
     }
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })

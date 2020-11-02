@@ -7,12 +7,12 @@ import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
-import r2dbcfun.R2dbcRepoException
+import r2dbcfun.RepositoryException
 
 internal class IDHandler<T : Any>(kClass: KClass<out T>) {
     @Suppress("UNCHECKED_CAST")
-    private val copyFunction: KFunction<T> = kClass.memberFunctions.single { it.name == "copy" } as
-        KFunction<T>
+    private val copyFunction: KFunction<T> =
+        kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
     private val idParameter = copyFunction.parameters.single { it.name == "id" }
     private val instanceParameter = copyFunction.instanceParameter!!
     private val pkConstructor: KFunction<Any>?
@@ -24,7 +24,7 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
             pkConstructor = pkClass.primaryConstructor!!
             val parameters = pkConstructor.parameters
             if (parameters.singleOrNull()?.type?.classifier as? KClass<*> != Long::class)
-                throw R2dbcRepoException("PK classes must have a single field of type long")
+                throw RepositoryException("PK classes must have a single field of type long")
             pkIdGetter = pkClass.memberProperties.single().getter
         } else {
             pkConstructor = null
