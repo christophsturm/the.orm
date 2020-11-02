@@ -63,13 +63,13 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
     testImplementation("io.kotest:kotest-runner-junit5:4.3.1")
     testImplementation("io.kotest:kotest-plugins-pitest:4.3.1")
+    testImplementation("io.mockk:mockk:1.10.2")
 
 
     testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-jul:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version")
-
 //    "pitest"("org.pitest:pitest-junit5-plugin:0.12")
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
