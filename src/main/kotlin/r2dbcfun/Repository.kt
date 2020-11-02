@@ -24,10 +24,11 @@ public class Repository<T : Any>(kClass: KClass<T>) {
 
     private val tableName = "${kClass.simpleName!!.toSnakeCase().toLowerCase()}s"
 
-    private val idHandler = IDHandler(kClass)
-
     @Suppress("UNCHECKED_CAST")
     private val idProperty = properties["id"] as KProperty1<T, Any>
+
+    private val idHandler = IDHandler(kClass)
+
 
     private val inserter = Inserter(tableName, propertyReaders, idHandler)
 
