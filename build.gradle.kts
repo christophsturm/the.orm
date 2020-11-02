@@ -18,13 +18,13 @@ val testcontainersVersion = "1.15.0-rc2"
 plugins {
     java
     kotlin("jvm").version("1.4.10")
-    id("com.github.ben-manes.versions") version "0.33.0"
+    id("com.github.ben-manes.versions") version "0.34.0"
     id("info.solidsoft.pitest") version "1.5.2"
     id("com.adarshr.test-logger") version "2.1.1"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
     kotlin("plugin.serialization").version("1.4.10")
-    id("tech.formatter-kt.formatter") version "0.6.5"
+    id("tech.formatter-kt.formatter") version "0.6.6"
 }
 
 group = "r2dbcfun"
