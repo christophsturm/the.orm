@@ -12,7 +12,7 @@ features:
 * no annotations
 
 status:
-It can map a data class to a database table 
+It can map a data class to a database table, and it has a type safe query language. 
 
 planned: 
 * relations (1:n, n:m)
