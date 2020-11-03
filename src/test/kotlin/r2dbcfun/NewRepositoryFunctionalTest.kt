@@ -1,25 +1,18 @@
+@file:Suppress("SqlResolve")
+
 package r2dbcfun
 
-import dev.minutest.ContextBuilder
-import dev.minutest.TestContextBuilder
-import dev.minutest.junit.JUnit5Minutests
-import dev.minutest.junit.experimental.applyRule
-import dev.minutest.rootContext
+import io.kotest.core.spec.style.FunSpec
 import io.r2dbc.spi.Connection
-import java.time.LocalDate
-import kotlin.reflect.KClass
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.debug.junit4.CoroutinesTimeout
+import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
-import reactor.blockhound.BlockHound
+import org.reactivestreams.Publisher
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -28,6 +21,10 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.message
+import java.time.LocalDate
+
+private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
+private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
 data class UserPK(override val id: Long) : PK
 
@@ -48,29 +45,25 @@ data class User(
     val birthday: LocalDate? = null
 )
 
-@Suppress("SqlResolve")
-@ExperimentalCoroutinesApi
-class RepositoryFunctionalTest : JUnit5Minutests {
-    init {
-        BlockHound.install()
-    }
+class NewRepositoryFunctionalTest : FunSpec({
+    data class Database(val name: String, val function: () -> ConnectionFactory)
 
-    private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
-    private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
+    val databases = listOf(Database("h2") { prepareH2() }, Database("psql") { preparePostgreSQL() })
+    databases.forEach {
+        context("running on ${it.name}") {
 
-    class Fixture<T : Any>(val connection: Connection, type: KClass<T>) {
-        val repo = Repository(type)
-        val timeout =
-            CoroutinesTimeout(if (TestConfig.PITEST) 500000 else if (TestConfig.CI) 50000 else 500)
-        suspend fun create(instance: T): T = repo.create(connection, instance)
-    }
-
-    private fun ContextBuilder<Connection>.repoTests() {
-        derivedContext<Fixture<User>>("a repo with a user data class") {
-            makeFixture()
-            context("Creating Rows") {
-                test("can insert data class and return primary key") {
-                    runBlocking {
+            val connection = run {
+                val connectionClosable =
+                    WrapAutoClosable(
+                        it.function().create().awaitSingle()
+                    ) { connection: Connection -> connection.close() }
+                connectionClosable.wrapped
+            }
+            context("a repo with a user class") {
+                val repo = Repository.create<User>()
+                suspend fun create(instance: User) = repo.create(connection, instance)
+                context("Creating Rows") {
+                    test("can insert data class and return primary key") {
                         val user =
                             repo.create(
                                 connection,
@@ -89,10 +82,7 @@ class RepositoryFunctionalTest : JUnit5Minutests {
                                 get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
                             }
                     }
-                }
-
-                test("supports nullable values") {
-                    runBlocking {
+                    test("supports nullable values") {
                         val user =
                             repo.create(
                                 connection,
@@ -109,11 +99,10 @@ class RepositoryFunctionalTest : JUnit5Minutests {
                                 get { email }.isNull()
                             }
                     }
+
                 }
-            }
-            context("loading data objects") {
-                test("can load data object by id") {
-                    runBlocking {
+                context("loading data objects") {
+                    test("can load data object by id") {
                         repo.create(
                             connection,
                             User(
@@ -148,10 +137,8 @@ class RepositoryFunctionalTest : JUnit5Minutests {
                                 get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
                             }
                     }
-                }
-                context("query language") {
-                    test("has a typesafe query api") {
-                        runBlocking {
+                    context("query language") {
+                        test("has a typesafe query api") {
                             // create 3 users with different birthdays so that only the middle date
                             // fits the between condition
                             create(
@@ -190,9 +177,7 @@ class RepositoryFunctionalTest : JUnit5Minutests {
                                 ).toCollection(mutableListOf())
                             ).containsExactly(userThatWillBeFound)
                         }
-                    }
-                    test("can query null values") {
-                        runBlocking {
+                        test("can query null values") {
                             val coolUser =
                                 create(User(name = "coolUser", email = "email", isCool = true))
                             val uncoolUser =
@@ -220,10 +205,8 @@ class RepositoryFunctionalTest : JUnit5Minutests {
                                 .isEqualTo(coolUser)
                         }
                     }
-                }
 
-                test("throws NotFoundException when id does not exist") {
-                    runBlocking {
+                    test("throws NotFoundException when id does not exist") {
                         expectCatching { repo.findById(connection, UserPK(1)) }.isFailure()
                             .isA<NotFoundException>()
                             .message
@@ -231,17 +214,15 @@ class RepositoryFunctionalTest : JUnit5Minutests {
                             .isEqualTo("No users found for id 1")
                     }
                 }
-            }
-            context("updating objects") {
-                test("can update objects") {
-                    val originalUser =
-                        User(
-                            name = "chris",
-                            email = "my email",
-                            bio = reallyLongString,
-                            birthday = LocalDate.parse("2020-06-20")
-                        )
-                    runBlocking {
+                context("updating objects") {
+                    test("can update objects") {
+                        val originalUser =
+                            User(
+                                name = "chris",
+                                email = "my email",
+                                bio = reallyLongString,
+                                birthday = LocalDate.parse("2020-06-20")
+                            )
                         val id = repo.create(connection, originalUser).id!!
                         val readBackUser = repo.findById(connection, id)
                         repo.update(
@@ -255,10 +236,8 @@ class RepositoryFunctionalTest : JUnit5Minutests {
                             )
                     }
                 }
-            }
-            context("enum fields") {
-                test("enum fields are serialized as upper case strings") {
-                    runBlocking {
+                context("enum fields") {
+                    test("enum fields are serialized as upper case strings") {
                         val id =
                             repo
                                 .create(
@@ -289,66 +268,44 @@ class RepositoryFunctionalTest : JUnit5Minutests {
                     }
                 }
             }
-        }
+            context("interop with kotlinx.serializable") {
+                @Serializable
+                data class SerializableUserPK(override val id: Long) : PK
 
-        @Serializable
-        data class SerializableUserPK(override val id: Long) : PK
+                @Serializable
+                data class SerializableUser(
+                    val id: SerializableUserPK? = null,
+                    val name: String,
+                    val email: String?
+                )
 
-        @Serializable
-        data class SerializableUser(
-            val id: SerializableUserPK? = null,
-            val name: String,
-            val email: String?
-        )
+                val repo = Repository.create<SerializableUser>()
 
-        derivedContext<Fixture<SerializableUser>>("interop with kotlinx.serializable") {
-            makeFixture()
-            test("can insert data class and return primary key") {
-                runBlocking {
-                    val user =
-                        repo.create(
-                            connection,
-                            SerializableUser(name = "chris", email = "my email")
-                        )
-                    expectThat(user)
-                        .and {
-                            get { id }.isEqualTo(SerializableUserPK(1))
-                            get { name }.isEqualTo("chris")
-                            get { email }.isEqualTo("my email")
-                        }
+                test("can insert data class and return primary key") {
+                    runBlocking {
+                        val user =
+                            repo.create(
+                                connection,
+                                SerializableUser(name = "chris", email = "my email")
+                            )
+                        expectThat(user)
+                            .and {
+                                get { id }.isEqualTo(SerializableUserPK(1))
+                                get { name }.isEqualTo("chris")
+                                get { email }.isEqualTo("my email")
+                            }
+                    }
                 }
+
+
             }
-        }
-
-    }
-
-    private inline fun <reified T : Any> TestContextBuilder<Connection, Fixture<T>>.makeFixture() {
-        applyRule { timeout }
-        deriveFixture {
-            val connection = this
-            runBlocking { Fixture(connection, T::class) }
         }
     }
+})
 
-    @Suppress("unused")
-    fun tests() =
-        rootContext<Unit> {
-            if (!TestConfig.H2_ONLY) {
-                // if we need the postgres container, start loading it while running the h2 tests,
-                // and outside of the main context which has a timeout rule
-                test("warm up psql container") { container }
-            }
-            derivedContext<Connection>("run on H2") {
-                fixture { runBlocking { prepareH2().create().awaitSingle() } }
-                repoTests()
-                after { runBlocking { fixture.close().awaitFirstOrNull() } }
-            }
-            if (!TestConfig.H2_ONLY) {
-                derivedContext<Connection>("run on postgresql") {
-                    fixture { runBlocking { preparePostgreSQL().create().awaitSingle() } }
-                    repoTests()
-                    after { runBlocking { fixture.close().awaitFirstOrNull() } }
-                }
-            }
-        }
+class WrapAutoClosable<T : Any>(val wrapped: T, val function: (T) -> Publisher<Void>) : AutoCloseable {
+    override fun close() {
+        function(wrapped)
+    }
 }
+
