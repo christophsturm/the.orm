@@ -1,4 +1,4 @@
-package r2dbcfun
+package r2dbcfun.query
 
 import io.r2dbc.spi.Connection
 import java.time.LocalDate
@@ -6,6 +6,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlinx.coroutines.flow.Flow
+import r2dbcfun.Finder
+import r2dbcfun.toIndexedPlaceholders
+import r2dbcfun.toSnakeCase
 
 public fun <T : Any, V> KProperty1<T, V>.isNull(): QueryFactory.Condition<Unit> =
     QueryFactory.isNullCondition(this)
@@ -13,8 +16,8 @@ public fun <T : Any, V> KProperty1<T, V>.isNull(): QueryFactory.Condition<Unit> 
 public fun <T : Any> KProperty1<T, String?>.like(): QueryFactory.Condition<String> =
     QueryFactory.likeCondition(this)
 
-public fun <T : Any, V : Any> KProperty1<T, V?>.equals(): QueryFactory.Condition<V> =
-    QueryFactory.equalsCondition(this)
+public fun <T : Any, V : Any> KProperty1<T, V?>.isEqualTo(): QueryFactory.Condition<V> =
+    QueryFactory.isEqualToCondition(this)
 
 public fun <T : Any> KProperty1<T, LocalDate?>.between():
     QueryFactory.Condition<Pair<LocalDate, LocalDate>> =
@@ -31,8 +34,8 @@ public class QueryFactory<T : Any> internal constructor(
         public fun <T : Any> likeCondition(property: KProperty1<T, String?>): Condition<String> =
             Condition("like(?)", property)
 
-        public fun <T : Any, V : Any> equalsCondition(property: KProperty1<T, V?>): Condition<V> =
-            Condition("=?", property)
+        public fun <T : Any, V : Any> isEqualToCondition(property: KProperty1<T, V?>):
+            Condition<V> = Condition("=?", property)
     }
 
     private val snakeCaseForProperty =

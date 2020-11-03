@@ -1,12 +1,13 @@
 package r2dbcfun
 
 import io.r2dbc.spi.Connection
-import kotlinx.coroutines.flow.single
-import r2dbcfun.QueryFactory.Companion.equalsCondition
-import r2dbcfun.internal.IDHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
+import kotlinx.coroutines.flow.single
+import r2dbcfun.internal.IDHandler
+import r2dbcfun.query.QueryFactory
+import r2dbcfun.query.QueryFactory.Companion.isEqualToCondition
 
 public interface PK {
     public val id: Long
@@ -27,10 +28,10 @@ public class Repository<T : Any>(kClass: KClass<T>) {
     @Suppress("UNCHECKED_CAST")
     private val idProperty =
         (properties["id"]
-            ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")) as KProperty1<T, Any>
+            ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")) as
+            KProperty1<T, Any>
 
     private val idHandler = IDHandler(kClass)
-
 
     private val inserter = Inserter(tableName, propertyReaders, idHandler)
 
@@ -59,7 +60,7 @@ public class Repository<T : Any>(kClass: KClass<T>) {
         updater.update(connection, instance)
     }
 
-    private val findById = queryFactory.createQuery(equalsCondition(idProperty))
+    private val findById = queryFactory.createQuery(isEqualToCondition(idProperty))
 
     /**
      * loads an object from the database

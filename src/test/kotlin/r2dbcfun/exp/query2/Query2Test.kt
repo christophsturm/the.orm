@@ -6,26 +6,29 @@
 package r2dbcfun.exp.query2
 
 import io.kotest.core.spec.style.FunSpec
-import r2dbcfun.User
 import java.time.LocalDate
 import kotlin.reflect.KProperty1
+import r2dbcfun.User
 
-class Query2Test : FunSpec({
-    @Suppress("unused")
-    fun tests() =
-        context("another never implemented query api") {
-            xcontext("query") {
-                val date1 = LocalDate.now()
-                val date2 = LocalDate.now()
-                test("other query api") {
-                    find<User> {
-                        User::name.like("blah%")
-                        User::birthday.between2(date1, date2)
+class Query2Test :
+    FunSpec(
+        {
+            @Suppress("unused")
+            fun tests() =
+                context("another never implemented query api") {
+                    xcontext("query") {
+                        val date1 = LocalDate.now()
+                        val date2 = LocalDate.now()
+                        test("other query api") {
+                            find<User> {
+                                User::name.like("blah%")
+                                User::birthday.between2(date1, date2)
+                            }
+                        }
                     }
                 }
-            }
         }
-})
+    )
 
 private fun <T, V> KProperty1<T, V>.between2(date1: V, date2: V): V? {
     TODO("blah")

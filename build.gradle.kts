@@ -15,6 +15,7 @@ val kotlinVersion = ProjectConfig.kotlinVersion
 val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.0-rc2"
 val log4j2Version = "2.13.3"
+val kotestVersion = "4.3.1"
 
 plugins {
     java
@@ -33,6 +34,7 @@ version = "0.1"
 
 repositories {
     if (ProjectConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
+    maven("https://oss.sonatype.org/content/repositories/snapshots/")
     jcenter()
     mavenCentral()
 }
@@ -60,16 +62,15 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
     testImplementation("io.projectreactor.tools:blockhound:1.0.4.RELEASE")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
-    testImplementation("io.kotest:kotest-runner-junit5:4.3.1")
-    testImplementation("io.kotest:kotest-plugins-pitest:4.3.1")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-plugins-pitest:$kotestVersion")
     testImplementation("io.mockk:mockk:1.10.2")
-
 
     testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-jul:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version")
-//    "pitest"("org.pitest:pitest-junit5-plugin:0.12")
+    //    "pitest"("org.pitest:pitest-junit5-plugin:0.12")
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
 kotlin { explicitApi() }
@@ -131,7 +132,7 @@ plugins.withId("info.solidsoft.pitest") {
     configure<PitestPluginExtension> {
         //        verbose.set(true)
         jvmArgs.set(listOf("-Xmx512m"))
-//        testPlugin.set("junit5")
+        //        testPlugin.set("junit5")
         testPlugin.set("Kotest")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
         targetClasses.set(setOf("r2dbcfun.*")) //by default "${project.group}.*"

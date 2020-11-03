@@ -18,34 +18,37 @@ import strikt.assertions.isEqualTo
  *
  * @see r2dbcfun.RepositoryFunctionalTest for api usage.
  */
-class R2dbcTest : FunSpec({
-    val fixture = prepareH2()
-    test("can insert values and select result") {
-        val connection: Connection = fixture.create().awaitSingle()
-        val firstId =
-            connection.createStatement("insert into users(name) values($1)")
-                .bind("$1", "belle")
-                .executeInsert()
-        val secondId =
-            connection.createStatement("insert into users(name) values($1)")
-                .bind("$1", "sebastian")
-                .executeInsert()
+class R2dbcTest :
+    FunSpec(
+        {
+            val fixture = prepareH2()
+            test("can insert values and select result") {
+                val connection: Connection = fixture.create().awaitSingle()
+                val firstId =
+                    connection.createStatement("insert into users(name) values($1)")
+                        .bind("$1", "belle")
+                        .executeInsert()
+                val secondId =
+                    connection.createStatement("insert into users(name) values($1)")
+                        .bind("$1", "sebastian")
+                        .executeInsert()
 
-        val selectResult: Result =
-            connection.createStatement("select * from users").execute().awaitSingle()
-        val namesFlow =
-            selectResult.map { row, _ -> row.get("NAME", String::class.java) }.asFlow()
-        val names = namesFlow.toCollection(mutableListOf())
-        expectThat(firstId).isEqualTo(1)
-        expectThat(secondId).isEqualTo(2)
-        expectThat(names).containsExactly("belle", "sebastian")
-        connection.close().awaitFirstOrNull()
-    }
-    test("play with runBlockingTest") {
-        val connection: Connection = fixture.create().awaitSingle()
-        connection.createStatement("insert into users(name) values($1)")
-            .bind("$1", "belle")
-            .executeInsert()
-        connection.close().awaitFirstOrNull()
-    }
-})
+                val selectResult: Result =
+                    connection.createStatement("select * from users").execute().awaitSingle()
+                val namesFlow =
+                    selectResult.map { row, _ -> row.get("NAME", String::class.java) }.asFlow()
+                val names = namesFlow.toCollection(mutableListOf())
+                expectThat(firstId).isEqualTo(1)
+                expectThat(secondId).isEqualTo(2)
+                expectThat(names).containsExactly("belle", "sebastian")
+                connection.close().awaitFirstOrNull()
+            }
+            test("play with runBlockingTest") {
+                val connection: Connection = fixture.create().awaitSingle()
+                connection.createStatement("insert into users(name) values($1)")
+                    .bind("$1", "belle")
+                    .executeInsert()
+                connection.close().awaitFirstOrNull()
+            }
+        }
+    )
