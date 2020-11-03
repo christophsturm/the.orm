@@ -1,14 +1,11 @@
 package r2dbcfun
 
-import dev.minutest.junit.JUnit5Minutests
-import dev.minutest.rootContext
+import io.kotest.core.spec.style.FunSpec
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-class StringUtilTest : JUnit5Minutests {
-    @Suppress("unused")
-    fun tests() =
-        rootContext<Unit> {
+class StringUtilTest : FunSpec({
+        context("string methods") {
             test("can convert camel case to snake case") {
                 expectThat("CamelCase".toSnakeCase()).isEqualTo("camel_case")
             }
@@ -16,4 +13,4 @@ class StringUtilTest : JUnit5Minutests {
                 expectThat("values (?,?,?)".toIndexedPlaceholders()).isEqualTo("values ($1,$2,$3)")
             }
         }
-}
+})

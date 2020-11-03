@@ -2,24 +2,23 @@ package r2dbcfun.exp.query
 
 // one of the query languages that  did not like so much in the end.
 
-import dev.minutest.junit.JUnit5Minutests
-import dev.minutest.rootContext
-import java.time.LocalDate
-import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.declaredMemberProperties
+import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import r2dbcfun.User
 import r2dbcfun.exp.query.Query.Condition
 import r2dbcfun.toSnakeCase
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.time.LocalDate
+import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.declaredMemberProperties
 
 @ExperimentalCoroutinesApi
-class QueryTest : JUnit5Minutests {
+class QueryTest : FunSpec({
     @Suppress("unused")
     fun tests() =
-        rootContext<Unit> {
+        context("an never finished query api") {
             context("query") {
                 val date1 = LocalDate.now()
                 val date2 = LocalDate.now()
@@ -30,7 +29,7 @@ class QueryTest : JUnit5Minutests {
                 }
             }
         }
-}
+})
 
 private inline fun <reified T : Any> find(vararg conditions: Condition<T, *>) =
     Query(T::class, conditions.toList())

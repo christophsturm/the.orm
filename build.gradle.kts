@@ -46,7 +46,6 @@ dependencies {
     api("io.r2dbc:r2dbc-spi:0.8.3.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     testImplementation("io.strikt:strikt-core:0.28.0")
-    testImplementation("dev.minutest:minutest:1.11.0")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")

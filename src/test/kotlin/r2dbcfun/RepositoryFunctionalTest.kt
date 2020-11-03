@@ -8,7 +8,6 @@ import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import org.reactivestreams.Publisher
 import strikt.api.expectCatching
@@ -45,7 +44,7 @@ data class User(
     val birthday: LocalDate? = null
 )
 
-class NewRepositoryFunctionalTest : FunSpec({
+class RepositoryFunctionalTest : FunSpec({
     data class Database(val name: String, val function: () -> ConnectionFactory)
 
     val databases = listOf(Database("h2") { prepareH2() }, Database("psql") { preparePostgreSQL() })
@@ -282,23 +281,21 @@ class NewRepositoryFunctionalTest : FunSpec({
                 val repo = Repository.create<SerializableUser>()
 
                 test("can insert data class and return primary key") {
-                    runBlocking {
-                        val user =
-                            repo.create(
-                                connection,
-                                SerializableUser(name = "chris", email = "my email")
-                            )
-                        expectThat(user)
-                            .and {
-                                get { id }.isEqualTo(SerializableUserPK(1))
-                                get { name }.isEqualTo("chris")
-                                get { email }.isEqualTo("my email")
-                            }
-                    }
+                    val user =
+                        repo.create(
+                            connection,
+                            SerializableUser(name = "chris", email = "my email")
+                        )
+                    expectThat(user)
+                        .and {
+                            get { id }.isEqualTo(SerializableUserPK(1))
+                            get { name }.isEqualTo("chris")
+                            get { email }.isEqualTo("my email")
+                        }
                 }
-
-
             }
+
+
         }
     }
 })
