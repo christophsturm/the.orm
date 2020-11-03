@@ -8,8 +8,6 @@ import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val junit5Version = "5.7.0"
-val junitPlatformVersion = "1.7.0"
 val coroutinesVersion = "1.4.0"
 val kotlinVersion = ProjectConfig.kotlinVersion
 val serializationVersion = "1.0.1"
@@ -27,6 +25,7 @@ plugins {
     id("com.jfrog.bintray") version "1.8.5"
     kotlin("plugin.serialization").version(ProjectConfig.kotlinVersion)
     id("tech.formatter-kt.formatter") version "0.6.6"
+    id("io.kotest") version "0.2.6"
 }
 
 group = "r2dbcfun"
@@ -55,14 +54,13 @@ dependencies {
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.6.RELEASE")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("org.flywaydb:flyway-core:7.1.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit5Version")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit5Version")
+
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
     testImplementation("io.projectreactor.tools:blockhound:1.0.4.RELEASE")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
-    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+
+    testImplementation("io.kotest:kotest-framework-engine-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-plugins-pitest:$kotestVersion")
     testImplementation("io.mockk:mockk:1.10.2")
 
