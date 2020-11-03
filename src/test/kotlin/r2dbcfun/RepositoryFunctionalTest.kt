@@ -3,6 +3,7 @@
 package r2dbcfun
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.inspectors.forAll
 import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import java.time.LocalDate
@@ -55,13 +56,13 @@ class RepositoryFunctionalTest :
 
             val databases =
                 listOf(Database("h2") { prepareH2() }, Database("psql") { preparePostgreSQL() })
-            databases.forEach {
+            databases.forAll {
                 context("running on ${it.name}") {
                     val connection =
                         run {
                             val connectionClosable =
-                                WrapAutoClosable(it.function().create().awaitSingle())
-                                    { connection: Connection -> connection.close() }
+                                autoClose(WrapAutoClosable(it.function().create().awaitSingle())
+                                    { connection: Connection -> connection.close() })
                             connectionClosable.wrapped
                         }
                     context("a repo with a user class") {
