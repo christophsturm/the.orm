@@ -1,14 +1,12 @@
 package r2dbcfun.internal
 
-import dev.minutest.junit.JUnit5Minutests
-import dev.minutest.rootContext
+import io.kotest.core.spec.style.FunSpec
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-class IDHandlerTest : JUnit5Minutests {
-    @Suppress("unused")
-    fun tests() =
-        rootContext<Unit> {
+class IDHandlerTest :
+    FunSpec(
+        {
             context("assigning an id to a newly created instance") {
                 test("assigns a long id") {
                     data class ClassWithLongId(val id: Long?, val otherProp: String)
@@ -27,4 +25,4 @@ class IDHandlerTest : JUnit5Minutests {
                 }
             }
         }
-}
+    )
