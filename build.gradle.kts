@@ -5,7 +5,6 @@ import com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD_PARALLEL
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import com.jfrog.bintray.gradle.BintrayExtension
 import info.solidsoft.gradle.pitest.PitestPluginExtension
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val coroutinesVersion = "1.4.0"
@@ -79,11 +78,7 @@ tasks {
         @Suppress("UnstableApiUsage")
         if (JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal)
             jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
-        useJUnitPlatform {}
-
-        ignoreFailures = System.getenv("CI") != null
-        testLogging { testLogging { exceptionFormat = FULL } }
-        maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
+//        ignoreFailures = System.getenv("CI") != null
     }
     create<Jar>("sourceJar") {
         from(sourceSets.main.get().allSource)
