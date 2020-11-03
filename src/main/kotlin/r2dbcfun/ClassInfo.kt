@@ -1,5 +1,6 @@
 package r2dbcfun
 
+import r2dbcfun.util.toSnakeCase
 import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction

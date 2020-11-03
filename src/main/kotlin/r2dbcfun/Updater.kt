@@ -1,9 +1,10 @@
 package r2dbcfun
 
 import io.r2dbc.spi.Connection
-import kotlin.reflect.KProperty1
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.internal.IDHandler
+import r2dbcfun.util.toSnakeCase
+import kotlin.reflect.KProperty1
 
 internal class Updater<T : Any>(
     table: String,

@@ -1,8 +1,6 @@
 package r2dbcfun.util
 
 import io.kotest.core.spec.style.FunSpec
-import r2dbcfun.toIndexedPlaceholders
-import r2dbcfun.toSnakeCase
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 

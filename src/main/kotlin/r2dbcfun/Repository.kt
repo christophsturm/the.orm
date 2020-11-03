@@ -1,13 +1,14 @@
 package r2dbcfun
 
 import io.r2dbc.spi.Connection
-import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.declaredMemberProperties
 import kotlinx.coroutines.flow.single
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.query.QueryFactory
 import r2dbcfun.query.QueryFactory.Companion.isEqualToCondition
+import r2dbcfun.util.toSnakeCase
+import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.declaredMemberProperties
 
 public interface PK {
     public val id: Long
