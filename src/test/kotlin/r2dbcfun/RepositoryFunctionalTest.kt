@@ -3,15 +3,10 @@
 package r2dbcfun
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.core.spec.style.scopes.FunSpecContextScope
-import io.kotest.inspectors.forAll
-import io.r2dbc.spi.Connection
-import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.Serializable
-import org.reactivestreams.Publisher
 import r2dbcfun.query.between
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.query.isNull
@@ -50,15 +45,11 @@ data class User(
     val birthday: LocalDate? = null
 )
 
-data class Database(val name: String, val function: () -> ConnectionFactory)
-
-val databases =
-    listOf(Database("h2") { prepareH2() }, Database("psql") { preparePostgreSQL() })
 
 class RepositoryFunctionalTest :
     FunSpec(
         {
-            forAllDatabases { connection ->
+            forAllDatabases(this) { connection ->
                 context("a repo with a user class") {
                     val repo = Repository.create<User>()
                     suspend fun create(instance: User) = repo.create(connection, instance)
@@ -315,25 +306,3 @@ class RepositoryFunctionalTest :
         }
     )
 
-private fun FunSpec.forAllDatabases(tests: suspend FunSpecContextScope.(Connection) -> Unit) {
-    databases.forAll {
-        context("running on ${it.name}") {
-            val connection =
-                run {
-                    val connectionClosable =
-                        autoClose(WrapAutoClosable(it.function().create().awaitSingle())
-                        { connection: Connection -> connection.close() })
-                    connectionClosable.wrapped
-                }
-            tests(connection)
-        }
-    }
-}
-
-class WrapAutoClosable<T : Any>(val wrapped: T, val function: (T) -> Publisher<Void>) :
-    AutoCloseable {
-
-    override fun close() {
-        function(wrapped)
-    }
-}

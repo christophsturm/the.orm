@@ -1,11 +1,16 @@
 package r2dbcfun
 
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.core.spec.style.scopes.FunSpecContextScope
+import io.kotest.inspectors.forAll
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
+import kotlinx.coroutines.reactive.awaitSingle
 import java.sql.Connection
 import java.sql.DriverManager
 import java.util.*
 import org.flywaydb.core.Flyway
+import org.reactivestreams.Publisher
 import org.testcontainers.containers.PostgreSQLContainer
 
 fun prepareH2(): ConnectionFactory {
@@ -42,3 +47,30 @@ fun preparePostgreSQL(): ConnectionFactory {
     flyway.migrate()
     return ConnectionFactories.get("r2dbc:postgresql://test:test@$host:$port/$databaseName")
 }
+
+data class Database(val name: String, val function: () -> ConnectionFactory)
+val databases =
+    listOf(Database("h2") { prepareH2() }, Database("psql") { preparePostgreSQL() })
+
+fun forAllDatabases(funSpec: FunSpec, tests: suspend FunSpecContextScope.(io.r2dbc.spi.Connection) -> Unit) {
+    databases.forAll {
+        funSpec.context("running on ${it.name}") {
+            val connection =
+                this.run {
+                    val connectionClosable =
+                        funSpec.autoClose(WrapAutoClosable(it.function().create().awaitSingle())
+                        { connection: io.r2dbc.spi.Connection -> connection.close() })
+                    connectionClosable.wrapped
+                }
+            this.tests(connection)
+        }
+    }
+}
+
+class WrapAutoClosable<T : Any>(val wrapped: T, val function: (T) -> Publisher<Void>) :
+    AutoCloseable {
+    override fun close() {
+        function(wrapped)
+    }
+}
+
