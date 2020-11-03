@@ -26,7 +26,7 @@ jobs:
         env:
           CI: true
         run: |
-          ./gradlew kotest
+          ./gradlew kotest build
       - name: Test Report ${{matrix.java}}
         uses: ScaCap/action-surefire-report@v1.0.5
         with:
