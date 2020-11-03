@@ -80,7 +80,7 @@ tasks {
         @Suppress("UnstableApiUsage")
         if (JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal)
             jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
-        useJUnitPlatform { includeEngines("junit-jupiter") }
+        useJUnitPlatform {}
 
         ignoreFailures = System.getenv("CI") != null
         testLogging { testLogging { exceptionFormat = FULL } }
