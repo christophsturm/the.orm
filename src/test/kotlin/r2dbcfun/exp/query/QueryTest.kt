@@ -3,16 +3,16 @@ package r2dbcfun.exp.query
 // one of the query languages that  did not like so much in the end.
 
 import io.kotest.core.spec.style.FunSpec
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import r2dbcfun.User
+import r2dbcfun.exp.query.Query.Condition
+import r2dbcfun.util.toSnakeCase
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import r2dbcfun.User
-import r2dbcfun.exp.query.Query.Condition
-import r2dbcfun.toSnakeCase
-import strikt.api.expectThat
-import strikt.assertions.isEqualTo
 
 @ExperimentalCoroutinesApi
 class QueryTest :

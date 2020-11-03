@@ -2,6 +2,7 @@ package r2dbcfun
 
 import io.r2dbc.spi.Connection
 import r2dbcfun.internal.IDHandler
+import r2dbcfun.util.toSnakeCase
 
 internal class Inserter<T : Any>(
     table: String,

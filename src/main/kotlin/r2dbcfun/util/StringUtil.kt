@@ -1,4 +1,4 @@
-package r2dbcfun
+package r2dbcfun.util
 
 internal fun String.toSnakeCase(): String =
     this

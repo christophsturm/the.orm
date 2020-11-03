@@ -1,14 +1,14 @@
 package r2dbcfun.query
 
 import io.r2dbc.spi.Connection
+import kotlinx.coroutines.flow.Flow
+import r2dbcfun.Finder
+import r2dbcfun.util.toIndexedPlaceholders
+import r2dbcfun.util.toSnakeCase
 import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
-import kotlinx.coroutines.flow.Flow
-import r2dbcfun.Finder
-import r2dbcfun.toIndexedPlaceholders
-import r2dbcfun.toSnakeCase
 
 public fun <T : Any, V> KProperty1<T, V>.isNull(): QueryFactory.Condition<Unit> =
     QueryFactory.isNullCondition(this)

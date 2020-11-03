@@ -11,6 +11,7 @@ import r2dbcfun.query.between
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.query.isNull
 import r2dbcfun.query.like
+import r2dbcfun.util.toSnakeCase
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
