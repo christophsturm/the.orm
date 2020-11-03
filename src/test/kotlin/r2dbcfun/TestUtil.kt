@@ -5,10 +5,10 @@ import io.kotest.core.spec.style.scopes.FunSpecContextScope
 import io.kotest.inspectors.forAll
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
-import kotlinx.coroutines.reactive.awaitSingle
 import java.sql.Connection
 import java.sql.DriverManager
 import java.util.*
+import kotlinx.coroutines.reactive.awaitSingle
 import org.flywaydb.core.Flyway
 import org.reactivestreams.Publisher
 import org.testcontainers.containers.PostgreSQLContainer
@@ -49,17 +49,21 @@ fun preparePostgreSQL(): ConnectionFactory {
 }
 
 data class Database(val name: String, val function: () -> ConnectionFactory)
-val databases =
-    listOf(Database("h2") { prepareH2() }, Database("psql") { preparePostgreSQL() })
+val databases = listOf(Database("h2") { prepareH2() }, Database("psql") { preparePostgreSQL() })
 
-fun forAllDatabases(funSpec: FunSpec, tests: suspend FunSpecContextScope.(io.r2dbc.spi.Connection) -> Unit) {
+fun forAllDatabases(
+    funSpec: FunSpec,
+    tests: suspend FunSpecContextScope.(io.r2dbc.spi.Connection) -> Unit
+) {
     databases.forAll {
         funSpec.context("running on ${it.name}") {
             val connection =
                 this.run {
                     val connectionClosable =
-                        funSpec.autoClose(WrapAutoClosable(it.function().create().awaitSingle())
-                        { connection: io.r2dbc.spi.Connection -> connection.close() })
+                        funSpec.autoClose(
+                            WrapAutoClosable(it.function().create().awaitSingle())
+                                { connection: io.r2dbc.spi.Connection -> connection.close() }
+                        )
                     connectionClosable.wrapped
                 }
             this.tests(connection)
@@ -69,8 +73,8 @@ fun forAllDatabases(funSpec: FunSpec, tests: suspend FunSpecContextScope.(io.r2d
 
 class WrapAutoClosable<T : Any>(val wrapped: T, val function: (T) -> Publisher<Void>) :
     AutoCloseable {
+
     override fun close() {
         function(wrapped)
     }
 }
-
