@@ -1,4 +1,4 @@
-package r2dbcfun
+package r2dbcfun.test
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.scopes.FunSpecContextScope

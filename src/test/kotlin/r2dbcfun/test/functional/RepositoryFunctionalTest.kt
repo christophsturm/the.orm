@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 import r2dbcfun.NotFoundException
 import r2dbcfun.PK
 import r2dbcfun.Repository
-import r2dbcfun.forAllDatabases
+import r2dbcfun.test.forAllDatabases
 import r2dbcfun.util.toSnakeCase
 import strikt.api.expectCatching
 import strikt.api.expectThat
