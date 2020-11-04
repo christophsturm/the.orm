@@ -3,12 +3,12 @@
 package r2dbcfun
 
 import io.kotest.core.spec.style.FunSpec
-import io.r2dbc.spi.Connection
 import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
@@ -18,37 +18,28 @@ import strikt.assertions.isEqualTo
  *
  * @see r2dbcfun.test.functional.RepositoryFunctionalTest for api usage.
  */
-class R2dbcTest :
-    FunSpec(
-        {
-            val fixture = prepareH2()
-            test("can insert values and select result") {
-                val connection: Connection = fixture.create().awaitSingle()
-                val firstId =
-                    connection.createStatement("insert into users(name) values($1)")
-                        .bind("$1", "belle")
-                        .executeInsert()
-                val secondId =
-                    connection.createStatement("insert into users(name) values($1)")
-                        .bind("$1", "sebastian")
-                        .executeInsert()
-
-                val selectResult: Result =
-                    connection.createStatement("select * from users").execute().awaitSingle()
-                val namesFlow =
-                    selectResult.map { row, _ -> row.get("NAME", String::class.java) }.asFlow()
-                val names = namesFlow.toCollection(mutableListOf())
-                expectThat(firstId).isEqualTo(1)
-                expectThat(secondId).isEqualTo(2)
-                expectThat(names).containsExactly("belle", "sebastian")
-                connection.close().awaitFirstOrNull()
-            }
-            test("play with runBlockingTest") {
-                val connection: Connection = fixture.create().awaitSingle()
+class R2dbcTest : FunSpec({
+    forAllDatabases(this) { connection ->
+        test("can insert values and select result") {
+            val firstId =
                 connection.createStatement("insert into users(name) values($1)")
                     .bind("$1", "belle")
                     .executeInsert()
-                connection.close().awaitFirstOrNull()
-            }
+            val secondId =
+                connection.createStatement("insert into users(name) values($1)")
+                    .bind("$1", "sebastian")
+                    .executeInsert()
+
+            val selectResult: Result =
+                connection.createStatement("select * from users").execute().awaitSingle()
+            val namesFlow =
+                selectResult.map { row, _ -> row.get("NAME", String::class.java) }.asFlow()
+            val names = namesFlow.toCollection(mutableListOf())
+            expectThat(firstId).isEqualTo(1)
+            expectThat(secondId).isEqualTo(2)
+            expectThat(names).containsExactly("belle", "sebastian")
+            connection.close().awaitFirstOrNull()
         }
-    )
+
+    }
+})
