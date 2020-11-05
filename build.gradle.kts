@@ -25,7 +25,7 @@ plugins {
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
     kotlin("plugin.serialization").version(r2dbcfun.ProjectConfig.kotlinVersion)
-    id("tech.formatter-kt.formatter") version "0.6.6"
+    id("tech.formatter-kt.formatter") version "0.6.7"
     id("io.kotest") version "0.2.6"
 }
 
@@ -34,7 +34,8 @@ version = "0.2"
 
 repositories {
     if (ProjectConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
-    maven("https://oss.sonatype.org/content/repositories/snapshots/")
+    if (ProjectConfig.useKotestSnapshot)
+        maven("https://oss.sonatype.org/content/repositories/snapshots/")
     jcenter()
     mavenCentral()
 }
