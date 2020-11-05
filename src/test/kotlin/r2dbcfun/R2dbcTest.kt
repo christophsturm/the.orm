@@ -19,7 +19,7 @@ import strikt.assertions.isEqualTo
  * @see r2dbcfun.test.functional.RepositoryFunctionalTest for api usage.
  */
 class R2dbcTest : FunSpec({
-    forAllDatabases(this) { connection ->
+    forAllDatabases(this, "r2dbctest") { connection ->
         test("can insert values and select result") {
             val firstId =
                 connection.createStatement("insert into users(name) values($1)")

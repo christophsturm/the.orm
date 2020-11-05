@@ -58,6 +58,10 @@ public class QueryFactory<T : Any> internal constructor(
     public fun <P1 : Any, P2 : Any> createQuery(p1: Condition<P1>, p2: Condition<P2>):
             TwoParameterQuery<P1, P2> = TwoParameterQuery(p1, p2)
 
+    public fun <P1 : Any, P2 : Any, P3 : Any> createQuery(p1: Condition<P1>, p2: Condition<P2>, p3: Condition<P3>):
+            ThreeParameterQuery<P1, P2, P3> = ThreeParameterQuery(p1, p2, p3)
+
+
     @Suppress("unused")
     public data class Condition<Type>(val conditionString: String, val prop: KProperty1<*, *>)
 
@@ -75,6 +79,17 @@ public class QueryFactory<T : Any> internal constructor(
         public fun with(connection: Connection, p1: P1, p2: P2): QueryWithParameters =
             query.with(connection, p1, p2)
     }
+
+    public inner class ThreeParameterQuery<P1 : Any, P2 : Any, P3 : Any>(
+        p1: Condition<P1>,
+        p2: Condition<P2>,
+        p3: Condition<P3>
+    ) {
+        private val query = Query(p1, p2, p3)
+        public  fun with(connection: Connection, p1: P1, p2: P2, p3: P3): QueryWithParameters =
+            query.with(connection, p1, p2, p3)
+    }
+
 
     // internal api
     public inner class Query internal constructor(vararg conditions: Condition<*>) {
