@@ -53,11 +53,11 @@ class QueryFactoryFunctionalTest : FunSpec({
                         .createQuery(User::name.like(), User::birthday.between())
 
                 expectThat(
-                    findByUserNameLikeAndBirthdayBetween(
+                    findByUserNameLikeAndBirthdayBetween.with(
                         connection,
                         "%",
                         Pair(date1, date2)
-                    ).toCollection(mutableListOf())
+                    ).find().toCollection(mutableListOf())
                 ).containsExactly(userThatWillBeFound)
             }
             test("can query null values") {
@@ -79,15 +79,15 @@ class QueryFactoryFunctionalTest : FunSpec({
                     repo.queryFactory.createQuery(User::isCool.isEqualTo())
                 val findByNullCoolness =
                     repo.queryFactory.createQuery(User::isCool.isNull())
-                expectThat(findByNullCoolness(connection, Unit).single())
+                expectThat(findByNullCoolness.with(connection, Unit).find().single())
                     .isEqualTo(userOfUndefinedCoolness)
                 // this does not compile because equaling by null makes no sense
                 // anyway:
                 // expectThat(findByCoolness(connection,
                 // null).single()).isEqualTo(userOfUndefinedCoolness)
-                expectThat(findByCoolness(connection, false).single())
+                expectThat(findByCoolness.with(connection, false).find().single())
                     .isEqualTo(uncoolUser)
-                expectThat(findByCoolness(connection, true).single())
+                expectThat(findByCoolness.with(connection, true).find().single())
                     .isEqualTo(coolUser)
             }
         }

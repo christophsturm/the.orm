@@ -61,7 +61,7 @@ public class Repository<T : Any>(kClass: KClass<T>) {
         updater.update(connection, instance)
     }
 
-    private val findById = queryFactory.createQuery(isEqualToCondition(idProperty))
+    private val byIdQuery = queryFactory.createQuery(isEqualToCondition(idProperty))
 
     /**
      * loads an object from the database
@@ -70,7 +70,7 @@ public class Repository<T : Any>(kClass: KClass<T>) {
      */
     public suspend fun findById(connection: Connection, id: PK): T {
         return try {
-            findById(connection, id.id).single()
+            byIdQuery.with(connection, id.id).find().single()
         } catch (e: NoSuchElementException) {
             throw NotFoundException("No $tableName found for id ${id.id}")
         }

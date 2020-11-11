@@ -57,8 +57,8 @@ public class QueryFactory<T : Any> internal constructor(
 
     public inner class OneParameterQuery<P1 : Any> internal constructor(p1: Condition<P1>) {
         private val query = Query(p1)
-        public suspend operator fun invoke(connection: Connection, p1: P1): Flow<T> =
-            query.find(connection, p1)
+        public fun with(connection: Connection, p1: P1): QueryWithParameters =
+            query.with(connection, p1)
     }
 
     public inner class TwoParameterQuery<P1 : Any, P2 : Any> internal constructor(
@@ -66,8 +66,8 @@ public class QueryFactory<T : Any> internal constructor(
         p2: Condition<P2>
     ) {
         private val query = Query(p1, p2)
-        public suspend operator fun invoke(connection: Connection, p1: P1, p2: P2): Flow<T> =
-            query.find(connection, p1, p2)
+        public fun with(connection: Connection, p1: P1, p2: P2): QueryWithParameters =
+            query.with(connection, p1, p2)
     }
 
     // internal api
@@ -81,7 +81,7 @@ public class QueryFactory<T : Any> internal constructor(
                 selectPrefix + queryString
             }.toIndexedPlaceholders()
 
-        public suspend fun find(connection: Connection, vararg parameter: Any): Flow<T> {
+        public fun with(connection: Connection, vararg parameter: Any): QueryWithParameters {
             val parameterValues =
                 parameter.asSequence()
                     // remove Unit parameters because conditions that have no parameters use it
@@ -92,7 +92,17 @@ public class QueryFactory<T : Any> internal constructor(
                         else
                             sequenceOf(it)
                     }
-            return finder.findBy(connection, selectString, parameterValues)
+            return QueryWithParameters(connection, selectString, parameterValues)
         }
     }
+
+    public inner class QueryWithParameters(
+        private val connection: Connection,
+        private val selectString: String,
+        private val parameterValues: Sequence<Any>
+    ) {
+        public suspend fun find(): Flow<T> = finder.findBy(connection, selectString, parameterValues)
+
+    }
+
 }
