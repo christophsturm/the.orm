@@ -1,12 +1,14 @@
-@file:Suppress("SqlResolve")
-
-package r2dbcfun
+package r2dbcfun.test.functional
 
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.Serializable
+import r2dbcfun.NotFoundException
+import r2dbcfun.PK
+import r2dbcfun.Repository
+import r2dbcfun.forAllDatabases
 import r2dbcfun.query.between
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.query.isNull
@@ -28,7 +30,6 @@ private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
 private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
 
 data class UserPK(override val id: Long) : PK
-
 enum class Color {
     RED,
 
@@ -244,7 +245,7 @@ class RepositoryFunctionalTest : FunSpec({
                                 )
                             )
                             .id!!
-                    val color =
+                    @Suppress("SqlResolve") val color =
                         connection.createStatement("select * from Users where id = $1")
                             .bind("$1", id.id)
                             .execute()
@@ -290,3 +291,4 @@ class RepositoryFunctionalTest : FunSpec({
     }
 }
 )
+
