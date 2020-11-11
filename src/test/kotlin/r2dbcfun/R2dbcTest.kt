@@ -16,7 +16,7 @@ import strikt.assertions.isEqualTo
 /**
  * this is just the r2dbc playground that started this project.
  *
- * @see r2dbcfun.RepositoryFunctionalTest for api usage.
+ * @see r2dbcfun.test.functional.RepositoryFunctionalTest for api usage.
  */
 class R2dbcTest :
     FunSpec(

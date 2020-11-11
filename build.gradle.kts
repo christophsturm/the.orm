@@ -6,6 +6,8 @@ import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import com.jfrog.bintray.gradle.BintrayExtension
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import r2dbcfun.ProjectConfig
+
 
 val coroutinesVersion = "1.4.0"
 val kotlinVersion = ProjectConfig.kotlinVersion
@@ -16,19 +18,19 @@ val kotestVersion = "4.3.1"
 
 plugins {
     java
-    kotlin("jvm").version(ProjectConfig.kotlinVersion)
+    kotlin("jvm").version(r2dbcfun.ProjectConfig.kotlinVersion)
     id("com.github.ben-manes.versions") version "0.34.0"
     id("info.solidsoft.pitest") version "1.5.2"
     id("com.adarshr.test-logger") version "2.1.1"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
-    kotlin("plugin.serialization").version(ProjectConfig.kotlinVersion)
+    kotlin("plugin.serialization").version(r2dbcfun.ProjectConfig.kotlinVersion)
     id("tech.formatter-kt.formatter") version "0.6.6"
     id("io.kotest") version "0.2.6"
 }
 
 group = "r2dbcfun"
-version = "0.1"
+version = "0.2"
 
 repositories {
     if (ProjectConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }

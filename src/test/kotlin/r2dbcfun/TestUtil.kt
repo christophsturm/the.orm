@@ -5,13 +5,13 @@ import io.kotest.core.spec.style.scopes.FunSpecContextScope
 import io.kotest.inspectors.forAll
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
-import java.sql.Connection
-import java.sql.DriverManager
-import java.util.*
 import kotlinx.coroutines.reactive.awaitSingle
 import org.flywaydb.core.Flyway
 import org.reactivestreams.Publisher
 import org.testcontainers.containers.PostgreSQLContainer
+import java.sql.Connection
+import java.sql.DriverManager
+import java.util.*
 
 fun prepareH2(): ConnectionFactory {
     val uuid = UUID.randomUUID()
@@ -53,16 +53,17 @@ val databases = listOf(Database("h2") { prepareH2() }, Database("psql") { prepar
 
 fun forAllDatabases(
     funSpec: FunSpec,
+    testName: String,
     tests: suspend FunSpecContextScope.(io.r2dbc.spi.Connection) -> Unit
 ) {
     databases.forAll {
-        funSpec.context("running on ${it.name}") {
+        funSpec.context("$testName on ${it.name}") {
             val connection =
                 this.run {
                     val connectionClosable =
                         funSpec.autoClose(
                             WrapAutoClosable(it.function().create().awaitSingle())
-                                { connection: io.r2dbc.spi.Connection -> connection.close() }
+                            { connection: io.r2dbc.spi.Connection -> connection.close() }
                         )
                     connectionClosable.wrapped
                 }
