@@ -24,7 +24,7 @@ private val reallyLongString = (1..20000).map { characters.random() }.joinToStri
 
 
 class RepositoryFunctionalTest : FunSpec({
-    forAllDatabases(this) { connection ->
+    forAllDatabases(this, "RepositoryFT") { connection ->
         context("a repo with a user class") {
             val repo = Repository.create<User>()
             suspend fun create(instance: User) = repo.create(connection, instance)

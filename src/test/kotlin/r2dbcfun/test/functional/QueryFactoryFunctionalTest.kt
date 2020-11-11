@@ -15,7 +15,7 @@ import strikt.assertions.isEqualTo
 import java.time.LocalDate
 
 class QueryFactoryFunctionalTest : FunSpec({
-    forAllDatabases(this) { connection ->
+    forAllDatabases(this, "QueryFactoryFT") { connection ->
         val repo = Repository.create<User>()
         suspend fun create(instance: User) = repo.create(connection, instance)
 
