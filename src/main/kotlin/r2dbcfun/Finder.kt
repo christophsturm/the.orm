@@ -63,18 +63,6 @@ internal class Finder<T : Any>(
         }
     }
 
-    private fun createStatement(
-        parameterValues: Sequence<Any>,
-        connection: Connection,
-        sql: String
-    ): Statement =
-        try {
-            parameterValues.foldIndexed(connection.createStatement(sql))
-                { idx, statement, property -> statement.bind(idx, property) }
-        } catch (e: Exception) {
-            throw RepositoryException("error creating statement", e)
-        }
-
     private suspend fun resolveClob(result: Clob): String {
         val sb = StringBuilder()
         result.stream()
@@ -82,5 +70,19 @@ internal class Finder<T : Any>(
             .collect { chunk -> @Suppress("BlockingMethodInNonBlockingContext") sb.append(chunk) }
         result.discard()
         return sb.toString()
+    }
+
+    companion object {
+        internal fun createStatement(
+            parameterValues: Sequence<Any>,
+            connection: Connection,
+            sql: String
+        ): Statement =
+            try {
+                parameterValues.foldIndexed(connection.createStatement(sql))
+                { idx, statement, property -> statement.bind(idx, property) }
+            } catch (e: Exception) {
+                throw RepositoryException("error creating statement", e)
+            }
     }
 }

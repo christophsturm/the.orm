@@ -1,7 +1,10 @@
 package r2dbcfun.query
 
 import io.r2dbc.spi.Connection
+import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.Finder
 import r2dbcfun.util.toIndexedPlaceholders
 import r2dbcfun.util.toSnakeCase
@@ -20,8 +23,8 @@ public fun <T : Any, V : Any> KProperty1<T, V?>.isEqualTo(): QueryFactory.Condit
     QueryFactory.isEqualToCondition(this)
 
 public fun <T : Any> KProperty1<T, LocalDate?>.between():
-    QueryFactory.Condition<Pair<LocalDate, LocalDate>> =
-        QueryFactory.Condition("between ? and ?", this)
+        QueryFactory.Condition<Pair<LocalDate, LocalDate>> =
+    QueryFactory.Condition("between ? and ?", this)
 
 public class QueryFactory<T : Any> internal constructor(
     kClass: KClass<T>,
@@ -35,7 +38,7 @@ public class QueryFactory<T : Any> internal constructor(
             Condition("like(?)", property)
 
         public fun <T : Any, V : Any> isEqualToCondition(property: KProperty1<T, V?>):
-            Condition<V> = Condition("=?", property)
+                Condition<V> = Condition("=?", property)
     }
 
     private val snakeCaseForProperty =
@@ -46,11 +49,13 @@ public class QueryFactory<T : Any> internal constructor(
 
     private val selectPrefix =
         "select ${snakeCaseForProperty.values.joinToString { it }} from $tableName where "
+    private val deletePrefix = "delete from $tableName where "
+
     public fun <P1 : Any> createQuery(p1: Condition<P1>): OneParameterQuery<P1> =
         OneParameterQuery(p1)
 
     public fun <P1 : Any, P2 : Any> createQuery(p1: Condition<P1>, p2: Condition<P2>):
-        TwoParameterQuery<P1, P2> = TwoParameterQuery(p1, p2)
+            TwoParameterQuery<P1, P2> = TwoParameterQuery(p1, p2)
 
     @Suppress("unused")
     public data class Condition<Type>(val conditionString: String, val prop: KProperty1<*, *>)
@@ -71,14 +76,10 @@ public class QueryFactory<T : Any> internal constructor(
     }
 
     // internal api
-    public inner class Query internal constructor(private vararg val conditions: Condition<*>) {
-        private val selectString =
-            run {
-                val queryString =
-                    conditions.joinToString(separator = " and ") {
-                        "${snakeCaseForProperty[it.prop]} ${it.conditionString}"
-                    }
-                selectPrefix + queryString
+    public inner class Query internal constructor(vararg conditions: Condition<*>) {
+        private val queryString =
+            conditions.joinToString(separator = " and ") {
+                "${snakeCaseForProperty[it.prop]} ${it.conditionString}"
             }.toIndexedPlaceholders()
 
         public fun with(connection: Connection, vararg parameter: Any): QueryWithParameters {
@@ -92,16 +93,22 @@ public class QueryFactory<T : Any> internal constructor(
                         else
                             sequenceOf(it)
                     }
-            return QueryWithParameters(connection, selectString, parameterValues)
+            return QueryWithParameters(connection, queryString, parameterValues)
         }
     }
 
     public inner class QueryWithParameters(
         private val connection: Connection,
-        private val selectString: String,
+        private val queryString: String,
         private val parameterValues: Sequence<Any>
     ) {
-        public suspend fun find(): Flow<T> = finder.findBy(connection, selectString, parameterValues)
+        public suspend fun find(): Flow<T> = finder.findBy(connection, selectPrefix + queryString, parameterValues)
+        public suspend fun delete(): Flow<Int> {
+            val result: Result =
+                Finder.createStatement(parameterValues, connection, deletePrefix + queryString).returnGeneratedValues()
+                    .execute().awaitSingle()
+            return result.rowsUpdated.asFlow()
+        }
 
     }
 

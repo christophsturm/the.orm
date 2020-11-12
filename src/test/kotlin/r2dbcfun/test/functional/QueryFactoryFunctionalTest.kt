@@ -3,6 +3,7 @@ package r2dbcfun.test.functional
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
+import r2dbcfun.NotFoundException
 import r2dbcfun.Repository
 import r2dbcfun.forAllDatabases
 import r2dbcfun.query.between
@@ -10,7 +11,8 @@ import r2dbcfun.query.isEqualTo
 import r2dbcfun.query.isNull
 import r2dbcfun.query.like
 import strikt.api.expectThat
-import strikt.assertions.containsExactly
+import strikt.api.expectThrows
+import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
 import java.time.LocalDate
 
@@ -18,36 +20,19 @@ class QueryFactoryFunctionalTest : FunSpec({
     forAllDatabases(this, "QueryFactoryFT") { connection ->
         val repo = Repository.create<User>()
         suspend fun create(instance: User) = repo.create(connection, instance)
+        suspend fun create(vararg instances: User) = instances.map { repo.create(connection, it) }
 
+        val user = User(
+            name = "a user",
+            email = "with email"
+        )
         context("query language") {
             test("has a typesafe query api") {
-                // create 3 users with different birthdays so that only the
-                // middle date
-                // fits the between condition
-                create(
-                    User(
-                        name = "chris",
-                        email = "my email",
-                        birthday = LocalDate.parse("2020-06-18")
-                    )
-                )
-                val userThatWillBeFound =
+                val usersPerMonth = (1 until 12).map {
                     create(
-                        User(
-                            name = "jakob",
-                            email = "different email",
-                            birthday = LocalDate.parse("2020-06-20")
-                        )
+                        user.copy(name = "user with birthday in month $it", birthday = LocalDate.of(2000, it, 1))
                     )
-                create(
-                    User(
-                        name = "chris",
-                        email = "different email",
-                        birthday = LocalDate.parse("2020-06-22")
-                    )
-                )
-                val date1 = LocalDate.parse("2020-06-19")
-                val date2 = LocalDate.parse("2020-06-21")
+                }
                 val findByUserNameLikeAndBirthdayBetween =
                     repo.queryFactory
                         .createQuery(User::name.like(), User::birthday.between())
@@ -56,9 +41,9 @@ class QueryFactoryFunctionalTest : FunSpec({
                     findByUserNameLikeAndBirthdayBetween.with(
                         connection,
                         "%",
-                        Pair(date1, date2)
+                        Pair(LocalDate.of(2000, 4, 2), LocalDate.of(2000, 6, 2))
                     ).find().toCollection(mutableListOf())
-                ).containsExactly(userThatWillBeFound)
+                ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
             }
             test("can query null values") {
                 val coolUser =
@@ -89,6 +74,17 @@ class QueryFactoryFunctionalTest : FunSpec({
                     .isEqualTo(uncoolUser)
                 expectThat(findByCoolness.with(connection, true).find().single())
                     .isEqualTo(coolUser)
+            }
+            test("can delete by query") {
+                val kurt = create(user.copy(name = "kurt"))
+                val freddi = create(user.copy(name = "freddi"))
+                val queryByName = repo.queryFactory.createQuery(User::name.isEqualTo())
+
+                // the delete is async, to wait for it get the single element from the flow
+                expectThat(queryByName.with(connection, "kurt").delete().single()).isEqualTo(1)
+                expectThrows<NotFoundException> { repo.findById(connection, kurt.id!!) }
+                repo.findById(connection, freddi.id!!)
+
             }
         }
 
