@@ -20,7 +20,6 @@ class QueryFactoryFunctionalTest : FunSpec({
     forAllDatabases(this, "QueryFactoryFT") { connection ->
         val repo = Repository.create<User>()
         suspend fun create(instance: User) = repo.create(connection, instance)
-        suspend fun create(vararg instances: User) = instances.map { repo.create(connection, it) }
 
         val user = User(
             name = "a user",

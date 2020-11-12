@@ -105,8 +105,7 @@ public class QueryFactory<T : Any> internal constructor(
         public suspend fun find(): Flow<T> = finder.findBy(connection, selectPrefix + queryString, parameterValues)
         public suspend fun delete(): Flow<Int> {
             val result: Result =
-                Finder.createStatement(parameterValues, connection, deletePrefix + queryString).returnGeneratedValues()
-                    .execute().awaitSingle()
+                Finder.createStatement(parameterValues, connection, deletePrefix + queryString).execute().awaitSingle()
             return result.rowsUpdated.asFlow()
         }
 

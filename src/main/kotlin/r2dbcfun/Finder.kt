@@ -82,7 +82,7 @@ internal class Finder<T : Any>(
                 parameterValues.foldIndexed(connection.createStatement(sql))
                 { idx, statement, property -> statement.bind(idx, property) }
             } catch (e: Exception) {
-                throw RepositoryException("error creating statement", e)
+                throw RepositoryException("error creating statement for sql:$sql", e)
             }
     }
 }
