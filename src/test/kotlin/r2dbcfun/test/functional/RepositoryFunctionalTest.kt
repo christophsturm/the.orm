@@ -27,7 +27,6 @@ class RepositoryFunctionalTest : FunSpec({
     forAllDatabases(this, "RepositoryFT") { connection ->
         context("a repo with a user class") {
             val repo = Repository.create<User>()
-            suspend fun create(instance: User) = repo.create(connection, instance)
             context("Creating Rows") {
                 test("can insert data class and return primary key") {
                     val user =
@@ -40,13 +39,12 @@ class RepositoryFunctionalTest : FunSpec({
                                 birthday = LocalDate.parse("2020-06-20")
                             )
                         )
-                    expectThat(user)
-                        .and {
-                            get { id }.isEqualTo(UserPK(1))
-                            get { name }.isEqualTo("chris")
-                            get { email }.isEqualTo("my email")
-                            get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
-                        }
+                    expectThat(user) {
+                        get { id }.isEqualTo(UserPK(1))
+                        get { name }.isEqualTo("chris")
+                        get { email }.isEqualTo("my email")
+                        get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
+                    }
                 }
                 test("supports nullable values") {
                     val user =
@@ -58,12 +56,11 @@ class RepositoryFunctionalTest : FunSpec({
                                 birthday = LocalDate.parse("2020-06-20")
                             )
                         )
-                    expectThat(user)
-                        .and {
-                            get { id }.isEqualTo(UserPK(1))
-                            get { name }.isEqualTo("chris")
-                            get { email }.isNull()
-                        }
+                    expectThat(user) {
+                        get { id }.isEqualTo(UserPK(1))
+                        get { name }.isEqualTo("chris")
+                        get { email }.isNull()
+                    }
                 }
             }
             context("loading data objects") {
@@ -91,16 +88,15 @@ class RepositoryFunctionalTest : FunSpec({
                             )
                             .id!!
                     val user = repo.findById(connection, id)
-                    expectThat(user)
-                        .and {
-                            get { id }.isEqualTo(id)
-                            get { name }.isEqualTo("chris")
-                            get { email }.isEqualTo("my email")
-                            get { isCool }.isFalse()
-                            get { bio }.isEqualTo(reallyLongString)
-                            get { favoriteColor }.isEqualTo(Color.RED)
-                            get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
-                        }
+                    expectThat(user) {
+                        get { id }.isEqualTo(id)
+                        get { name }.isEqualTo("chris")
+                        get { email }.isEqualTo("my email")
+                        get { isCool }.isFalse()
+                        get { bio }.isEqualTo(reallyLongString)
+                        get { favoriteColor }.isEqualTo(Color.RED)
+                        get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
+                    }
                 }
 
                 test("throws NotFoundException when id does not exist") {
@@ -184,12 +180,11 @@ class RepositoryFunctionalTest : FunSpec({
                         connection,
                         SerializableUser(name = "chris", email = "my email")
                     )
-                expectThat(user)
-                    .and {
-                        get { id }.isEqualTo(SerializableUserPK(1))
-                        get { name }.isEqualTo("chris")
-                        get { email }.isEqualTo("my email")
-                    }
+                expectThat(user) {
+                    get { id }.isEqualTo(SerializableUserPK(1))
+                    get { name }.isEqualTo("chris")
+                    get { email }.isEqualTo("my email")
+                }
             }
         }
 
