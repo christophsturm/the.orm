@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.Finder
+import r2dbcfun.RepositoryException
 import r2dbcfun.util.toIndexedPlaceholders
 import r2dbcfun.util.toSnakeCase
 import java.time.LocalDate
@@ -102,12 +103,29 @@ public class QueryFactory<T : Any> internal constructor(
         private val queryString: String,
         private val parameterValues: Sequence<Any>
     ) {
-        public suspend fun find(): Flow<T> = finder.findBy(connection, selectPrefix + queryString, parameterValues)
-        public suspend fun delete(): Flow<Int> {
-            val result: Result =
-                Finder.createStatement(parameterValues, connection, deletePrefix + queryString).execute().awaitSingle()
-            return result.rowsUpdated.asFlow()
+        private suspend fun createStatement(
+            parameterValues: Sequence<Any>,
+            connection: Connection,
+            sql: String
+        ): Result {
+            val statement = try {
+                parameterValues.foldIndexed(connection.createStatement(sql))
+                { idx, statement, property -> statement.bind(idx, property) }
+            } catch (e: Exception) {
+                throw RepositoryException("error creating statement for sql:$sql", e)
+            }
+            return try {
+                statement.execute().awaitSingle()
+            } catch (e: Exception) {
+                throw RepositoryException("error executing select: $sql", e)
+            }
         }
+
+        public suspend fun find(): Flow<T> =
+            finder.findBy(createStatement(parameterValues, connection, selectPrefix + queryString))
+
+        public suspend fun delete(): Flow<Int> =
+            createStatement(parameterValues, connection, deletePrefix + queryString).rowsUpdated.asFlow()
 
     }
 
