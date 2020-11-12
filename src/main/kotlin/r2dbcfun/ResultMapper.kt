@@ -8,15 +8,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
 import r2dbcfun.internal.IDHandler
 
-internal class Finder<T : Any>(
+internal class ResultMapper<T : Any>(
     private val table: String,
     private val idHandler: IDHandler<T>,
     private val classInfo: ClassInfo<T>
 ) {
 
-    internal suspend fun findBy(
-        queryResult: Result
-    ): Flow<T> {
+    internal suspend fun findBy(queryResult: Result): Flow<T> {
         data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: Any?)
 
         val parameters: Flow<List<ResultPair>> =
@@ -58,8 +56,5 @@ internal class Finder<T : Any>(
             .collect { chunk -> @Suppress("BlockingMethodInNonBlockingContext") sb.append(chunk) }
         result.discard()
         return sb.toString()
-    }
-
-    companion object {
     }
 }

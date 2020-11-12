@@ -5,8 +5,8 @@ import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
-import r2dbcfun.Finder
 import r2dbcfun.RepositoryException
+import r2dbcfun.ResultMapper
 import r2dbcfun.util.toIndexedPlaceholders
 import r2dbcfun.util.toSnakeCase
 import java.time.LocalDate
@@ -29,7 +29,7 @@ public fun <T : Any> KProperty1<T, LocalDate?>.between():
 
 public class QueryFactory<T : Any> internal constructor(
     kClass: KClass<T>,
-    private val finder: Finder<T>
+    private val resultMapper: ResultMapper<T>
 ) {
     public companion object {
         public fun <T : Any, V> isNullCondition(property: KProperty1<T, V>): Condition<Unit> =
@@ -122,7 +122,7 @@ public class QueryFactory<T : Any> internal constructor(
         }
 
         public suspend fun find(): Flow<T> =
-            finder.findBy(createStatement(parameterValues, connection, selectPrefix + queryString))
+            resultMapper.findBy(createStatement(parameterValues, connection, selectPrefix + queryString))
 
         public suspend fun delete(): Flow<Int> =
             createStatement(parameterValues, connection, deletePrefix + queryString).rowsUpdated.asFlow()

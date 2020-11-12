@@ -41,7 +41,7 @@ public class Repository<T : Any>(kClass: KClass<T>) {
     private val classInfo = ClassInfo(kClass)
 
     public val queryFactory: QueryFactory<T> =
-        QueryFactory(kClass, Finder(tableName, idHandler, classInfo))
+        QueryFactory(kClass, ResultMapper(tableName, idHandler, classInfo))
 
     /**
      * creates a new record in the database.
