@@ -1,15 +1,10 @@
 package r2dbcfun.query
 
 import io.kotest.core.spec.style.FunSpec
-import io.mockk.MockKMatcherScope
 import io.mockk.mockk
 import io.r2dbc.spi.Connection
 import r2dbcfun.ResultMapper
 import r2dbcfun.test.TestObjects.Entity
-
-fun <T> MockKMatcherScope.seqEq(seq: Sequence<T>) = match<Sequence<T>> {
-    it.toList() == seq.toList()
-}
 
 class QueryFactoryTest : FunSpec({
     context("typesafe query factory") {
