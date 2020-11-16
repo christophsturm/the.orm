@@ -2,6 +2,7 @@ package r2dbcfun
 
 import io.kotest.core.config.AbstractProjectConfig
 import io.kotest.core.spec.IsolationMode
+import r2dbcfun.test.container
 import reactor.blockhound.BlockHound
 import java.io.File
 import kotlin.time.ExperimentalTime
@@ -18,6 +19,7 @@ object KotestConfig : AbstractProjectConfig() {
         BlockHound.install()
 
         enableTestContainersReuse()
+        container
     }
 
     private fun enableTestContainersReuse() {

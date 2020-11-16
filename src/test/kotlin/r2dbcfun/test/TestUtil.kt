@@ -24,7 +24,7 @@ fun prepareH2(): ConnectionFactory {
 
 val container: PostgreSQLContainer<Nothing> by
     lazy {
-        PostgreSQLContainer<Nothing>("postgres:13.0").apply {
+        PostgreSQLContainer<Nothing>("postgres:13").apply {
             withReuse(true)
             start()
         }
