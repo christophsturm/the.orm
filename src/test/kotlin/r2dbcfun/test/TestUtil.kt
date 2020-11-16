@@ -1,4 +1,4 @@
-package r2dbcfun
+package r2dbcfun.test
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.scopes.FunSpecContextScope
@@ -24,7 +24,7 @@ fun prepareH2(): ConnectionFactory {
 
 val container: PostgreSQLContainer<Nothing> by
     lazy {
-        PostgreSQLContainer<Nothing>("postgres:13.0").apply {
+        PostgreSQLContainer<Nothing>("postgres:13").apply {
             withReuse(true)
             start()
         }

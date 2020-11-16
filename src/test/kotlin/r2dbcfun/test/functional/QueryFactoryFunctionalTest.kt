@@ -5,11 +5,11 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import r2dbcfun.NotFoundException
 import r2dbcfun.Repository
-import r2dbcfun.forAllDatabases
 import r2dbcfun.query.between
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.query.isNull
 import r2dbcfun.query.like
+import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactlyInAnyOrder

@@ -1,7 +1,5 @@
 @file:Suppress("ConstantConditionIf")
 
-import com.adarshr.gradle.testlogger.TestLoggerExtension
-import com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD_PARALLEL
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import com.jfrog.bintray.gradle.BintrayExtension
 import info.solidsoft.gradle.pitest.PitestPluginExtension
@@ -9,23 +7,22 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import r2dbcfun.ProjectConfig
 
 
-val coroutinesVersion = "1.4.0"
+val coroutinesVersion = "1.4.1"
 val kotlinVersion = ProjectConfig.kotlinVersion
 val serializationVersion = "1.0.1"
-val testcontainersVersion = "1.15.0-rc2"
-val log4j2Version = "2.13.3"
+val testcontainersVersion = "1.15.0"
+val log4j2Version = "2.14.0"
 val kotestVersion = "4.3.1"
 
 plugins {
     java
     kotlin("jvm").version(r2dbcfun.ProjectConfig.kotlinVersion)
-    id("com.github.ben-manes.versions") version "0.34.0"
+    id("com.github.ben-manes.versions") version "0.36.0"
     id("info.solidsoft.pitest") version "1.5.2"
-    id("com.adarshr.test-logger") version "2.1.1"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
     kotlin("plugin.serialization").version(r2dbcfun.ProjectConfig.kotlinVersion)
-    id("tech.formatter-kt.formatter") version "0.6.6"
+    id("tech.formatter-kt.formatter") version "0.6.7"
     id("io.kotest") version "0.2.6"
 }
 
@@ -34,7 +31,8 @@ version = "0.2"
 
 repositories {
     if (ProjectConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
-    maven("https://oss.sonatype.org/content/repositories/snapshots/")
+    if (ProjectConfig.useKotestSnapshot)
+        maven("https://oss.sonatype.org/content/repositories/snapshots/")
     jcenter()
     mavenCentral()
 }
@@ -54,7 +52,7 @@ dependencies {
     testRuntimeOnly("org.postgresql:postgresql:42.2.18")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.6.RELEASE")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.flywaydb:flyway-core:7.1.1")
+    testImplementation("org.flywaydb:flyway-core:7.2.0")
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
@@ -64,6 +62,8 @@ dependencies {
     testImplementation("io.kotest:kotest-framework-engine-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-plugins-pitest:$kotestVersion")
     testImplementation("io.mockk:mockk:1.10.2")
+    testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.18")
+    testRuntimeOnly("net.bytebuddy:byte-buddy-agent:1.10.18")
 
     testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
@@ -73,12 +73,13 @@ dependencies {
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
 kotlin { explicitApi() }
+val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal
 tasks {
     withType<KotlinCompile> { kotlinOptions.jvmTarget = "1.8" }
     withType<Test> {
         // for BlockHound https://github.com/reactor/BlockHound/issues/33
         @Suppress("UnstableApiUsage")
-        if (JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal)
+        if (needsRedefinition)
             jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
 //        ignoreFailures = System.getenv("CI") != null
     }
@@ -126,12 +127,18 @@ bintray {
 plugins.withId("info.solidsoft.pitest") {
     configure<PitestPluginExtension> {
         //        verbose.set(true)
-        jvmArgs.set(listOf("-Xmx512m"))
+        if (needsRedefinition) {
+            jvmArgs.set(listOf("-XX:+AllowRedefinitionToAddDeleteMethods", "-Xmx512m"))
+            // need to set it on both. maybe the initial test run is done in the main process
+            mainProcessJvmArgs.set(listOf("-XX:+AllowRedefinitionToAddDeleteMethods"))
+        } else {
+            jvmArgs.set(listOf("-Xmx512m"))
+        }
         //        testPlugin.set("junit5")
         testPlugin.set("Kotest")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
         targetClasses.set(setOf("r2dbcfun.*")) //by default "${project.group}.*"
-        excludedClasses.set(setOf("""r2dbcfun.Finder${'$'}findBy*"""))
+        excludedClasses.set(setOf("""r2dbcfun.ResultMapper${'$'}findBy*"""))
         targetTests.set(setOf("r2dbcfun.*Test", "r2dbcfun.**.*Test"))
         pitestVersion.set("1.5.2")
         threads.set(
@@ -162,8 +169,3 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
     reportfileName = "report"
 }
 tasks.wrapper { distributionType = Wrapper.DistributionType.ALL }
-
-configure<TestLoggerExtension> {
-    theme = STANDARD_PARALLEL
-    showSimpleNames = true
-}

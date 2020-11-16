@@ -7,11 +7,11 @@ import io.r2dbc.spi.Connection
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import r2dbcfun.test.TestObjects.Entity
 
 class ConnectedRepositoryTest :
     FunSpec(
         {
-            data class Entity(val id: Long? = null)
             context("ConnectedRepository") {
                 val connection = mockk<Connection>()
                 test("exposes Repository and Connection") {
