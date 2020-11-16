@@ -7,17 +7,17 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import r2dbcfun.ProjectConfig
 
 
-val coroutinesVersion = "1.4.0"
+val coroutinesVersion = "1.4.1"
 val kotlinVersion = ProjectConfig.kotlinVersion
 val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.0"
-val log4j2Version = "2.13.3"
+val log4j2Version = "2.14.0"
 val kotestVersion = "4.3.1"
 
 plugins {
     java
     kotlin("jvm").version(r2dbcfun.ProjectConfig.kotlinVersion)
-    id("com.github.ben-manes.versions") version "0.34.0"
+    id("com.github.ben-manes.versions") version "0.36.0"
     id("info.solidsoft.pitest") version "1.5.2"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
@@ -52,7 +52,7 @@ dependencies {
     testRuntimeOnly("org.postgresql:postgresql:42.2.18")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.6.RELEASE")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.flywaydb:flyway-core:7.1.1")
+    testImplementation("org.flywaydb:flyway-core:7.2.0")
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
