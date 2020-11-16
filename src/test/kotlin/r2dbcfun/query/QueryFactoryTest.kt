@@ -8,8 +8,8 @@ import r2dbcfun.test.TestObjects.Entity
 
 class QueryFactoryTest : FunSpec({
     context("typesafe query factory") {
-        val finder = mockk<ResultMapper<Entity>>(relaxed = true)
-        val queryFactory = QueryFactory(Entity::class, finder)
+        val resultMapper = mockk<ResultMapper<Entity>>(relaxed = true)
+        val queryFactory = QueryFactory(Entity::class, resultMapper)
         val connection = mockk<Connection>()
         val condition = Entity::id.isEqualTo()
         test("can create query with one parameter") {
