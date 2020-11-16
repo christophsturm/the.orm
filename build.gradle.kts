@@ -1,7 +1,5 @@
 @file:Suppress("ConstantConditionIf")
 
-import com.adarshr.gradle.testlogger.TestLoggerExtension
-import com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD_PARALLEL
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import com.jfrog.bintray.gradle.BintrayExtension
 import info.solidsoft.gradle.pitest.PitestPluginExtension
@@ -12,7 +10,7 @@ import r2dbcfun.ProjectConfig
 val coroutinesVersion = "1.4.0"
 val kotlinVersion = ProjectConfig.kotlinVersion
 val serializationVersion = "1.0.1"
-val testcontainersVersion = "1.15.0-rc2"
+val testcontainersVersion = "1.15.0"
 val log4j2Version = "2.13.3"
 val kotestVersion = "4.3.1"
 
@@ -21,7 +19,6 @@ plugins {
     kotlin("jvm").version(r2dbcfun.ProjectConfig.kotlinVersion)
     id("com.github.ben-manes.versions") version "0.34.0"
     id("info.solidsoft.pitest") version "1.5.2"
-    id("com.adarshr.test-logger") version "2.1.1"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
     kotlin("plugin.serialization").version(r2dbcfun.ProjectConfig.kotlinVersion)
@@ -132,7 +129,7 @@ plugins.withId("info.solidsoft.pitest") {
         testPlugin.set("Kotest")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
         targetClasses.set(setOf("r2dbcfun.*")) //by default "${project.group}.*"
-        excludedClasses.set(setOf("""r2dbcfun.Finder${'$'}findBy*"""))
+        excludedClasses.set(setOf("""r2dbcfun.ResultMapper${'$'}findBy*"""))
         targetTests.set(setOf("r2dbcfun.*Test", "r2dbcfun.**.*Test"))
         pitestVersion.set("1.5.2")
         threads.set(
@@ -163,8 +160,3 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
     reportfileName = "report"
 }
 tasks.wrapper { distributionType = Wrapper.DistributionType.ALL }
-
-configure<TestLoggerExtension> {
-    theme = STANDARD_PARALLEL
-    showSimpleNames = true
-}
