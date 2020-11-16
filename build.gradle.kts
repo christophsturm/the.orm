@@ -62,6 +62,8 @@ dependencies {
     testImplementation("io.kotest:kotest-framework-engine-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-plugins-pitest:$kotestVersion")
     testImplementation("io.mockk:mockk:1.10.2")
+    testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.18")
+    testRuntimeOnly("net.bytebuddy:byte-buddy-agent:1.10.18")
 
     testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
@@ -71,12 +73,13 @@ dependencies {
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
 kotlin { explicitApi() }
+val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal
 tasks {
     withType<KotlinCompile> { kotlinOptions.jvmTarget = "1.8" }
     withType<Test> {
         // for BlockHound https://github.com/reactor/BlockHound/issues/33
         @Suppress("UnstableApiUsage")
-        if (JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal)
+        if (needsRedefinition)
             jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
 //        ignoreFailures = System.getenv("CI") != null
     }
@@ -124,7 +127,13 @@ bintray {
 plugins.withId("info.solidsoft.pitest") {
     configure<PitestPluginExtension> {
         //        verbose.set(true)
-        jvmArgs.set(listOf("-Xmx512m"))
+        if (needsRedefinition) {
+            jvmArgs.set(listOf("-XX:+AllowRedefinitionToAddDeleteMethods", "-Xmx512m"))
+            // need to set it on both. maybe the initial test run is done in the main process
+            mainProcessJvmArgs.set(listOf("-XX:+AllowRedefinitionToAddDeleteMethods"))
+        } else {
+            jvmArgs.set(listOf("-Xmx512m"))
+        }
         //        testPlugin.set("junit5")
         testPlugin.set("Kotest")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
