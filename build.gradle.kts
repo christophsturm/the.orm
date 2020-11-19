@@ -24,7 +24,7 @@ plugins {
     id("com.jfrog.bintray") version "1.8.5"
     @Suppress("RemoveRedundantQualifierName")
     kotlin("plugin.serialization").version(r2dbcfun.ProjectConfig.kotlinVersion)
-    id("tech.formatter-kt.formatter") version "0.6.7"
+    id("tech.formatter-kt.formatter") version "0.6.12"
     id("io.kotest") version "0.2.6"
 }
 
