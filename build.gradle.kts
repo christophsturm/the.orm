@@ -16,11 +16,13 @@ val kotestVersion = "4.3.1"
 
 plugins {
     java
+    @Suppress("RemoveRedundantQualifierName")
     kotlin("jvm").version(r2dbcfun.ProjectConfig.kotlinVersion)
     id("com.github.ben-manes.versions") version "0.36.0"
     id("info.solidsoft.pitest") version "1.5.2"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
+    @Suppress("RemoveRedundantQualifierName")
     kotlin("plugin.serialization").version(r2dbcfun.ProjectConfig.kotlinVersion)
     id("tech.formatter-kt.formatter") version "0.6.7"
     id("io.kotest") version "0.2.6"
@@ -44,6 +46,7 @@ dependencies {
     implementation(kotlin("reflect"))
 
     api("io.r2dbc:r2dbc-spi:0.8.3.RELEASE")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     testImplementation("io.strikt:strikt-core:0.28.0")
 
