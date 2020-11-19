@@ -1,15 +1,15 @@
 package r2dbcfun.test
 
+import io.kotest.core.TestConfiguration
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.scopes.FunSpecContextScope
 import io.kotest.inspectors.forAll
+import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitSingle
 import org.flywaydb.core.Flyway
-import org.reactivestreams.Publisher
 import org.testcontainers.containers.PostgreSQLContainer
-import java.sql.Connection
 import java.sql.DriverManager
 import java.util.*
 
@@ -36,7 +36,7 @@ fun preparePostgreSQL(): ConnectionFactory {
     val databaseName = "r2dbctest$uuid".replace("-", "_")
     val host = container.containerIpAddress
     val port = container.getMappedPort(5432)
-    val db: Connection =
+    val db =
         DriverManager.getConnection("jdbc:postgresql://$host:$port/postgres", "test", "test")
     db.createStatement().executeUpdate("create database $databaseName")
 
@@ -48,34 +48,27 @@ fun preparePostgreSQL(): ConnectionFactory {
     return ConnectionFactories.get("r2dbc:postgresql://test:test@$host:$port/$databaseName")
 }
 
-data class Database(val name: String, val function: () -> ConnectionFactory)
+data class Database(val name: String, val makeConnectionFactory: () -> ConnectionFactory)
 val databases = listOf(Database("h2") { prepareH2() }, Database("psql") { preparePostgreSQL() })
 
 fun forAllDatabases(
     funSpec: FunSpec,
     testName: String,
-    tests: suspend FunSpecContextScope.(io.r2dbc.spi.Connection) -> Unit
+    tests: suspend FunSpecContextScope.(Connection) -> Unit
 ) {
-    databases.forAll {
-        funSpec.context("$testName on ${it.name}") {
-            val connection =
-                this.run {
-                    val connectionClosable =
-                        funSpec.autoClose(
-                            WrapAutoClosable(it.function().create().awaitSingle())
-                            { connection: io.r2dbc.spi.Connection -> connection.close() }
-                        )
-                    connectionClosable.wrapped
-                }
-            this.tests(connection)
+    databases.forAll { db ->
+        funSpec.context("$testName on ${db.name}") {
+            val connection = funSpec.autoClose(db.makeConnectionFactory().create().awaitSingle()) { it.close() }
+            tests(connection)
         }
     }
 }
 
-class WrapAutoClosable<T : Any>(val wrapped: T, val function: (T) -> Publisher<Void>) :
-    AutoCloseable {
-
-    override fun close() {
-        function(wrapped)
-    }
+fun <T : Any> TestConfiguration.autoClose(wrapped: T, function: (T) -> Unit): T {
+    autoClose(object : AutoCloseable {
+        override fun close() {
+            function(wrapped)
+        }
+    })
+    return wrapped
 }
