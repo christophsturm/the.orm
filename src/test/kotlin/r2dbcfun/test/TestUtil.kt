@@ -1,5 +1,6 @@
 package r2dbcfun.test
 
+import io.kotest.core.TestConfiguration
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.scopes.FunSpecContextScope
 import io.kotest.inspectors.forAll
@@ -7,7 +8,6 @@ import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitSingle
 import org.flywaydb.core.Flyway
-import org.reactivestreams.Publisher
 import org.testcontainers.containers.PostgreSQLContainer
 import java.sql.Connection
 import java.sql.DriverManager
@@ -59,23 +59,20 @@ fun forAllDatabases(
     databases.forAll {
         funSpec.context("$testName on ${it.name}") {
             val connection =
-                this.run {
-                    val connectionClosable =
-                        funSpec.autoClose(
-                            WrapAutoClosable(it.function().create().awaitSingle())
-                            { connection: io.r2dbc.spi.Connection -> connection.close() }
-                        )
-                    connectionClosable.wrapped
-                }
+                funSpec.autoClose(
+                    it.function().create().awaitSingle()
+                )
+                { connection: io.r2dbc.spi.Connection -> connection.close() }
             this.tests(connection)
         }
     }
 }
 
-class WrapAutoClosable<T : Any>(val wrapped: T, val function: (T) -> Publisher<Void>) :
-    AutoCloseable {
-
-    override fun close() {
-        function(wrapped)
-    }
+fun <T : Any> TestConfiguration.autoClose(wrapped: T, function: (T) -> Unit): T {
+    autoClose(object : AutoCloseable {
+        override fun close() {
+            function(wrapped)
+        }
+    })
+    return wrapped
 }
