@@ -79,8 +79,7 @@ class QueryFactoryFunctionalTest : FunSpec({
                 val freddi = create(user.copy(name = "freddi"))
                 val queryByName = repo.queryFactory.createQuery(User::name.isEqualTo())
 
-                // the delete is async, to wait for it get the single element from the flow
-                expectThat(queryByName.with(connection, "kurt").delete().single()).isEqualTo(1)
+                expectThat(queryByName.with(connection, "kurt").delete()).isEqualTo(1)
                 expectThrows<NotFoundException> { repo.findById(connection, kurt.id!!) }
                 repo.findById(connection, freddi.id!!)
 

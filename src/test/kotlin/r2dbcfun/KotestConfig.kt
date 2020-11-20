@@ -11,10 +11,10 @@ import kotlin.time.seconds
 @ExperimentalTime
 @Suppress("unused")
 object KotestConfig : AbstractProjectConfig() {
-    override val parallelism = Runtime.getRuntime().availableProcessors()
+//    override val parallelism = Runtime.getRuntime().availableProcessors()
     override val isolationMode = IsolationMode.InstancePerTest
 
-    override val timeout = 10.seconds
+    override val timeout = if (TestConfig.PITEST) 100.seconds else if (TestConfig.CI) 20.seconds else 5.seconds
     override fun beforeAll() {
         BlockHound.install()
 
