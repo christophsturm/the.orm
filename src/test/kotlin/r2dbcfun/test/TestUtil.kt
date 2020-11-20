@@ -4,10 +4,8 @@ import io.kotest.core.TestConfiguration
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.scopes.FunSpecContextScope
 import io.kotest.inspectors.forAll
-import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
-import kotlinx.coroutines.reactive.awaitSingle
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import java.sql.DriverManager
@@ -54,12 +52,12 @@ val databases = listOf(Database("h2") { prepareH2() }, Database("psql") { prepar
 fun forAllDatabases(
     funSpec: FunSpec,
     testName: String,
-    tests: suspend FunSpecContextScope.(Connection) -> Unit
+    tests: suspend FunSpecContextScope.(ConnectionFactory) -> Unit
 ) {
     databases.forAll { db ->
         funSpec.context("$testName on ${db.name}") {
-            val connection = funSpec.autoClose(db.makeConnectionFactory().create().awaitSingle()) { it.close() }
-            tests(connection)
+            val connectionFactory = db.makeConnectionFactory()
+            tests(connectionFactory)
         }
     }
 }

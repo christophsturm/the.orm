@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import r2dbcfun.NotFoundException
 import r2dbcfun.PK
 import r2dbcfun.Repository
+import r2dbcfun.test.autoClose
 import r2dbcfun.test.forAllDatabases
 import r2dbcfun.util.toSnakeCase
 import strikt.api.expectCatching
@@ -24,7 +25,9 @@ private val reallyLongString = (1..20000).map { characters.random() }.joinToStri
 
 
 class RepositoryFunctionalTest : FunSpec({
-    forAllDatabases(this, "RepositoryFT") { connection ->
+    forAllDatabases(this, "RepositoryFT") { connectionFactory ->
+        val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
+
         context("a repo with a user class") {
             val repo = Repository.create<User>()
             context("Creating Rows") {

@@ -3,12 +3,14 @@ package r2dbcfun.test.functional
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
+import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.NotFoundException
 import r2dbcfun.Repository
 import r2dbcfun.query.between
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.query.isNull
 import r2dbcfun.query.like
+import r2dbcfun.test.autoClose
 import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -17,7 +19,9 @@ import strikt.assertions.isEqualTo
 import java.time.LocalDate
 
 class QueryFactoryFunctionalTest : FunSpec({
-    forAllDatabases(this, "QueryFactoryFT") { connection ->
+    forAllDatabases(this, "QueryFactoryFT") { connectionFactory ->
+        val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
+
         val repo = Repository.create<User>()
         suspend fun create(instance: User) = repo.create(connection, instance)
 
