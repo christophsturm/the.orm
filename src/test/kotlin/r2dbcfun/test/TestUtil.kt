@@ -64,10 +64,10 @@ fun forAllDatabases(
     }
 }
 
-fun <T : Any> TestConfiguration.autoClose(wrapped: T, function: (T) -> Unit): T {
+fun <T : Any> TestConfiguration.autoClose(wrapped: T, closeFunction: (T) -> Unit): T {
     autoClose(object : AutoCloseable {
         override fun close() {
-            function(wrapped)
+            closeFunction(wrapped)
         }
     })
     return wrapped
