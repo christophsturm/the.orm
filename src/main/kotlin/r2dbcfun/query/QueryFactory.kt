@@ -3,7 +3,6 @@ package r2dbcfun.query
 import io.r2dbc.spi.Connection
 import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.RepositoryException
 import r2dbcfun.ResultMapper
@@ -139,8 +138,8 @@ public class QueryFactory<T : Any> internal constructor(
         public suspend fun find(): Flow<T> =
             resultMapper.findBy(createStatement(parameterValues, connection, selectPrefix + queryString))
 
-        public suspend fun delete(): Flow<Int> =
-            createStatement(parameterValues, connection, deletePrefix + queryString).rowsUpdated.asFlow()
+        public suspend fun delete(): Int =
+            createStatement(parameterValues, connection, deletePrefix + queryString).rowsUpdated.awaitSingle()
 
     }
 
