@@ -6,7 +6,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.test.autoClose
 import r2dbcfun.test.forAllDatabases
@@ -41,7 +40,6 @@ class R2dbcTest : FunSpec({
             expectThat(firstId).isEqualTo(1)
             expectThat(secondId).isEqualTo(2)
             expectThat(names).containsExactly("belle", "sebastian")
-            connection.close().awaitFirstOrNull()
         }
 
     }
