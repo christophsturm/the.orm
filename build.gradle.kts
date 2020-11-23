@@ -4,11 +4,11 @@ import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import com.jfrog.bintray.gradle.BintrayExtension
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import r2dbcfun.ProjectConfig
+import r2dbcfun.BuildConfig
 
 
 val coroutinesVersion = "1.4.1"
-val kotlinVersion = ProjectConfig.kotlinVersion
+val kotlinVersion = BuildConfig.kotlinVersion
 val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.0"
 val log4j2Version = "2.14.0"
@@ -17,13 +17,13 @@ val kotestVersion = "4.3.1"
 plugins {
     java
     @Suppress("RemoveRedundantQualifierName")
-    kotlin("jvm").version(r2dbcfun.ProjectConfig.kotlinVersion)
+    kotlin("jvm").version(r2dbcfun.BuildConfig.kotlinVersion)
     id("com.github.ben-manes.versions") version "0.36.0"
     id("info.solidsoft.pitest") version "1.5.2"
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.5"
     @Suppress("RemoveRedundantQualifierName")
-    kotlin("plugin.serialization").version(r2dbcfun.ProjectConfig.kotlinVersion)
+    kotlin("plugin.serialization").version(r2dbcfun.BuildConfig.kotlinVersion)
     id("tech.formatter-kt.formatter") version "0.6.12"
     id("io.kotest") version "0.2.6"
 }
@@ -32,8 +32,8 @@ group = "r2dbcfun"
 version = "0.2"
 
 repositories {
-    if (ProjectConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
-    if (ProjectConfig.useKotestSnapshot)
+    if (BuildConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
+    if (BuildConfig.useKotestSnapshot)
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
     jcenter()
     mavenCentral()
@@ -157,7 +157,7 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
     val filtered =
         listOf("alpha", "beta", "rc", "cr", "m", "preview", "dev", "eap")
             .map { qualifier -> Regex("(?i).*[.-]$qualifier[.\\d-]*.*") }
-    if (!ProjectConfig.eap)
+    if (!BuildConfig.eap)
         resolutionStrategy {
             componentSelection {
                 all {

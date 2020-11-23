@@ -11,7 +11,7 @@ import r2dbcfun.test.forAllDatabases
 import r2dbcfun.transaction.transaction
 
 /**
- * place to add code examples for maybe interesting usecases.
+ * place to add code examples for maybe interesting use-cases.
  * they run as part of the test suite to make sure they work.
  *
  */
