@@ -2,6 +2,7 @@ package r2dbcfun.transaction
 
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.r2dbc.spi.Connection
@@ -18,9 +19,12 @@ class TransactionTest : FunSpec({
         test("calls block") {
             var called = false
             connection.transaction {
+                coVerify { connection.beginTransaction().awaitFirstOrNull() }
                 called = true
             }
             expectThat(called).isTrue()
+            coVerify { connection.commitTransaction().awaitFirstOrNull() }
+
         }
     }
 })
