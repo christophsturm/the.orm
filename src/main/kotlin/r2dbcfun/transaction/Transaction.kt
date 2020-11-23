@@ -5,6 +5,11 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 
 public suspend fun Connection.transaction(function: suspend () -> Unit) {
     this.beginTransaction().awaitFirstOrNull() // also disables auto-commit
-    function()
+    try {
+        function()
+    } catch (e: Exception) {
+        this.rollbackTransaction().awaitFirstOrNull()
+        throw e
+    }
     this.commitTransaction().awaitFirstOrNull()
 }
