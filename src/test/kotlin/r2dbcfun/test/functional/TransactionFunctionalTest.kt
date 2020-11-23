@@ -7,6 +7,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.Repository
 import r2dbcfun.query.like
+import r2dbcfun.test.autoClose
 import r2dbcfun.test.forAllDatabases
 import r2dbcfun.transaction.transaction
 import strikt.api.expectThat
@@ -14,7 +15,7 @@ import strikt.assertions.isEqualTo
 
 class TransactionFunctionalTest : FunSpec({
     forAllDatabases(this, "transactions") { connectionFactory ->
-        val connection = connectionFactory.create().awaitSingle()!!
+        val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
         val user = User(
             name = "a user",
             email = "with email"
@@ -22,7 +23,7 @@ class TransactionFunctionalTest : FunSpec({
         val repo = Repository.create<User>()
 
         test("transaction isolation") {
-            val newConnection = connectionFactory.create().awaitSingle()!!
+            val newConnection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
             val isolationLevel = IsolationLevel.READ_COMMITTED
             newConnection.setTransactionIsolationLevel(isolationLevel).awaitFirstOrNull()
             val userNameLike = repo.queryFactory.createQuery(User::name.like())

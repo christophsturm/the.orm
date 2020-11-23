@@ -11,6 +11,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import java.sql.DriverManager
 import java.util.*
 
+
 fun prepareH2(): ConnectionFactory {
     val uuid = UUID.randomUUID()
     val databaseName = "r2dbc-test$uuid"
@@ -23,6 +24,7 @@ fun prepareH2(): ConnectionFactory {
 val container: PostgreSQLContainer<Nothing> by
     lazy {
         PostgreSQLContainer<Nothing>("postgres:13").apply {
+// WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
             withReuse(true)
             start()
         }
@@ -37,13 +39,14 @@ fun preparePostgreSQL(): ConnectionFactory {
     val db =
         DriverManager.getConnection("jdbc:postgresql://$host:$port/postgres", "test", "test")
     db.createStatement().executeUpdate("create database $databaseName")
+    db.close()
 
     val flyway =
         Flyway.configure()
             .dataSource("jdbc:postgresql://$host:$port/$databaseName", "test", "test")
             .load()
     flyway.migrate()
-    return ConnectionFactories.get("r2dbc:postgresql://test:test@$host:$port/$databaseName")
+    return ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
 }
 
 data class Database(val name: String, val makeConnectionFactory: () -> ConnectionFactory)

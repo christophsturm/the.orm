@@ -10,6 +10,11 @@ import r2dbcfun.Repository
 import r2dbcfun.test.forAllDatabases
 import r2dbcfun.transaction.transaction
 
+/**
+ * place to add code examples for maybe interesting usecases.
+ * they run as part of the test suite to make sure they work.
+ *
+ */
 class ExamplesTest : FunSpec({
     forAllDatabases(this, "examples") { connectionFactory ->
         val connection = connectionFactory.create().awaitSingle()!!
@@ -19,7 +24,7 @@ class ExamplesTest : FunSpec({
         )
         val repo = Repository.create<User>()
 
-        test("bulk inserts") {
+        test("throttled bulk inserts") {
             val channel = Channel<Deferred<User>>(capacity = 40)
             val entries = 1000
             launch {
