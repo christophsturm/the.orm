@@ -18,5 +18,6 @@ data class User(
     val isCool: Boolean? = false,
     val bio: String? = null,
     val favoriteColor: Color? = null,
-    val birthday: LocalDate? = null
+    val birthday: LocalDate? = null,
+    val weight: Double = 3.14
 )

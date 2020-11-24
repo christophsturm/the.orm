@@ -23,18 +23,23 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
                 Byte::class.java,
                 Short::class.java,
                 Long::class.java,
+                Double::class.java,
                 LocalDate::class.java
             )
 
         private fun makeConverter(parameter: KParameter): FieldConverter {
             val clazz = parameter.type.javaType as Class<*>
-            return if (clazz.isEnum) EnumConverter(clazz) else {
-                val isPK = parameter.name != "id"
-                if (isPK // Primary key can be a pk class which is currently not handled here
-                    && !supportedJavaTypes.contains(clazz)
-                )
-                    throw RepositoryException("type ${clazz.simpleName} not supported")
-                PassthroughFieldConverter()
+            return when {
+                clazz.isEnum -> EnumConverter(clazz)
+                clazz == Double::class.java -> NumberToDoubleConverter()
+                else -> {
+                    val isPK = parameter.name != "id"
+                    if (isPK // Primary key can be a pk class which is currently not handled here
+                        && !supportedJavaTypes.contains(clazz)
+                    )
+                        throw RepositoryException("type ${clazz.simpleName} not supported")
+                    PassthroughFieldConverter()
+                }
             }
         }
     }
@@ -45,7 +50,7 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
         val fieldConverter: FieldConverter
     ) {
         constructor(parameter: KParameter) :
-            this(parameter, parameter.name!!.toSnakeCase(), makeConverter(parameter))
+                this(parameter, parameter.name!!.toSnakeCase(), makeConverter(parameter))
     }
 
     val constructor: KFunction<T> =
@@ -53,6 +58,10 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
             ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
     val fieldInfo = constructor.parameters.map { FieldInfo(it) }
+}
+
+private class NumberToDoubleConverter : FieldConverter {
+    override fun valueToConstructorParameter(value: Any?) = (value as Number?)?.toDouble()
 }
 
 /** converts strings from the database to enums in the mapped class */

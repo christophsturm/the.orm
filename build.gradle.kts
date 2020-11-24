@@ -6,6 +6,8 @@ import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import r2dbcfun.BuildConfig
 
+group = "r2dbcfun"
+version = "0.2.1"
 
 val coroutinesVersion = "1.4.1"
 val kotlinVersion = BuildConfig.kotlinVersion
@@ -28,8 +30,6 @@ plugins {
     id("io.kotest") version "0.2.6"
 }
 
-group = "r2dbcfun"
-version = "0.2"
 
 repositories {
     if (BuildConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }

@@ -7,7 +7,9 @@ create table users
     is_cool        boolean,
     bio            text,
     favorite_color varchar(10),
-    birthday       date
+    birthday       date,
+    weight         decimal(5, 2)
+
 );
 
 alter table users
