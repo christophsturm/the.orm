@@ -31,14 +31,14 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
             val clazz = parameter.type.javaType as Class<*>
             return when {
                 clazz.isEnum -> EnumConverter(clazz)
-                clazz == Double::class.java -> NumberToDoubleConverter()
+                clazz == Double::class.java -> FieldConverter { (it as Number?)?.toDouble() }
                 else -> {
                     val isPK = parameter.name != "id"
                     if (isPK // Primary key can be a pk class which is currently not handled here
                         && !supportedJavaTypes.contains(clazz)
                     )
                         throw RepositoryException("type ${clazz.simpleName} not supported")
-                    PassthroughFieldConverter()
+                    FieldConverter { it }
                 }
             }
         }
@@ -60,12 +60,9 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
     val fieldInfo = constructor.parameters.map { FieldInfo(it) }
 }
 
-private class NumberToDoubleConverter : FieldConverter {
-    override fun valueToConstructorParameter(value: Any?) = (value as Number?)?.toDouble()
-}
 
 /** converts strings from the database to enums in the mapped class */
-internal class EnumConverter(private val clazz: Class<*>) : FieldConverter {
+private class EnumConverter(private val clazz: Class<*>) : FieldConverter {
     override fun valueToConstructorParameter(value: Any?): Any? {
         if (value == null) return null
 
@@ -74,11 +71,6 @@ internal class EnumConverter(private val clazz: Class<*>) : FieldConverter {
     }
 }
 
-/** converter for fields that need no conversion */
-internal class PassthroughFieldConverter : FieldConverter {
-    override fun valueToConstructorParameter(value: Any?): Any? = value
-}
-
-internal interface FieldConverter {
+internal fun interface FieldConverter {
     fun valueToConstructorParameter(value: Any?): Any?
 }
