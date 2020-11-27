@@ -8,7 +8,8 @@ create table users
     bio            text,
     favorite_color varchar(10),
     birthday       date,
-    weight         decimal(5, 2)
+    weight         decimal(5, 2),
+    balance        decimal(5, 2)
 
 );
 

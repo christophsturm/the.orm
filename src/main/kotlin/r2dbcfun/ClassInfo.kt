@@ -1,6 +1,7 @@
 package r2dbcfun
 
 import r2dbcfun.util.toSnakeCase
+import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -24,6 +25,7 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
                 Short::class.java,
                 Long::class.java,
                 Double::class.java,
+                BigDecimal::class.java,
                 LocalDate::class.java
             )
 
