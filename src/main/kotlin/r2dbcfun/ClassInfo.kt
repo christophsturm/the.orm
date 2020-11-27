@@ -25,6 +25,7 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
                 Short::class.java,
                 Long::class.java,
                 Double::class.java,
+                java.lang.Double::class.java, // nullable double
                 BigDecimal::class.java,
                 LocalDate::class.java
             )
@@ -33,7 +34,7 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
             val clazz = parameter.type.javaType as Class<*>
             return when {
                 clazz.isEnum -> EnumConverter(clazz)
-                clazz == Double::class.java -> FieldConverter { (it as Number?)?.toDouble() }
+                clazz == Double::class.java || clazz == java.lang.Double::class.java -> FieldConverter { (it as Number?)?.toDouble() }
                 else -> {
                     val isPK = parameter.name != "id"
                     if (isPK // Primary key can be a pk class which is currently not handled here

@@ -18,6 +18,7 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.message
+import java.math.BigDecimal
 import java.time.LocalDate
 
 private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
@@ -38,8 +39,11 @@ class RepositoryFunctionalTest : FunSpec({
                             User(
                                 name = "chris",
                                 email = "my email",
-                                bio = reallyLongString,
-                                birthday = LocalDate.parse("2020-06-20")
+                                bio = "bio",
+                                birthday = LocalDate.parse("2020-06-20"),
+                                weight = 3.14,
+                                balance = BigDecimal("3.14")
+
                             )
                         )
                     expectThat(user) {
@@ -47,6 +51,8 @@ class RepositoryFunctionalTest : FunSpec({
                         get { name }.isEqualTo("chris")
                         get { email }.isEqualTo("my email")
                         get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
+                        get { balance }.isEqualTo(BigDecimal("3.14"))
+                        get { weight }.isEqualTo(3.14)
                     }
                 }
                 test("supports nullable values") {
@@ -86,7 +92,9 @@ class RepositoryFunctionalTest : FunSpec({
                                     isCool = false,
                                     bio = reallyLongString,
                                     favoriteColor = Color.RED,
-                                    birthday = LocalDate.parse("2020-06-20")
+                                    birthday = LocalDate.parse("2020-06-20"),
+                                    weight = 3.14,
+                                    balance = BigDecimal("3.14")
                                 )
                             )
                             .id!!
@@ -99,6 +107,8 @@ class RepositoryFunctionalTest : FunSpec({
                         get { bio }.isEqualTo(reallyLongString)
                         get { favoriteColor }.isEqualTo(Color.RED)
                         get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
+                        get { balance }.isEqualTo(BigDecimal("3.14"))
+                        get { weight }.isEqualTo(3.14)
                     }
                 }
 
@@ -116,7 +126,7 @@ class RepositoryFunctionalTest : FunSpec({
                         User(
                             name = "chris",
                             email = "my email",
-                            bio = reallyLongString,
+                            bio = "bio",
                             birthday = LocalDate.parse("2020-06-20")
                         )
                     val id = repo.create(connection, originalUser).id!!
@@ -142,7 +152,7 @@ class RepositoryFunctionalTest : FunSpec({
                                     name = "chris",
                                     email = "my email",
                                     isCool = false,
-                                    bio = reallyLongString,
+                                    bio = "bio",
                                     favoriteColor = Color.RED,
                                     birthday = LocalDate.parse("2020-06-20")
                                 )

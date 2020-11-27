@@ -20,6 +20,6 @@ data class User(
     val bio: String? = null,
     val favoriteColor: Color? = null,
     val birthday: LocalDate? = null,
-    val weight: Double = 3.14,
-    val balance: BigDecimal = BigDecimal("3.14")
+    val weight: Double? = null,
+    val balance: BigDecimal? = null
 )
