@@ -6,8 +6,10 @@ import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import r2dbcfun.BuildConfig
 
+group = "r2dbcfun"
+version = "0.2.1"
 
-val coroutinesVersion = "1.4.1"
+val coroutinesVersion = "1.4.2"
 val kotlinVersion = BuildConfig.kotlinVersion
 val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.0"
@@ -24,12 +26,10 @@ plugins {
     id("com.jfrog.bintray") version "1.8.5"
     @Suppress("RemoveRedundantQualifierName")
     kotlin("plugin.serialization").version(r2dbcfun.BuildConfig.kotlinVersion)
-    id("tech.formatter-kt.formatter") version "0.6.12"
+    id("tech.formatter-kt.formatter") version "0.6.13"
     id("io.kotest") version "0.2.6"
 }
 
-group = "r2dbcfun"
-version = "0.2"
 
 repositories {
     if (BuildConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
@@ -58,7 +58,7 @@ dependencies {
 //    testRuntimeOnly("io.projectreactor.netty:reactor-netty:0.9.14.RELEASE") // bump postgresql dependency
 
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.flywaydb:flyway-core:7.2.1")
+    testImplementation("org.flywaydb:flyway-core:7.3.0")
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")

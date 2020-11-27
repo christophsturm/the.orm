@@ -1,6 +1,7 @@
 package r2dbcfun
 
 import r2dbcfun.util.toSnakeCase
+import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -23,18 +24,25 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
                 Byte::class.java,
                 Short::class.java,
                 Long::class.java,
+                Double::class.java,
+                java.lang.Double::class.java, // nullable double
+                BigDecimal::class.java,
                 LocalDate::class.java
             )
 
         private fun makeConverter(parameter: KParameter): FieldConverter {
             val clazz = parameter.type.javaType as Class<*>
-            return if (clazz.isEnum) EnumConverter(clazz) else {
-                val isPK = parameter.name != "id"
-                if (isPK // Primary key can be a pk class which is currently not handled here
-                    && !supportedJavaTypes.contains(clazz)
-                )
-                    throw RepositoryException("type ${clazz.simpleName} not supported")
-                PassthroughFieldConverter()
+            return when {
+                clazz.isEnum -> EnumConverter(clazz)
+                clazz == Double::class.java || clazz == java.lang.Double::class.java -> FieldConverter { (it as Number?)?.toDouble() }
+                else -> {
+                    val isPK = parameter.name != "id"
+                    if (isPK // Primary key can be a pk class which is currently not handled here
+                        && !supportedJavaTypes.contains(clazz)
+                    )
+                        throw RepositoryException("type ${clazz.simpleName} not supported")
+                    FieldConverter { it }
+                }
             }
         }
     }
@@ -45,7 +53,7 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
         val fieldConverter: FieldConverter
     ) {
         constructor(parameter: KParameter) :
-            this(parameter, parameter.name!!.toSnakeCase(), makeConverter(parameter))
+                this(parameter, parameter.name!!.toSnakeCase(), makeConverter(parameter))
     }
 
     val constructor: KFunction<T> =
@@ -55,8 +63,9 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
     val fieldInfo = constructor.parameters.map { FieldInfo(it) }
 }
 
+
 /** converts strings from the database to enums in the mapped class */
-internal class EnumConverter(private val clazz: Class<*>) : FieldConverter {
+private class EnumConverter(private val clazz: Class<*>) : FieldConverter {
     override fun valueToConstructorParameter(value: Any?): Any? {
         if (value == null) return null
 
@@ -65,11 +74,6 @@ internal class EnumConverter(private val clazz: Class<*>) : FieldConverter {
     }
 }
 
-/** converter for fields that need no conversion */
-internal class PassthroughFieldConverter : FieldConverter {
-    override fun valueToConstructorParameter(value: Any?): Any? = value
-}
-
-internal interface FieldConverter {
+internal fun interface FieldConverter {
     fun valueToConstructorParameter(value: Any?): Any?
 }

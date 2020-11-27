@@ -1,6 +1,7 @@
 package r2dbcfun.test.functional
 
 import r2dbcfun.PK
+import java.math.BigDecimal
 import java.time.LocalDate
 
 data class UserPK(override val id: Long) : PK
@@ -18,5 +19,7 @@ data class User(
     val isCool: Boolean? = false,
     val bio: String? = null,
     val favoriteColor: Color? = null,
-    val birthday: LocalDate? = null
+    val birthday: LocalDate? = null,
+    val weight: Double? = null,
+    val balance: BigDecimal? = null
 )

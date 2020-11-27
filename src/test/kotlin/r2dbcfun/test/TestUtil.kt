@@ -8,6 +8,7 @@ import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
+import r2dbcfun.TestConfig
 import java.sql.DriverManager
 import java.util.*
 
@@ -50,7 +51,11 @@ fun preparePostgreSQL(): ConnectionFactory {
 }
 
 data class Database(val name: String, val makeConnectionFactory: () -> ConnectionFactory)
-val databases = listOf(Database("h2") { prepareH2() }, Database("psql") { preparePostgreSQL() })
+
+val h2 = Database("h2") { prepareH2() }
+val databases = if (TestConfig.H2_ONLY) {
+    listOf(h2)
+} else listOf(h2, Database("psql") { preparePostgreSQL() })
 
 fun forAllDatabases(
     funSpec: FunSpec,
