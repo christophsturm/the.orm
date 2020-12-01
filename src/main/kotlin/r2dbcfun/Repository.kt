@@ -2,6 +2,7 @@ package r2dbcfun
 
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.flow.single
+import r2dbcfun.internal.ExceptionInspector
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.query.QueryFactory
 import r2dbcfun.query.QueryFactory.Companion.isEqualToCondition
@@ -30,11 +31,13 @@ public class Repository<T : Any>(kClass: KClass<T>) {
     private val idProperty =
         (properties["id"]
             ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")) as
-            KProperty1<T, Any>
+                KProperty1<T, Any>
 
     private val idHandler = IDHandler(kClass)
 
-    private val inserter = Inserter(tableName, propertyReaders, idHandler)
+    private val exceptionInspector = ExceptionInspector(tableName, kClass)
+
+    private val inserter = Inserter(tableName, propertyReaders, idHandler, exceptionInspector)
 
     private val updater = Updater(tableName, propertyReaders, idHandler, idProperty)
 

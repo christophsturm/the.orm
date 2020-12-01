@@ -3,7 +3,6 @@ package r2dbcfun.test.functional
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.Serializable
-import r2dbcfun.DataIntegrityViolationException
 import r2dbcfun.NotFoundException
 import r2dbcfun.PK
 import r2dbcfun.Repository
@@ -12,7 +11,6 @@ import r2dbcfun.test.forAllDatabases
 import r2dbcfun.util.toSnakeCase
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.api.expectThrows
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
@@ -72,23 +70,6 @@ class RepositoryFunctionalTest : FunSpec({
                         get { name }.isEqualTo("chris")
                         get { email }.isNull()
                     }
-                }
-                test("throws exception on constraint violation") {
-                    val user = User(
-                        name = "chris",
-                        email = "email",
-                        birthday = LocalDate.parse("2020-06-20")
-                    )
-                    repo.create(connection, user)
-
-                    expectThrows<DataIntegrityViolationException> {
-                        repo.create(connection, user)
-                    }.and {
-                        get { sqlState }.isNotNull()  // just asserting on those to see if they are always set
-                        get { errorCode }.isNotNull()
-
-                    }
-
                 }
             }
             context("loading data objects") {
