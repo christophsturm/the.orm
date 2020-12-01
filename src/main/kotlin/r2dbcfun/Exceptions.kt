@@ -5,8 +5,7 @@ import kotlin.reflect.KProperty1
 public open class RepositoryException(
     message: String,
     cause: Throwable? = null,
-) : RuntimeException(message, cause) {
-}
+) : RuntimeException(message, cause)
 
 public class NotFoundException(message: String) : RepositoryException(message)
 public class UniqueConstraintViolatedException(
@@ -20,6 +19,4 @@ public open class DataIntegrityViolationException(
     cause: Throwable?,
     public val fieldName: KProperty1<*, *>?
 ) :
-    RepositoryException(message, cause) {
-
-}
+    RepositoryException(message, cause)

@@ -10,7 +10,7 @@ internal class Inserter<T : Any>(
     table: String,
     private val insertProperties: List<PropertyReader<T>>,
     private val idHandler: IDHandler<T>,
-    val exceptionInspector: ExceptionInspector<T>
+    private val exceptionInspector: ExceptionInspector<T>
 ) {
     private val insertStatementString =
         run {
