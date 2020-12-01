@@ -6,11 +6,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
-import r2dbcfun.internal.IDHandler
 
 internal class ResultMapper<T : Any>(
     private val table: String,
-    private val idHandler: IDHandler<T>,
     private val classInfo: ClassInfo<T>
 ) {
 
@@ -31,11 +29,7 @@ internal class ResultMapper<T : Any>(
                         is Clob -> resolveClob(result)
                         else -> result
                     }
-                    val value =
-                        if (fieldInfo.snakeCaseName == "id")
-                            idHandler.createId(resolvedValue as Long) else {
-                                fieldInfo.fieldConverter.valueToConstructorParameter(resolvedValue)
-                            }
+                    val value = fieldInfo.fieldConverter.valueToConstructorParameter(resolvedValue)
                     Pair(fieldInfo.constructorParameter, value)
                 }
             try {

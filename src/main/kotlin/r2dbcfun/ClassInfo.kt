@@ -1,5 +1,6 @@
 package r2dbcfun
 
+import r2dbcfun.internal.IDHandler
 import r2dbcfun.util.toSnakeCase
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -27,38 +28,41 @@ private val fieldConverters =
         LocalDate::class to passThroughFieldConverter
     )
 
-private fun makeConverter(parameter: KParameter): FieldConverter {
-    val type = parameter.type
-    val javaClass = type.javaType as Class<*>
-    val kotlinClass = type.classifier as KClass<*>
-    return when {
-        javaClass.isEnum -> EnumConverter(javaClass)
-        else -> {
-            val isPK = parameter.name == "id"
-            if (isPK) passThroughFieldConverter
-            else
-                fieldConverters[kotlinClass]
-                    ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
 
-        }
-    }
-}
-
-internal class ClassInfo<T : Any>(kClass: KClass<T>) {
+internal class ClassInfo<T : Any>(kClass: KClass<T>, private val idHandler: IDHandler<T>) {
     val constructor: KFunction<T> =
         kClass.primaryConstructor
             ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
-    val fieldInfo = constructor.parameters.map { FieldInfo(it) }
+    val fieldInfo = constructor.parameters.map { parameter ->
+        FieldInfo(
+            parameter,
+            parameter.name!!.toSnakeCase(),
+            makeConverter(parameter)
+        )
+    }
+
+    private fun makeConverter(parameter: KParameter): FieldConverter {
+        val type = parameter.type
+        val javaClass = type.javaType as Class<*>
+        val kotlinClass = type.classifier as KClass<*>
+        return when {
+            javaClass.isEnum -> EnumConverter(javaClass)
+            else -> {
+                val isPK = parameter.name == "id"
+                if (isPK) FieldConverter { idHandler.createId(it as Long) }
+                else
+                    fieldConverters[kotlinClass]
+                        ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
+            }
+        }
+    }
 
     data class FieldInfo(
         val constructorParameter: KParameter,
         val snakeCaseName: String,
         val fieldConverter: FieldConverter
-    ) {
-        constructor(parameter: KParameter) :
-                this(parameter, parameter.name!!.toSnakeCase(), makeConverter(parameter))
-    }
+    )
 }
 
 
