@@ -9,43 +9,47 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaType
 
-internal class ClassInfo<T : Any>(kClass: KClass<T>) {
-    companion object {
-        // from the r2dbc spec: https://r2dbc.io/spec/0.8.1.RELEASE/spec/html/#datatypes
-        private val supportedJavaTypes =
-            setOf<Class<*>>(
-                String::class.java,
-                io.r2dbc.spi.Clob::class.java,
-                Boolean::class.java,
-                java.lang.Boolean::class.java, // for nullable booleans
-                java.nio.ByteBuffer::class.java,
-                io.r2dbc.spi.Blob::class.java,
-                Int::class.java,
-                Byte::class.java,
-                Short::class.java,
-                Long::class.java,
-                Double::class.java,
-                java.lang.Double::class.java, // nullable double
-                BigDecimal::class.java,
-                LocalDate::class.java
-            )
+// from the r2dbc spec: https://r2dbc.io/spec/0.8.1.RELEASE/spec/html/#datatypes
+private val supportedTypes =
+    setOf<KClass<*>>(
+        String::class,
+        io.r2dbc.spi.Clob::class,
+        Boolean::class,
+        java.nio.ByteBuffer::class,
+        io.r2dbc.spi.Blob::class,
+        Int::class,
+        Byte::class,
+        Short::class,
+        Long::class,
+        Double::class,
+        BigDecimal::class,
+        LocalDate::class
+    )
 
-        private fun makeConverter(parameter: KParameter): FieldConverter {
-            val clazz = parameter.type.javaType as Class<*>
-            return when {
-                clazz.isEnum -> EnumConverter(clazz)
-                clazz == Double::class.java || clazz == java.lang.Double::class.java -> FieldConverter { (it as Number?)?.toDouble() }
-                else -> {
-                    val isPK = parameter.name != "id"
-                    if (isPK // Primary key can be a pk class which is currently not handled here
-                        && !supportedJavaTypes.contains(clazz)
-                    )
-                        throw RepositoryException("type ${clazz.simpleName} not supported")
-                    FieldConverter { it }
-                }
-            }
+private fun makeConverter(parameter: KParameter): FieldConverter {
+    val type = parameter.type
+    val javaClass = type.javaType as Class<*>
+    val kotlinClass = type.classifier as KClass<*>
+    return when {
+        javaClass.isEnum -> EnumConverter(javaClass)
+        kotlinClass == Double::class -> FieldConverter { (it as Number?)?.toDouble() }
+        else -> {
+            val isPK = parameter.name != "id"
+            if (isPK // Primary key can be a pk class which is currently not handled here
+                && !supportedTypes.contains(kotlinClass)
+            )
+                throw RepositoryException("type ${kotlinClass.simpleName} not supported")
+            FieldConverter { it }
         }
     }
+}
+
+internal class ClassInfo<T : Any>(kClass: KClass<T>) {
+    val constructor: KFunction<T> =
+        kClass.primaryConstructor
+            ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
+
+    val fieldInfo = constructor.parameters.map { FieldInfo(it) }
 
     data class FieldInfo(
         val constructorParameter: KParameter,
@@ -55,12 +59,6 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
         constructor(parameter: KParameter) :
                 this(parameter, parameter.name!!.toSnakeCase(), makeConverter(parameter))
     }
-
-    val constructor: KFunction<T> =
-        kClass.primaryConstructor
-            ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
-
-    val fieldInfo = constructor.parameters.map { FieldInfo(it) }
 }
 
 
