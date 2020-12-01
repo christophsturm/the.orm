@@ -34,12 +34,11 @@ private fun makeConverter(parameter: KParameter): FieldConverter {
         javaClass.isEnum -> EnumConverter(javaClass)
         kotlinClass == Double::class -> FieldConverter { (it as Number?)?.toDouble() }
         else -> {
-            val isPK = parameter.name != "id"
-            if (isPK // Primary key can be a pk class which is currently not handled here
-                && !supportedTypes.contains(kotlinClass)
-            )
+            val isPK = parameter.name == "id"
+            if (isPK || supportedTypes.contains(kotlinClass))
+                FieldConverter { it }
+            else
                 throw RepositoryException("type ${kotlinClass.simpleName} not supported")
-            FieldConverter { it }
         }
     }
 }
