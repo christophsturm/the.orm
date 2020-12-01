@@ -33,7 +33,11 @@ class QueryFactoryFunctionalTest : FunSpec({
             test("has a typesafe query api") {
                 val usersPerMonth = (1 until 12).map {
                     create(
-                        user.copy(name = "user with birthday in month $it", birthday = LocalDate.of(2000, it, 1))
+                        user.copy(
+                            name = "user with birthday in month $it",
+                            birthday = LocalDate.of(2000, it, 1),
+                            email = java.util.UUID.randomUUID().toString()
+                        )
                     )
                 }
                 val findByUserNameLikeAndBirthdayBetween =
@@ -50,16 +54,16 @@ class QueryFactoryFunctionalTest : FunSpec({
             }
             test("can query null values") {
                 val coolUser =
-                    create(User(name = "coolUser", email = "email", isCool = true))
+                    create(User(name = "coolUser", email = "email1", isCool = true))
                 val uncoolUser =
                     create(
-                        User(name = "uncoolUser", email = "email", isCool = false)
+                        User(name = "uncoolUser", email = "email2", isCool = false)
                     )
                 val userOfUndefinedCoolness =
                     create(
                         User(
                             name = "userOfUndefinedCoolness",
-                            email = "email",
+                            email = "email3",
                             isCool = null
                         )
                     )
@@ -79,8 +83,8 @@ class QueryFactoryFunctionalTest : FunSpec({
                     .isEqualTo(coolUser)
             }
             test("can delete by query") {
-                val kurt = create(user.copy(name = "kurt"))
-                val freddi = create(user.copy(name = "freddi"))
+                val kurt = create(user.copy(name = "kurt", email = "kurti@email.com"))
+                val freddi = create(user.copy(name = "freddi", email = "freddi@email.com"))
                 val queryByName = repo.queryFactory.createQuery(User::name.isEqualTo())
 
                 expectThat(queryByName.with(connection, "kurt").delete()).isEqualTo(1)

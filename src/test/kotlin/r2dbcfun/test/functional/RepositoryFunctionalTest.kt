@@ -78,7 +78,7 @@ class RepositoryFunctionalTest : FunSpec({
                         connection,
                         User(
                             name = "anotherUser",
-                            email = "my email",
+                            email = "anoher email",
                             birthday = LocalDate.parse("2020-06-20")
                         )
                     )
@@ -88,7 +88,7 @@ class RepositoryFunctionalTest : FunSpec({
                                 connection,
                                 User(
                                     name = "chris",
-                                    email = "my email",
+                                    email = "chris' email",
                                     isCool = false,
                                     bio = reallyLongString,
                                     favoriteColor = Color.RED,
@@ -102,7 +102,7 @@ class RepositoryFunctionalTest : FunSpec({
                     expectThat(user) {
                         get { id }.isEqualTo(id)
                         get { name }.isEqualTo("chris")
-                        get { email }.isEqualTo("my email")
+                        get { email }.isEqualTo("chris' email")
                         get { isCool }.isFalse()
                         get { bio }.isEqualTo(reallyLongString)
                         get { favoriteColor }.isEqualTo(Color.RED)

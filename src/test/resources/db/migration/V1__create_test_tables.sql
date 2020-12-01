@@ -3,7 +3,7 @@ create table users
 (
     id             bigint       not null default nextval('users_id_seq'),
     name           varchar(100) not null,
-    email          varchar(100),
+    email          varchar(100) unique,
     is_cool        boolean,
     bio            text,
     favorite_color varchar(10),
@@ -37,3 +37,5 @@ create table mismatchs
 );
 alter table mismatchs
     add primary key (id);
+
+
