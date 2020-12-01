@@ -10,20 +10,21 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaType
 
 // from the r2dbc spec: https://r2dbc.io/spec/0.8.1.RELEASE/spec/html/#datatypes
-private val supportedTypes =
-    setOf<KClass<*>>(
-        String::class,
-        io.r2dbc.spi.Clob::class,
-        Boolean::class,
-        java.nio.ByteBuffer::class,
-        io.r2dbc.spi.Blob::class,
-        Int::class,
-        Byte::class,
-        Short::class,
-        Long::class,
-        Double::class,
-        BigDecimal::class,
-        LocalDate::class
+private val passThroughFieldConverter = FieldConverter { it }
+private val fieldConverters =
+    mapOf<KClass<*>, FieldConverter>(
+        String::class to passThroughFieldConverter,
+        io.r2dbc.spi.Clob::class to passThroughFieldConverter,
+        Boolean::class to passThroughFieldConverter,
+        java.nio.ByteBuffer::class to passThroughFieldConverter,
+        io.r2dbc.spi.Blob::class to passThroughFieldConverter,
+        Int::class to passThroughFieldConverter,
+        Byte::class to passThroughFieldConverter,
+        Short::class to passThroughFieldConverter,
+        Long::class to passThroughFieldConverter,
+        Double::class to FieldConverter { (it as Number?)?.toDouble() },
+        BigDecimal::class to passThroughFieldConverter,
+        LocalDate::class to passThroughFieldConverter
     )
 
 private fun makeConverter(parameter: KParameter): FieldConverter {
@@ -32,13 +33,13 @@ private fun makeConverter(parameter: KParameter): FieldConverter {
     val kotlinClass = type.classifier as KClass<*>
     return when {
         javaClass.isEnum -> EnumConverter(javaClass)
-        kotlinClass == Double::class -> FieldConverter { (it as Number?)?.toDouble() }
         else -> {
             val isPK = parameter.name == "id"
-            if (isPK || supportedTypes.contains(kotlinClass))
-                FieldConverter { it }
+            if (isPK) passThroughFieldConverter
             else
-                throw RepositoryException("type ${kotlinClass.simpleName} not supported")
+                fieldConverters[kotlinClass]
+                    ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
+
         }
     }
 }
