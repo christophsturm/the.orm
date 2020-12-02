@@ -1,5 +1,6 @@
 package r2dbcfun
 
+import r2dbcfun.internal.IDHandler
 import r2dbcfun.util.toSnakeCase
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -9,40 +10,50 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaType
 
-internal class ClassInfo<T : Any>(kClass: KClass<T>) {
-    companion object {
-        // from the r2dbc spec: https://r2dbc.io/spec/0.8.1.RELEASE/spec/html/#datatypes
-        private val supportedJavaTypes =
-            setOf<Class<*>>(
-                String::class.java,
-                io.r2dbc.spi.Clob::class.java,
-                Boolean::class.java,
-                java.lang.Boolean::class.java, // for nullable booleans
-                java.nio.ByteBuffer::class.java,
-                io.r2dbc.spi.Blob::class.java,
-                Int::class.java,
-                Byte::class.java,
-                Short::class.java,
-                Long::class.java,
-                Double::class.java,
-                java.lang.Double::class.java, // nullable double
-                BigDecimal::class.java,
-                LocalDate::class.java
-            )
+// from the r2dbc spec: https://r2dbc.io/spec/0.8.1.RELEASE/spec/html/#datatypes
+private val passThroughFieldConverter = FieldConverter { it }
+private val fieldConverters =
+    mapOf<KClass<*>, FieldConverter>(
+        String::class to passThroughFieldConverter,
+        io.r2dbc.spi.Clob::class to passThroughFieldConverter,
+        Boolean::class to passThroughFieldConverter,
+        java.nio.ByteBuffer::class to passThroughFieldConverter,
+        io.r2dbc.spi.Blob::class to passThroughFieldConverter,
+        Int::class to passThroughFieldConverter,
+        Byte::class to passThroughFieldConverter,
+        Short::class to passThroughFieldConverter,
+        Long::class to passThroughFieldConverter,
+        Double::class to FieldConverter { (it as Number?)?.toDouble() },
+        BigDecimal::class to passThroughFieldConverter,
+        LocalDate::class to passThroughFieldConverter
+    )
 
-        private fun makeConverter(parameter: KParameter): FieldConverter {
-            val clazz = parameter.type.javaType as Class<*>
-            return when {
-                clazz.isEnum -> EnumConverter(clazz)
-                clazz == Double::class.java || clazz == java.lang.Double::class.java -> FieldConverter { (it as Number?)?.toDouble() }
-                else -> {
-                    val isPK = parameter.name != "id"
-                    if (isPK // Primary key can be a pk class which is currently not handled here
-                        && !supportedJavaTypes.contains(clazz)
-                    )
-                        throw RepositoryException("type ${clazz.simpleName} not supported")
-                    FieldConverter { it }
-                }
+
+internal class ClassInfo<T : Any>(kClass: KClass<T>, private val idHandler: IDHandler<T>) {
+    val constructor: KFunction<T> =
+        kClass.primaryConstructor
+            ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
+
+    val fieldInfo = constructor.parameters.map { parameter ->
+        FieldInfo(
+            parameter,
+            parameter.name!!.toSnakeCase(),
+            makeConverter(parameter)
+        )
+    }
+
+    private fun makeConverter(parameter: KParameter): FieldConverter {
+        val type = parameter.type
+        val javaClass = type.javaType as Class<*>
+        val kotlinClass = type.classifier as KClass<*>
+        return when {
+            javaClass.isEnum -> EnumConverter(javaClass)
+            else -> {
+                val isPK = parameter.name == "id"
+                if (isPK) FieldConverter { idHandler.createId(it as Long) }
+                else
+                    fieldConverters[kotlinClass]
+                        ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
             }
         }
     }
@@ -51,16 +62,7 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>) {
         val constructorParameter: KParameter,
         val snakeCaseName: String,
         val fieldConverter: FieldConverter
-    ) {
-        constructor(parameter: KParameter) :
-                this(parameter, parameter.name!!.toSnakeCase(), makeConverter(parameter))
-    }
-
-    val constructor: KFunction<T> =
-        kClass.primaryConstructor
-            ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
-
-    val fieldInfo = constructor.parameters.map { FieldInfo(it) }
+    )
 }
 
 

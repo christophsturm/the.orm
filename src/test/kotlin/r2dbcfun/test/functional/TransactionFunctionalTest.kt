@@ -30,7 +30,7 @@ class TransactionFunctionalTest : FunSpec({
             val entries = 10
             connection.transaction {
                 repeat(entries) {
-                    repo.create(connection, user)
+                    repo.create(connection, user.copy(email = java.util.UUID.randomUUID().toString()))
                 }
                 expectThat(userNameLike.with(connection, "%").find().toCollection(mutableListOf()).size).isEqualTo(
                     entries

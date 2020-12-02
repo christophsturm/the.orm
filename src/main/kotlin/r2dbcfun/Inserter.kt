@@ -1,13 +1,16 @@
 package r2dbcfun
 
 import io.r2dbc.spi.Connection
+import io.r2dbc.spi.R2dbcDataIntegrityViolationException
+import r2dbcfun.internal.ExceptionInspector
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.util.toSnakeCase
 
 internal class Inserter<T : Any>(
     table: String,
     private val insertProperties: List<PropertyReader<T>>,
-    private val idHandler: IDHandler<T>
+    private val idHandler: IDHandler<T>,
+    private val exceptionInspector: ExceptionInspector<T>
 ) {
     private val insertStatementString =
         run {
@@ -23,6 +26,8 @@ internal class Inserter<T : Any>(
         val id =
             try {
                 statement.executeInsert()
+            } catch (e: R2dbcDataIntegrityViolationException) {
+                throw exceptionInspector.r2dbcDataIntegrityViolationException(e)
             } catch (e: Exception) {
                 throw RepositoryException("error executing insert: $insertStatementString", e)
             }

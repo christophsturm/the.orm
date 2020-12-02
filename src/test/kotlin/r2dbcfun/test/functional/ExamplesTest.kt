@@ -31,7 +31,7 @@ class ExamplesTest : FunSpec({
                 connection.transaction {
                     repeat(entries) {
                         channel.send(async {
-                            repo.create(connection, user)
+                            repo.create(connection, user.copy(email = java.util.UUID.randomUUID().toString()))
                         })
                     }
                 }
