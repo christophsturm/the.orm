@@ -10,7 +10,9 @@ import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.rx2.await
 import r2dbcfun.test.preparePostgresDB
 
-
+/*
+ * just playing with the vertx pg client api here. maybe at some point r2dbcfun will support this too.
+ */
 class VertxTest : FunSpec({
     test("vertx") {
         val (databaseName, host, port) = preparePostgresDB()
