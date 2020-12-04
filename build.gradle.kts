@@ -15,6 +15,7 @@ val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.0"
 val log4j2Version = "2.14.0"
 val kotestVersion = "4.3.1"
+val vertxVersion = "4.0.0.CR2"
 
 plugins {
     java
@@ -75,9 +76,11 @@ dependencies {
     testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-jul:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version")
+    testImplementation("io.vertx:vertx-rx-java2:$vertxVersion")
 
-    testImplementation("io.vertx:vertx-pg-client:3.9.4")
+    testImplementation("io.vertx:vertx-pg-client:$vertxVersion")
 
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
 kotlin { explicitApi() }
