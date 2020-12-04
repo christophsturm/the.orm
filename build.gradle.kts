@@ -67,7 +67,7 @@ dependencies {
 
     testImplementation("io.kotest:kotest-framework-engine-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-plugins-pitest:$kotestVersion")
-    testImplementation("io.mockk:mockk:1.10.2")
+    testImplementation("io.mockk:mockk:1.10.3")
     testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.18")
     testRuntimeOnly("net.bytebuddy:byte-buddy-agent:1.10.18")
 
@@ -75,6 +75,9 @@ dependencies {
     testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-jul:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version")
+
+    testImplementation("io.vertx:vertx-pg-client:3.9.4")
+
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
 kotlin { explicitApi() }

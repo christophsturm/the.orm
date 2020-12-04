@@ -3,7 +3,6 @@ package r2dbcfun
 import io.kotest.core.config.AbstractProjectConfig
 import io.kotest.core.spec.IsolationMode
 import r2dbcfun.test.container
-import reactor.blockhound.BlockHound
 import java.io.File
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
@@ -16,7 +15,7 @@ object KotestConfig : AbstractProjectConfig() {
 
     override val timeout = if (TestConfig.PITEST) 100.seconds else if (TestConfig.CI) 20.seconds else 5.seconds
     override fun beforeAll() {
-        BlockHound.install()
+//        BlockHound.install()
 
         enableTestContainersReuse()
         container

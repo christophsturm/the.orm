@@ -31,7 +31,12 @@ val container: PostgreSQLContainer<Nothing> by
         }
     }
 
-fun preparePostgreSQL(): ConnectionFactory {
+fun getPostgresqlConnectionFactory(): ConnectionFactory {
+    val (databaseName, host, port) = preparePostgresDB()
+    return ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
+}
+
+fun preparePostgresDB(): Triple<String, String, Int> {
     Class.forName("org.postgresql.Driver")
     val uuid = UUID.randomUUID()
     val databaseName = "r2dbctest$uuid".replace("-", "_")
@@ -47,7 +52,7 @@ fun preparePostgreSQL(): ConnectionFactory {
             .dataSource("jdbc:postgresql://$host:$port/$databaseName", "test", "test")
             .load()
     flyway.migrate()
-    return ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
+    return Triple(databaseName, host, port)
 }
 
 data class Database(val name: String, val makeConnectionFactory: () -> ConnectionFactory)
@@ -55,7 +60,7 @@ data class Database(val name: String, val makeConnectionFactory: () -> Connectio
 val h2 = Database("h2") { prepareH2() }
 val databases = if (TestConfig.H2_ONLY) {
     listOf(h2)
-} else listOf(h2, Database("psql") { preparePostgreSQL() })
+} else listOf(h2, Database("psql") { getPostgresqlConnectionFactory() })
 
 fun forAllDatabases(
     funSpec: FunSpec,
