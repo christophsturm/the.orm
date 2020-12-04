@@ -1,12 +1,13 @@
 @file:Suppress("SqlResolve")
 
-package r2dbcfun
+package r2dbcfun.exp
 
 import io.kotest.core.spec.style.FunSpec
 import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
+import r2dbcfun.executeInsert
 import r2dbcfun.test.autoClose
 import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThat
