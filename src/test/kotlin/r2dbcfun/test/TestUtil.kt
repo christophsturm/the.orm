@@ -36,7 +36,7 @@ fun getPostgresqlConnectionFactory(): ConnectionFactory {
     return ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
 }
 
-fun preparePostgresDB(): Triple<String, String, Int> {
+fun preparePostgresDB(): NameHostAndPort {
     Class.forName("org.postgresql.Driver")
     val uuid = UUID.randomUUID()
     val databaseName = "r2dbctest$uuid".replace("-", "_")
@@ -52,9 +52,10 @@ fun preparePostgresDB(): Triple<String, String, Int> {
             .dataSource("jdbc:postgresql://$host:$port/$databaseName", "test", "test")
             .load()
     flyway.migrate()
-    return Triple(databaseName, host, port)
+    return NameHostAndPort(databaseName, host, port)
 }
 
+data class NameHostAndPort(val databaseName: String, val host: String, val port: Int)
 data class Database(val name: String, val makeConnectionFactory: () -> ConnectionFactory)
 
 val h2 = Database("h2") { prepareH2() }
