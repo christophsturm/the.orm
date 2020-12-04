@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import r2dbcfun.BuildConfig
 
 group = "r2dbcfun"
-version = "0.2.1"
+version = "0.2.2"
 
 val coroutinesVersion = "1.4.2"
 val kotlinVersion = BuildConfig.kotlinVersion
