@@ -68,7 +68,7 @@ dependencies {
 
     testImplementation("io.kotest:kotest-framework-engine-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-plugins-pitest:$kotestVersion")
-    testImplementation("io.mockk:mockk:1.10.2")
+    testImplementation("io.mockk:mockk:1.10.3-jdk8")
     testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.18")
     testRuntimeOnly("net.bytebuddy:byte-buddy-agent:1.10.18")
 
