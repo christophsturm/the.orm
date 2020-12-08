@@ -15,7 +15,7 @@ val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.0"
 val log4j2Version = "2.14.0"
 val kotestVersion = "4.3.1"
-val vertxVersion = "4.0.0.CR2"
+val vertxVersion = "4.0.0"
 
 plugins {
     java
@@ -27,7 +27,7 @@ plugins {
     id("com.jfrog.bintray") version "1.8.5"
     @Suppress("RemoveRedundantQualifierName")
     kotlin("plugin.serialization").version(r2dbcfun.BuildConfig.kotlinVersion)
-    id("tech.formatter-kt.formatter") version "0.6.13"
+    id("tech.formatter-kt.formatter") version "0.6.14"
     id("io.kotest") version "0.2.6"
 }
 
@@ -49,7 +49,7 @@ dependencies {
     api("io.r2dbc:r2dbc-spi:0.8.3.RELEASE")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
-    testImplementation("io.strikt:strikt-core:0.28.0")
+    testImplementation("io.strikt:strikt-core:0.28.1")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
@@ -59,7 +59,7 @@ dependencies {
 //    testRuntimeOnly("io.projectreactor.netty:reactor-netty:0.9.14.RELEASE") // bump postgresql dependency
 
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.flywaydb:flyway-core:7.3.0")
+    testImplementation("org.flywaydb:flyway-core:7.3.1")
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
