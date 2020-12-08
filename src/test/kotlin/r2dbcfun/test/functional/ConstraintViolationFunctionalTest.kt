@@ -24,10 +24,7 @@ class ConstraintViolationFunctionalTest : FunSpec({
 
             expectThrows<DataIntegrityViolationException> {
                 repo.create(user)
-            }.and {
-                get { fieldName }.isEqualTo(User::email)
-            }
-
+            }.get { fieldName }.isEqualTo(User::email)
         }
     }
 })

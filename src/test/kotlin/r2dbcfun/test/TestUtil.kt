@@ -23,19 +23,25 @@ fun prepareH2(): ConnectionFactory {
 }
 
 val container: PostgreSQLContainer<Nothing> by
-    lazy {
-        PostgreSQLContainer<Nothing>("postgres:13").apply {
+lazy {
+    PostgreSQLContainer<Nothing>("postgres:13").apply {
 // WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
-            withReuse(true)
-            start()
-        }
+        withReuse(true)
+        start()
     }
+}
 
-fun preparePostgreSQL(): ConnectionFactory {
+fun getPostgresqlConnectionFactory(): ConnectionFactory {
+    val (databaseName, host, port) = preparePostgresDB()
+    return ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
+}
+
+fun preparePostgresDB(): NameHostAndPort {
     Class.forName("org.postgresql.Driver")
     val uuid = UUID.randomUUID()
     val databaseName = "r2dbctest$uuid".replace("-", "_")
-    val host = container.containerIpAddress
+    // testcontainers says that it returns an ip address but it returns a host name.
+    val host = container.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
     val port = container.getMappedPort(5432)
     val db =
         DriverManager.getConnection("jdbc:postgresql://$host:$port/postgres", "test", "test")
@@ -47,15 +53,16 @@ fun preparePostgreSQL(): ConnectionFactory {
             .dataSource("jdbc:postgresql://$host:$port/$databaseName", "test", "test")
             .load()
     flyway.migrate()
-    return ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
+    return NameHostAndPort(databaseName, host, port)
 }
 
+data class NameHostAndPort(val databaseName: String, val host: String, val port: Int)
 data class Database(val name: String, val makeConnectionFactory: () -> ConnectionFactory)
 
 val h2 = Database("h2") { prepareH2() }
 val databases = if (TestConfig.H2_ONLY) {
     listOf(h2)
-} else listOf(h2, Database("psql") { preparePostgreSQL() })
+} else listOf(h2, Database("psql") { getPostgresqlConnectionFactory() })
 
 fun forAllDatabases(
     funSpec: FunSpec,

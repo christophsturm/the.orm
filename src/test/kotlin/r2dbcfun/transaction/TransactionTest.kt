@@ -7,6 +7,7 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.reactivestreams.Publisher
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
@@ -14,7 +15,7 @@ import strikt.assertions.isTrue
 
 class TransactionTest : FunSpec({
     context("transaction support") {
-        mockkStatic("kotlinx.coroutines.reactive.AwaitKt")
+        mockkStatic(Publisher<Any>::awaitFirstOrNull)       // <*> is more correct but will throw an internal error
         val connection = mockk<Connection>(relaxed = true)
         coEvery { connection.beginTransaction().awaitFirstOrNull() }.returns(null)
         coEvery { connection.commitTransaction().awaitFirstOrNull() }.returns(null)
