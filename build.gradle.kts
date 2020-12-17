@@ -12,9 +12,9 @@ version = "0.2.2"
 val coroutinesVersion = "1.4.2"
 val kotlinVersion = BuildConfig.kotlinVersion
 val serializationVersion = "1.0.1"
-val testcontainersVersion = "1.15.0"
+val testcontainersVersion = "1.15.1"
 val log4j2Version = "2.14.0"
-val kotestVersion = "4.3.1"
+val kotestVersion = "4.3.2"
 val vertxVersion = "4.0.0"
 
 plugins {
@@ -59,7 +59,7 @@ dependencies {
 //    testRuntimeOnly("io.projectreactor.netty:reactor-netty:0.9.14.RELEASE") // bump postgresql dependency
 
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.flywaydb:flyway-core:7.3.1")
+    testImplementation("org.flywaydb:flyway-core:7.3.2")
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
