@@ -3,9 +3,9 @@ package r2dbcfun.test
 import io.kotest.core.TestConfiguration
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.scopes.FunSpecContextScope
-import io.kotest.inspectors.forAll
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
+import nanotest.ContextDSL
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.TestConfig
@@ -64,12 +64,22 @@ val databases = if (TestConfig.H2_ONLY) {
     listOf(h2)
 } else listOf(h2, Database("psql") { getPostgresqlConnectionFactory() })
 
+suspend fun ContextDSL.forAllDatabases(testName: String, tests: suspend ContextDSL.(ConnectionFactory) -> Unit) {
+    databases.map { db ->
+        context("$testName on ${db.name}") {
+            val connectionFactory = db.makeConnectionFactory()
+            tests(connectionFactory)
+        }
+    }
+
+}
+
 fun forAllDatabases(
     funSpec: FunSpec,
     testName: String,
     tests: suspend FunSpecContextScope.(ConnectionFactory) -> Unit
 ) {
-    databases.forAll { db ->
+    databases.map { db ->
         funSpec.context("$testName on ${db.name}") {
             val connectionFactory = db.makeConnectionFactory()
             tests(connectionFactory)

@@ -1,6 +1,6 @@
 package r2dbcfun
 
-import io.kotest.core.spec.style.FunSpec
+import nanotest.Context
 import r2dbcfun.query.QueryFactory
 import r2dbcfun.test.TestObjects.Entity
 import strikt.api.expectCatching
@@ -11,8 +11,8 @@ import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
 import strikt.assertions.message
 
-class RepositoryTest : FunSpec({
-    context("the repository class") {
+object RepositoryTest {
+    val context = Context {
         test("returns a query factory") {
             val queryFactory = Repository.create<Entity>().queryFactory
             expectThat(queryFactory).isA<QueryFactory<Entity>>()
@@ -45,4 +45,4 @@ class RepositoryTest : FunSpec({
             }
         }
     }
-})
+}
