@@ -1,7 +1,7 @@
 package r2dbcfun.test.functional
 
 import kotlinx.coroutines.reactive.awaitSingle
-import nanotest.Context
+import nanotest.context
 import r2dbcfun.ConnectedRepository
 import r2dbcfun.DataIntegrityViolationException
 import r2dbcfun.test.forAllDatabases
@@ -10,7 +10,7 @@ import strikt.assertions.isEqualTo
 import java.time.LocalDate
 
 object ConstraintViolationFunctionalTest {
-    val context = Context {
+    val context = context {
         forAllDatabases("ConstraintViolationFT") { connectionFactory ->
             val repo =
                 ConnectedRepository.create<User>(autoClose(connectionFactory.create().awaitSingle()) { it.close() })

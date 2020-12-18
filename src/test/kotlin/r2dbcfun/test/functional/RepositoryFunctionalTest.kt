@@ -2,7 +2,7 @@ package r2dbcfun.test.functional
 
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.Serializable
-import nanotest.Context
+import nanotest.context
 import r2dbcfun.NotFoundException
 import r2dbcfun.PK
 import r2dbcfun.Repository
@@ -24,7 +24,7 @@ import java.time.LocalDate
 object RepositoryFunctionalTest {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
-    val context = Context {
+    val context = context {
         forAllDatabases("RepositoryFT") { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
 

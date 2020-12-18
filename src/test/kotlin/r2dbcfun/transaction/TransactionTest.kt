@@ -1,20 +1,20 @@
 package r2dbcfun.transaction
 
-import io.kotest.core.spec.style.FunSpec
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import nanotest.*
 import org.reactivestreams.Publisher
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
-class TransactionTest : FunSpec({
-    context("transaction support") {
+object TransactionTest {
+    val context = context {
         mockkStatic(Publisher<Any>::awaitFirstOrNull)       // <*> is more correct but will throw an internal error
         val connection = mockk<Connection>(relaxed = true)
         coEvery { connection.beginTransaction().awaitFirstOrNull() }.returns(null)
@@ -40,4 +40,4 @@ class TransactionTest : FunSpec({
 
         }
     }
-})
+}

@@ -14,7 +14,6 @@ val kotlinVersion = BuildConfig.kotlinVersion
 val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.1"
 val log4j2Version = "2.14.0"
-val kotestVersion = "4.3.2"
 val vertxVersion = "4.0.0"
 
 plugins {
@@ -28,14 +27,11 @@ plugins {
     @Suppress("RemoveRedundantQualifierName")
     kotlin("plugin.serialization").version(r2dbcfun.BuildConfig.kotlinVersion)
     id("tech.formatter-kt.formatter") version "0.6.14"
-    id("io.kotest") version "0.2.6"
 }
 
 
 repositories {
     if (BuildConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
-    if (BuildConfig.useKotestSnapshot)
-        maven("https://oss.sonatype.org/content/repositories/snapshots/")
     jcenter()
     mavenCentral()
 }
@@ -67,9 +63,7 @@ dependencies {
     testImplementation("io.projectreactor.tools:blockhound:1.0.4.RELEASE")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-    testImplementation("io.kotest:kotest-framework-engine-jvm:$kotestVersion")
-    testImplementation("io.kotest:kotest-plugins-pitest:$kotestVersion")
-    testImplementation("io.mockk:mockk:1.10.4")
+    testImplementation("io.mockk:mockk:1.10.3-jdk8")
     testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.19")
     testRuntimeOnly("net.bytebuddy:byte-buddy-agent:1.10.19")
 
@@ -135,7 +129,7 @@ bintray {
         }
     )
 }
-
+// pitest is not working yet with nanotest
 plugins.withId("info.solidsoft.pitest") {
     configure<PitestPluginExtension> {
         //        verbose.set(true)

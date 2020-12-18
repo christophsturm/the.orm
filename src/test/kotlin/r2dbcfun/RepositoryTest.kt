@@ -1,6 +1,6 @@
 package r2dbcfun
 
-import nanotest.Context
+import nanotest.context
 import r2dbcfun.query.QueryFactory
 import r2dbcfun.test.TestObjects.Entity
 import strikt.api.expectCatching
@@ -12,7 +12,7 @@ import strikt.assertions.isNotNull
 import strikt.assertions.message
 
 object RepositoryTest {
-    val context = Context {
+    val context = context {
         test("returns a query factory") {
             val queryFactory = Repository.create<Entity>().queryFactory
             expectThat(queryFactory).isA<QueryFactory<Entity>>()

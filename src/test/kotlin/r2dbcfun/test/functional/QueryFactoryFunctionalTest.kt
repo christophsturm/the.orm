@@ -3,7 +3,7 @@ package r2dbcfun.test.functional
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitSingle
-import nanotest.Context
+import nanotest.context
 import r2dbcfun.NotFoundException
 import r2dbcfun.Repository
 import r2dbcfun.query.between
@@ -18,7 +18,7 @@ import strikt.assertions.isEqualTo
 import java.time.LocalDate
 
 object QueryFactoryFunctionalTest {
-    val context = Context {
+    val context = context {
 
         forAllDatabases("QueryFactoryFT") { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }

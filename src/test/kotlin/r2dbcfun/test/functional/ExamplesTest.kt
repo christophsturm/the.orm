@@ -6,7 +6,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitSingle
-import nanotest.Context
+import nanotest.context
 import r2dbcfun.Repository
 import r2dbcfun.test.forAllDatabases
 import r2dbcfun.transaction.transaction
@@ -19,7 +19,7 @@ import r2dbcfun.transaction.transaction
  */
 
 object ExamplesTest {
-    val context = Context {
+    val context = context {
         forAllDatabases("examples") { connectionFactory ->
             val connection = connectionFactory.create().awaitSingle()!!
             val user = User(

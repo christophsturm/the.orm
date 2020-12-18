@@ -4,8 +4,8 @@ import io.r2dbc.spi.IsolationLevel
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
-import nanotest.Context
 import nanotest.Suite
+import nanotest.context
 import r2dbcfun.Repository
 import r2dbcfun.query.like
 import r2dbcfun.test.forAllDatabases
@@ -19,7 +19,7 @@ fun main() {
 }
 
 object TransactionFunctionalTest {
-    val context = Context {
+    val context = context {
 
         forAllDatabases("transactions") { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }

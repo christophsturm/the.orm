@@ -1,8 +1,5 @@
 package r2dbcfun.test
 
-import io.kotest.core.TestConfiguration
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.core.spec.style.scopes.FunSpecContextScope
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import nanotest.ContextDSL
@@ -72,26 +69,4 @@ suspend fun ContextDSL.forAllDatabases(testName: String, tests: suspend ContextD
         }
     }
 
-}
-
-fun forAllDatabases(
-    funSpec: FunSpec,
-    testName: String,
-    tests: suspend FunSpecContextScope.(ConnectionFactory) -> Unit
-) {
-    databases.map { db ->
-        funSpec.context("$testName on ${db.name}") {
-            val connectionFactory = db.makeConnectionFactory()
-            tests(connectionFactory)
-        }
-    }
-}
-
-fun <T : Any> TestConfiguration.autoClose(wrapped: T, closeFunction: (T) -> Unit): T {
-    autoClose(object : AutoCloseable {
-        override fun close() {
-            closeFunction(wrapped)
-        }
-    })
-    return wrapped
 }

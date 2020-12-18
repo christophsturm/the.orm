@@ -3,14 +3,14 @@ package r2dbcfun
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.r2dbc.spi.Connection
-import nanotest.Context
+import nanotest.context
 import r2dbcfun.test.TestObjects.Entity
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
 object ConnectedRepositoryTest {
-    val context = Context {
+    val context = context {
         val connection = mockk<Connection>()
         test("exposes Repository and Connection") {
             expectThat(ConnectedRepository.create<Entity>(connection)) {
