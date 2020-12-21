@@ -1,7 +1,7 @@
 package r2dbcfun.test.functional
 
+import failfast.context
 import kotlinx.coroutines.reactive.awaitSingle
-import nanotest.context
 import r2dbcfun.ConnectedRepository
 import r2dbcfun.DataIntegrityViolationException
 import r2dbcfun.test.forAllDatabases

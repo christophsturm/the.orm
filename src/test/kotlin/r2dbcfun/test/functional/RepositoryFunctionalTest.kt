@@ -1,8 +1,8 @@
 package r2dbcfun.test.functional
 
+import failfast.context
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.Serializable
-import nanotest.context
 import r2dbcfun.NotFoundException
 import r2dbcfun.PK
 import r2dbcfun.Repository

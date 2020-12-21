@@ -1,9 +1,9 @@
 package r2dbcfun
 
+import failfast.context
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.r2dbc.spi.Connection
-import nanotest.context
 import r2dbcfun.test.TestObjects.Entity
 import strikt.api.expectThat
 import strikt.assertions.isA

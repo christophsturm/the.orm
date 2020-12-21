@@ -1,12 +1,12 @@
 package r2dbcfun.transaction
 
+import failfast.*
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import nanotest.*
 import org.reactivestreams.Publisher
 import strikt.api.expectThat
 import strikt.api.expectThrows

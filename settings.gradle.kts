@@ -7,4 +7,4 @@ pluginManagement {
 }
 
 rootProject.name = "r2dbcfun"
-includeBuild("../nanotest")
+includeBuild("../failfast")

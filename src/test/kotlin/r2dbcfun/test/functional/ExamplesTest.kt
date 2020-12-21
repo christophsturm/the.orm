@@ -1,12 +1,12 @@
 package r2dbcfun.test.functional
 
+import failfast.context
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitSingle
-import nanotest.context
 import r2dbcfun.Repository
 import r2dbcfun.test.forAllDatabases
 import r2dbcfun.transaction.transaction

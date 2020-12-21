@@ -1,9 +1,9 @@
 package r2dbcfun.test.functional
 
+import failfast.context
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitSingle
-import nanotest.context
 import r2dbcfun.NotFoundException
 import r2dbcfun.Repository
 import r2dbcfun.query.between

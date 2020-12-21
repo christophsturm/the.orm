@@ -1,6 +1,6 @@
 package r2dbcfun.internal
 
-import nanotest.context
+import failfast.context
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 

@@ -1,6 +1,6 @@
 package r2dbcfun
 
-import nanotest.context
+import failfast.context
 import r2dbcfun.query.QueryFactory
 import r2dbcfun.test.TestObjects.Entity
 import strikt.api.expectCatching

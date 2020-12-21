@@ -1,6 +1,6 @@
 package r2dbcfun.test
 
-import nanotest.Suite
+import failfast.Suite
 import r2dbcfun.ConnectedRepositoryTest
 import r2dbcfun.RepositoryTest
 import r2dbcfun.exp.R2dbcTest
@@ -34,3 +34,4 @@ fun main() {
         )
     ).run().check()
 }
+

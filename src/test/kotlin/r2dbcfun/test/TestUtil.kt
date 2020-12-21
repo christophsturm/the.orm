@@ -1,8 +1,8 @@
 package r2dbcfun.test
 
+import failfast.ContextDSL
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
-import nanotest.ContextDSL
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.TestConfig

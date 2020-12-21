@@ -1,11 +1,11 @@
 package r2dbcfun.test.functional
 
+import failfast.Suite
+import failfast.context
 import io.r2dbc.spi.IsolationLevel
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
-import nanotest.Suite
-import nanotest.context
 import r2dbcfun.Repository
 import r2dbcfun.query.like
 import r2dbcfun.test.forAllDatabases

@@ -1,13 +1,13 @@
 package r2dbcfun.exp
 
 
+import failfast.context
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.reactivex.pgclient.PgPool
 import io.vertx.reactivex.sqlclient.Row
 import io.vertx.reactivex.sqlclient.RowSet
 import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.rx2.await
-import nanotest.context
 import r2dbcfun.test.preparePostgresDB
 
 /*

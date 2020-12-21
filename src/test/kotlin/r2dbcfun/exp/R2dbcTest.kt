@@ -2,11 +2,11 @@
 
 package r2dbcfun.exp
 
+import failfast.context
 import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
-import nanotest.context
 import r2dbcfun.executeInsert
 import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThat

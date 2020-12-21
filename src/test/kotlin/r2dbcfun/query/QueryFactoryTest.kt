@@ -1,8 +1,8 @@
 package r2dbcfun.query
 
+import failfast.context
 import io.mockk.mockk
 import io.r2dbc.spi.Connection
-import nanotest.context
 import r2dbcfun.ResultMapper
 import r2dbcfun.test.TestObjects.Entity
 
