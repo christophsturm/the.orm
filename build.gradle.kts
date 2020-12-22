@@ -175,3 +175,13 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
     reportfileName = "report"
 }
 tasks.wrapper { distributionType = Wrapper.DistributionType.ALL }
+
+val testMain = task("testMain", JavaExec::class) {
+    main = "r2dbcfun.test.AllTestsKt"
+    classpath = sourceSets["test"].runtimeClasspath
+}
+
+tasks.check {
+    dependsOn(testMain)
+}
+
