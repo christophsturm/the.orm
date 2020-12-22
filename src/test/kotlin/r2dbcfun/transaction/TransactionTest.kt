@@ -13,10 +13,17 @@ import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
+fun main() {
+    Suite(TransactionTest.context).run()
+}
 object TransactionTest {
-    val context = context {
+    init {
+        // run this only once and not once per test
         mockkStatic(Publisher<Any>::awaitFirstOrNull)       // <*> is more correct but will throw an internal error
-        val connection = mockk<Connection>(relaxed = true)
+    }
+
+    val context = context {
+        val connection = mockk<Connection>("r2dbc connection")
         coEvery { connection.beginTransaction().awaitFirstOrNull() }.returns(null)
         coEvery { connection.commitTransaction().awaitFirstOrNull() }.returns(null)
         coEvery { connection.rollbackTransaction().awaitFirstOrNull() }.returns(null)

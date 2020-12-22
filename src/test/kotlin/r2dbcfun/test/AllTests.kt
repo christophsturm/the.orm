@@ -18,9 +18,10 @@ import r2dbcfun.util.StringUtilTest
 fun main() {
     Suite(
         listOf(
+            RepositoryTest.context,
+            StringUtilTest.context,
             TransactionFunctionalTest.context,
             ConnectedRepositoryTest.context,
-            RepositoryTest.context,
             ExamplesTest.context,
             ConstraintViolationFunctionalTest.context,
             QueryFactoryFunctionalTest.context,
@@ -29,9 +30,8 @@ fun main() {
             VertxTest.contetxt,
             IDHandlerTest.context,
             QueryFactoryTest.context,
-            TransactionTest.context,
-            StringUtilTest.context
+            TransactionTest.context
         )
-    ).run().check()
+    ).run().check(false)
 }
 
