@@ -20,7 +20,7 @@ import r2dbcfun.transaction.transaction
 
 object ExamplesTest {
     val context = context {
-        forAllDatabases("examples") { connectionFactory ->
+        forAllDatabases() { connectionFactory ->
             val connection = connectionFactory.create().awaitSingle()!!
             val user = User(
                 name = "a user",

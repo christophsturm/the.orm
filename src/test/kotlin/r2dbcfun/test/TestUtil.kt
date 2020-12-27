@@ -61,9 +61,9 @@ val databases = if (TestConfig.H2_ONLY) {
     listOf(h2)
 } else listOf(h2, Database("psql") { getPostgresqlConnectionFactory() })
 
-suspend fun ContextDSL.forAllDatabases(testName: String, tests: suspend ContextDSL.(ConnectionFactory) -> Unit) {
+suspend fun ContextDSL.forAllDatabases(tests: suspend ContextDSL.(ConnectionFactory) -> Unit) {
     databases.map { db ->
-        context("$testName on ${db.name}") {
+        context("on ${db.name}") {
             val connectionFactory = db.makeConnectionFactory()
             tests(connectionFactory)
         }

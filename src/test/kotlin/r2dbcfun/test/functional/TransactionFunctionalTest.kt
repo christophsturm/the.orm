@@ -21,7 +21,7 @@ fun main() {
 object TransactionFunctionalTest {
     val context = context {
 
-        forAllDatabases("transactions") { connectionFactory ->
+        forAllDatabases() { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
             val user = User(
                 name = "a user",

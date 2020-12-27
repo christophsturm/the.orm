@@ -20,7 +20,7 @@ import java.time.LocalDate
 object QueryFactoryFunctionalTest {
     val context = context {
 
-        forAllDatabases("QueryFactoryFT") { connectionFactory ->
+        forAllDatabases() { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
 
             val repo = Repository.create<User>()

@@ -20,7 +20,7 @@ import strikt.assertions.isEqualTo
  */
 object R2dbcTest {
     val context = context {
-        forAllDatabases("r2dbctest")
+        forAllDatabases()
         { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
 

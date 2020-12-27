@@ -11,7 +11,7 @@ import java.time.LocalDate
 
 object ConstraintViolationFunctionalTest {
     val context = context {
-        forAllDatabases("ConstraintViolationFT") { connectionFactory ->
+        forAllDatabases() { connectionFactory ->
             val repo =
                 ConnectedRepository.create<User>(autoClose(connectionFactory.create().awaitSingle()) { it.close() })
 
