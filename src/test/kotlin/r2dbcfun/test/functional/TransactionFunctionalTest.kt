@@ -15,7 +15,7 @@ import strikt.assertions.isEqualTo
 import java.util.*
 
 fun main() {
-    Suite(listOf(TransactionFunctionalTest.context)).run().check()
+    Suite(TransactionFunctionalTest.context).run().check()
 }
 
 object TransactionFunctionalTest {

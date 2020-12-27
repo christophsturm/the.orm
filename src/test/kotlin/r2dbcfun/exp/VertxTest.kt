@@ -14,7 +14,7 @@ import r2dbcfun.test.preparePostgresDB
  * just playing with the vertx pg client api here. maybe at some point r2dbcfun will support this too.
  */
 object VertxTest {
-    val contetxt = context {
+    val context = context {
 
         test("vertx") {
             val (databaseName, host, port) = preparePostgresDB()
