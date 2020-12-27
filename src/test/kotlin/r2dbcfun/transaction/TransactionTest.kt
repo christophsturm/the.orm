@@ -22,7 +22,7 @@ object TransactionTest {
         mockkStatic(Publisher<Any>::awaitFirstOrNull)       // <*> is more correct but will throw an internal error
     }
 
-    val context = context {
+    val context = describe("transaction handling") {
         val connection = mockk<Connection>("r2dbc connection")
         coEvery { connection.beginTransaction().awaitFirstOrNull() }.returns(null)
         coEvery { connection.commitTransaction().awaitFirstOrNull() }.returns(null)

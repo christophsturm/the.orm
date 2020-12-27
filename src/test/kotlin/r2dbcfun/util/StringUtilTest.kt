@@ -5,7 +5,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 object StringUtilTest {
-    val context = context {
+    val context =
         context("string methods") {
             test("can convert camel case to snake case") {
                 expectThat("CamelCase".toSnakeCase()).isEqualTo("camel_case")
@@ -15,5 +15,4 @@ object StringUtilTest {
                     .isEqualTo("values ($1,$2,$3)")
             }
         }
-    }
 }

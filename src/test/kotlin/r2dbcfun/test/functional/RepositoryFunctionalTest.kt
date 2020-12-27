@@ -1,6 +1,6 @@
 package r2dbcfun.test.functional
 
-import failfast.context
+import failfast.describe
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.Serializable
 import r2dbcfun.NotFoundException
@@ -24,11 +24,11 @@ import java.time.LocalDate
 object RepositoryFunctionalTest {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
-    val context = context {
-        forAllDatabases() { connectionFactory ->
+    val context = describe("the repository class") {
+        forAllDatabases { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
 
-            context("a repo with a user class") {
+            context("with a user class") {
                 val repo = Repository.create<User>()
                 context("Creating Rows") {
                     test("can insert data class and return primary key") {
