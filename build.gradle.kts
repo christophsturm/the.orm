@@ -68,9 +68,9 @@ dependencies {
 
     testImplementation("io.kotest:kotest-framework-engine-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-plugins-pitest:$kotestVersion")
-    testImplementation("io.mockk:mockk:1.10.3-jdk8")
-    testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.18")
-    testRuntimeOnly("net.bytebuddy:byte-buddy-agent:1.10.18")
+    testImplementation("io.mockk:mockk:1.10.4")
+    testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.19")
+    testRuntimeOnly("net.bytebuddy:byte-buddy-agent:1.10.19")
 
     testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
