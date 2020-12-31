@@ -67,6 +67,6 @@ Database Structure:
                                 findByUserNameLikeAndBirthdayBetween(connection, "fred%", Pair(date1, date2))
 ```
 
-for more examples look at the [unit tests](src/test/kotlin/r2dbcfun/RepositoryTest.kt)
+for more examples look at the [unit tests](src/test/kotlin/r2dbcfun/test/functional)
 
 Supported databases: H2 and PostgreSQL

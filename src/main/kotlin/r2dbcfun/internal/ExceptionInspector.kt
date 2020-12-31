@@ -20,7 +20,7 @@ internal class ExceptionInspector<T : Any>(private val tableName: String, kClass
         val fieldString = when {
 
             // h2: Unique index or primary key violation: "PUBLIC.CONSTRAINT_INDEX_4 ON PUBLIC.USERS(EMAIL) VALUES 1"; SQL statement:
-            message.startsWith("Unique index or primary key violation") -> message.substringAfter("PUBLIC.${tableName.toUpperCase()}(")
+            message.contains("Unique index or primary key violation") -> message.substringAfter("PUBLIC.${tableName.toUpperCase()}(")
                 .substringBefore(")")
             // psql: duplicate key value violates unique constraint "users_email_key"
             message.startsWith("duplicate key value violates unique constraint") -> message.substringAfter("constraint \"${tableName}_")
