@@ -129,7 +129,6 @@ bintray {
         }
     )
 }
-// pitest is not working yet with failfast
 plugins.withId("info.solidsoft.pitest") {
     configure<PitestPluginExtension> {
         //        verbose.set(true)
@@ -141,12 +140,12 @@ plugins.withId("info.solidsoft.pitest") {
             jvmArgs.set(listOf("-Xmx512m"))
         }
         //        testPlugin.set("junit5")
-        testPlugin.set("Kotest")
+        testPlugin.set("failfast")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
         targetClasses.set(setOf("r2dbcfun.*")) //by default "${project.group}.*"
         excludedClasses.set(setOf("""r2dbcfun.ResultMapper${'$'}findBy*"""))
         targetTests.set(setOf("r2dbcfun.*Test", "r2dbcfun.**.*Test"))
-        pitestVersion.set("1.5.2")
+        pitestVersion.set("1.6.2")
         threads.set(
             System.getenv("PITEST_THREADS")?.toInt() ?: Runtime.getRuntime().availableProcessors()
         )
