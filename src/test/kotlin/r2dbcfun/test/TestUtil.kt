@@ -19,7 +19,7 @@ fun prepareH2(): ConnectionFactory {
     return ConnectionFactories.get("r2dbc:h2:mem:///$databaseName;DB_CLOSE_DELAY=-1")
 }
 
-val container: PostgreSQLContainer<Nothing> by
+val postgresqlcontainer: PostgreSQLContainer<Nothing> by
 lazy {
     PostgreSQLContainer<Nothing>("postgres:13").apply {
 // WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
@@ -38,8 +38,8 @@ fun preparePostgresDB(): NameHostAndPort {
     val uuid = UUID.randomUUID()
     val databaseName = "r2dbctest$uuid".replace("-", "_")
     // testcontainers says that it returns an ip address but it returns a host name.
-    val host = container.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
-    val port = container.getMappedPort(5432)
+    val host = postgresqlcontainer.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
+    val port = postgresqlcontainer.getMappedPort(5432)
     val db =
         DriverManager.getConnection("jdbc:postgresql://$host:$port/postgres", "test", "test")
     db.createStatement().executeUpdate("create database $databaseName")
