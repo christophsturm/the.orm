@@ -1,22 +1,25 @@
 package r2dbcfun.exp
 
 
-import failfast.context
+import failfast.describe
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.reactivex.pgclient.PgPool
 import io.vertx.reactivex.sqlclient.Row
 import io.vertx.reactivex.sqlclient.RowSet
 import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.rx2.await
+import r2dbcfun.TestConfig
 import r2dbcfun.test.preparePostgresDB
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 
 /*
  * just playing with the vertx pg client api here. maybe at some point r2dbcfun will support this too.
  */
 object VertxTest {
-    val context = context {
+    val context = describe("vertx support", disabled = TestConfig.H2_ONLY) {
 
-        test("vertx") {
+        it("is not yet supported but seems to work with coroutines") {
             val (databaseName, host, port) = preparePostgresDB()
             val connectOptions = PgConnectOptions()
                 .setPort(port)
@@ -35,7 +38,7 @@ object VertxTest {
             @Suppress("SqlResolve")
             val result: RowSet<Row> = client
                 .query("SELECT * FROM users WHERE id=1").rxExecute().await()
-            println("Got " + result.size().toString() + " rows ")
+            expectThat(result.size()).isEqualTo(0)
             client.close()
         }
     }
