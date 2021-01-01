@@ -63,7 +63,7 @@ dependencies {
     testImplementation("io.projectreactor.tools:blockhound:1.0.4.RELEASE")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-    testImplementation("io.mockk:mockk:1.10.3-jdk8")
+    testImplementation("io.mockk:mockk:1.10.4")
     testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.19")
     testRuntimeOnly("net.bytebuddy:byte-buddy-agent:1.10.19")
 
