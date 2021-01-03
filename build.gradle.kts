@@ -34,6 +34,8 @@ repositories {
     if (BuildConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
     jcenter()
     mavenCentral()
+    maven("https://dl.bintray.com/christophsturm/maven/")
+
 }
 
 dependencies {

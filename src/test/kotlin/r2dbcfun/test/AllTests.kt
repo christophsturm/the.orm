@@ -16,6 +16,6 @@ fun main() {
         thread {
             postgresqlcontainer
         }
-    Suite.fromClasses(findTestClasses(TransactionFunctionalTest::class)).run().check(false)
+    Suite.fromClasses(findTestClasses(TransactionFunctionalTest::class)).run().check()
 }
 
