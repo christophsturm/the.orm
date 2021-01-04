@@ -21,7 +21,7 @@ fun prepareH2(): ConnectionFactory {
 
 val postgresqlcontainer: PostgreSQLContainer<Nothing> by
 lazy {
-    PostgreSQLContainer<Nothing>("postgres:13").apply {
+    PostgreSQLContainer<Nothing>("postgres:13.1-alpine").apply {
 // WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
         withReuse(true)
         start()
