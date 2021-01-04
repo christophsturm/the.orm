@@ -4,6 +4,7 @@ import failfast.FailFast.findTestClasses
 import failfast.Suite
 import io.mockk.impl.JvmMockKGateway
 import io.netty.resolver.dns.UnixResolverDnsServerAddressStreamProvider
+import r2dbcfun.TestConfig.CI
 import r2dbcfun.TestConfig.H2_ONLY
 import r2dbcfun.test.functional.TransactionFunctionalTest
 import reactor.blockhound.BlockHound
@@ -17,9 +18,12 @@ fun main() {
     }
     if (!H2_ONLY) {
         enableTestContainersReuse()
-        thread {
+        if (CI)
             postgresqlcontainer
-        }
+        else
+            thread {
+                postgresqlcontainer
+            }
     }
     BlockHound.builder().allowBlockingCallsInside(
         UnixResolverDnsServerAddressStreamProvider::class.java.canonicalName,
