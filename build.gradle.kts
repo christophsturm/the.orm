@@ -34,7 +34,6 @@ repositories {
     if (BuildConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
     jcenter()
     mavenCentral()
-    maven("https://dl.bintray.com/christophsturm/maven/")
 
 }
 
@@ -48,7 +47,7 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     testImplementation("io.strikt:strikt-core:0.28.1")
-    testImplementation("failfast:failfast:0.1")
+    testImplementation("com.christophsturm:failfast:0.1.1")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
