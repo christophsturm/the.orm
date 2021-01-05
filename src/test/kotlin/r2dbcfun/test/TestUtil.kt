@@ -9,14 +9,23 @@ import r2dbcfun.TestConfig
 import java.sql.DriverManager
 import java.util.*
 
+interface TestDatabase {
+    val name: String
 
-fun prepareH2(): ConnectionFactory {
-    val uuid = UUID.randomUUID()
-    val databaseName = "r2dbc-test$uuid"
-    val jdbcUrl = "jdbc:h2:mem:$databaseName;DB_CLOSE_DELAY=-1"
-    val flyway = Flyway.configure().dataSource(jdbcUrl, "", "").load()
-    flyway.migrate()
-    return ConnectionFactories.get("r2dbc:h2:mem:///$databaseName;DB_CLOSE_DELAY=-1")
+    fun prepare(): ConnectionFactory
+}
+
+class H2TestDatabase : TestDatabase {
+    override val name = "H2"
+
+    override fun prepare(): ConnectionFactory {
+        val uuid = UUID.randomUUID()
+        val databaseName = "r2dbc-test$uuid"
+        val jdbcUrl = "jdbc:h2:mem:$databaseName;DB_CLOSE_DELAY=-1"
+        val flyway = Flyway.configure().dataSource(jdbcUrl, "", "").load()
+        flyway.migrate()
+        return ConnectionFactories.get("r2dbc:h2:mem:///$databaseName;DB_CLOSE_DELAY=-1")
+    }
 }
 
 val postgresqlcontainer: PostgreSQLContainer<Nothing> by
@@ -28,43 +37,46 @@ lazy {
     }
 }
 
-fun getPostgresqlConnectionFactory(): ConnectionFactory {
-    val (databaseName, host, port) = preparePostgresDB()
-    return ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
-}
+class PSQLTestDatabase : TestDatabase {
+    override val name = "PSQL"
 
-fun preparePostgresDB(): NameHostAndPort {
-    Class.forName("org.postgresql.Driver")
-    val uuid = UUID.randomUUID()
-    val databaseName = "r2dbctest$uuid".replace("-", "_")
-    // testcontainers says that it returns an ip address but it returns a host name.
-    val host = postgresqlcontainer.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
-    val port = postgresqlcontainer.getMappedPort(5432)
-    val db =
-        DriverManager.getConnection("jdbc:postgresql://$host:$port/postgres", "test", "test")
-    db.createStatement().executeUpdate("create database $databaseName")
-    db.close()
+    override fun prepare(): ConnectionFactory {
+        val (databaseName, host, port) = preparePostgresDB()
+        return ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
+    }
 
-    val flyway =
-        Flyway.configure()
-            .dataSource("jdbc:postgresql://$host:$port/$databaseName", "test", "test")
-            .load()
-    flyway.migrate()
-    return NameHostAndPort(databaseName, host, port)
+    fun preparePostgresDB(): NameHostAndPort {
+        Class.forName("org.postgresql.Driver")
+        val uuid = UUID.randomUUID()
+        val databaseName = "r2dbctest$uuid".replace("-", "_")
+        // testcontainers says that it returns an ip address but it returns a host name.
+        val host = postgresqlcontainer.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
+        val port = postgresqlcontainer.getMappedPort(5432)
+        val db =
+            DriverManager.getConnection("jdbc:postgresql://$host:$port/postgres", "test", "test")
+        db.createStatement().executeUpdate("create database $databaseName")
+        db.close()
+
+        val flyway =
+            Flyway.configure()
+                .dataSource("jdbc:postgresql://$host:$port/$databaseName", "test", "test")
+                .load()
+        flyway.migrate()
+        return NameHostAndPort(databaseName, host, port)
+    }
 }
 
 data class NameHostAndPort(val databaseName: String, val host: String, val port: Int)
-data class Database(val name: String, val makeConnectionFactory: () -> ConnectionFactory)
 
-val h2 = Database("h2") { prepareH2() }
+val h2 = H2TestDatabase()
 val databases = if (TestConfig.H2_ONLY) {
     listOf(h2)
-} else listOf(h2, Database("psql") { getPostgresqlConnectionFactory() })
+} else listOf(h2, PSQLTestDatabase())
 
 suspend fun ContextDSL.forAllDatabases(tests: suspend ContextDSL.(ConnectionFactory) -> Unit) {
     databases.map { db ->
         context("on ${db.name}") {
-            val connectionFactory = db.makeConnectionFactory()
+            val connectionFactory = db.prepare()
             tests(connectionFactory)
         }
     }
