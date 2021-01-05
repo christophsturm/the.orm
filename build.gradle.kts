@@ -14,7 +14,6 @@ val kotlinVersion = BuildConfig.kotlinVersion
 val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.1"
 val log4j2Version = "2.14.0"
-val kotestVersion = "4.3.2"
 val vertxVersion = "4.0.0"
 
 plugins {
@@ -28,16 +27,14 @@ plugins {
     @Suppress("RemoveRedundantQualifierName")
     kotlin("plugin.serialization").version(r2dbcfun.BuildConfig.kotlinVersion)
     id("tech.formatter-kt.formatter") version "0.6.14"
-    id("io.kotest") version "0.2.6"
 }
 
 
 repositories {
     if (BuildConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
-    if (BuildConfig.useKotestSnapshot)
-        maven("https://oss.sonatype.org/content/repositories/snapshots/")
     jcenter()
     mavenCentral()
+
 }
 
 dependencies {
@@ -50,6 +47,7 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     testImplementation("io.strikt:strikt-core:0.28.1")
+    testImplementation("com.christophsturm:failfast:0.1.1")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
@@ -66,8 +64,6 @@ dependencies {
     testImplementation("io.projectreactor.tools:blockhound:1.0.4.RELEASE")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-    testImplementation("io.kotest:kotest-framework-engine-jvm:$kotestVersion")
-    testImplementation("io.kotest:kotest-plugins-pitest:$kotestVersion")
     testImplementation("io.mockk:mockk:1.10.4")
     testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.19")
     testRuntimeOnly("net.bytebuddy:byte-buddy-agent:1.10.19")
@@ -134,7 +130,6 @@ bintray {
         }
     )
 }
-
 plugins.withId("info.solidsoft.pitest") {
     configure<PitestPluginExtension> {
         //        verbose.set(true)
@@ -146,12 +141,12 @@ plugins.withId("info.solidsoft.pitest") {
             jvmArgs.set(listOf("-Xmx512m"))
         }
         //        testPlugin.set("junit5")
-        testPlugin.set("Kotest")
+        testPlugin.set("failfast")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
         targetClasses.set(setOf("r2dbcfun.*")) //by default "${project.group}.*"
         excludedClasses.set(setOf("""r2dbcfun.ResultMapper${'$'}findBy*"""))
         targetTests.set(setOf("r2dbcfun.*Test", "r2dbcfun.**.*Test"))
-        pitestVersion.set("1.5.2")
+        pitestVersion.set("1.6.2")
         threads.set(
             System.getenv("PITEST_THREADS")?.toInt() ?: Runtime.getRuntime().availableProcessors()
         )
@@ -180,3 +175,15 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
     reportfileName = "report"
 }
 tasks.wrapper { distributionType = Wrapper.DistributionType.ALL }
+
+val testMain = task("testMain", JavaExec::class) {
+    main = "r2dbcfun.test.AllTestsKt"
+    classpath = sourceSets["test"].runtimeClasspath
+    if (needsRedefinition)
+        jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
+}
+
+tasks.check {
+    dependsOn(testMain)
+}
+

@@ -1,13 +1,13 @@
 package r2dbcfun.query
 
-import io.kotest.core.spec.style.FunSpec
+import failfast.context
 import io.mockk.mockk
 import io.r2dbc.spi.Connection
 import r2dbcfun.ResultMapper
 import r2dbcfun.test.TestObjects.Entity
 
-class QueryFactoryTest : FunSpec({
-    context("typesafe query factory") {
+object QueryFactoryTest {
+    val context = context {
         val resultMapper = mockk<ResultMapper<Entity>>(relaxed = true)
         val queryFactory = QueryFactory(Entity::class, resultMapper)
         val connection = mockk<Connection>()
@@ -26,4 +26,4 @@ class QueryFactoryTest : FunSpec({
         }
     }
 
-})
+}

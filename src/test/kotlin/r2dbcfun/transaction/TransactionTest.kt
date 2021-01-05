@@ -1,6 +1,6 @@
 package r2dbcfun.transaction
 
-import io.kotest.core.spec.style.FunSpec
+import failfast.*
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -13,10 +13,17 @@ import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
-class TransactionTest : FunSpec({
-    context("transaction support") {
+fun main() {
+    Suite(TransactionTest.context).run()
+}
+object TransactionTest {
+    init {
+        // run this only once and not once per test
         mockkStatic(Publisher<Any>::awaitFirstOrNull)       // <*> is more correct but will throw an internal error
-        val connection = mockk<Connection>(relaxed = true)
+    }
+
+    val context = describe("transaction handling") {
+        val connection = mockk<Connection>("r2dbc connection")
         coEvery { connection.beginTransaction().awaitFirstOrNull() }.returns(null)
         coEvery { connection.commitTransaction().awaitFirstOrNull() }.returns(null)
         coEvery { connection.rollbackTransaction().awaitFirstOrNull() }.returns(null)
@@ -40,4 +47,4 @@ class TransactionTest : FunSpec({
 
         }
     }
-})
+}

@@ -1,9 +1,6 @@
 package r2dbcfun.test
 
-import io.kotest.core.TestConfiguration
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.core.spec.style.scopes.FunSpecContextScope
-import io.kotest.inspectors.forAll
+import failfast.ContextDSL
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import org.flywaydb.core.Flyway
@@ -22,9 +19,9 @@ fun prepareH2(): ConnectionFactory {
     return ConnectionFactories.get("r2dbc:h2:mem:///$databaseName;DB_CLOSE_DELAY=-1")
 }
 
-val container: PostgreSQLContainer<Nothing> by
+val postgresqlcontainer: PostgreSQLContainer<Nothing> by
 lazy {
-    PostgreSQLContainer<Nothing>("postgres:13").apply {
+    PostgreSQLContainer<Nothing>("postgres:13.1-alpine").apply {
 // WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
         withReuse(true)
         start()
@@ -41,8 +38,8 @@ fun preparePostgresDB(): NameHostAndPort {
     val uuid = UUID.randomUUID()
     val databaseName = "r2dbctest$uuid".replace("-", "_")
     // testcontainers says that it returns an ip address but it returns a host name.
-    val host = container.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
-    val port = container.getMappedPort(5432)
+    val host = postgresqlcontainer.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
+    val port = postgresqlcontainer.getMappedPort(5432)
     val db =
         DriverManager.getConnection("jdbc:postgresql://$host:$port/postgres", "test", "test")
     db.createStatement().executeUpdate("create database $databaseName")
@@ -64,24 +61,12 @@ val databases = if (TestConfig.H2_ONLY) {
     listOf(h2)
 } else listOf(h2, Database("psql") { getPostgresqlConnectionFactory() })
 
-fun forAllDatabases(
-    funSpec: FunSpec,
-    testName: String,
-    tests: suspend FunSpecContextScope.(ConnectionFactory) -> Unit
-) {
-    databases.forAll { db ->
-        funSpec.context("$testName on ${db.name}") {
+suspend fun ContextDSL.forAllDatabases(tests: suspend ContextDSL.(ConnectionFactory) -> Unit) {
+    databases.map { db ->
+        context("on ${db.name}") {
             val connectionFactory = db.makeConnectionFactory()
             tests(connectionFactory)
         }
     }
-}
 
-fun <T : Any> TestConfiguration.autoClose(wrapped: T, closeFunction: (T) -> Unit): T {
-    autoClose(object : AutoCloseable {
-        override fun close() {
-            closeFunction(wrapped)
-        }
-    })
-    return wrapped
 }
