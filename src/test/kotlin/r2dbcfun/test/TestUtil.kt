@@ -6,6 +6,7 @@ import io.r2dbc.spi.ConnectionFactory
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.TestConfig
+import r2dbcfun.TestConfig.ALLPSQL
 import java.sql.DriverManager
 import java.util.*
 
@@ -28,17 +29,18 @@ class H2TestDatabase : TestDatabase {
     }
 }
 
-val postgresqlcontainer: PostgreSQLContainer<Nothing> by
-lazy {
-    PostgreSQLContainer<Nothing>("postgres:13.1-alpine").apply {
-// WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
-        withReuse(true)
-        start()
-    }
-}
 
-class PSQLTestDatabase : TestDatabase {
-    override val name = "PSQL"
+class PSQLTestDatabase(val dockerImage: String) : TestDatabase {
+    override val name = dockerImage
+
+    val postgresqlcontainer: PostgreSQLContainer<Nothing> by
+    lazy {
+        PostgreSQLContainer<Nothing>(dockerImage).apply {
+// WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
+            withReuse(true)
+            start()
+        }
+    }
 
     override fun prepare(): ConnectionFactory {
         val (databaseName, host, port) = preparePostgresDB()
@@ -69,9 +71,22 @@ class PSQLTestDatabase : TestDatabase {
 data class NameHostAndPort(val databaseName: String, val host: String, val port: Int)
 
 val h2 = H2TestDatabase()
-val databases = if (TestConfig.H2_ONLY) {
-    listOf(h2)
-} else listOf(h2, PSQLTestDatabase())
+val psql13 = PSQLTestDatabase("postgres:13-alpine")
+val databases = when {
+    TestConfig.H2_ONLY -> {
+        listOf(h2)
+    }
+    ALLPSQL -> {
+        listOf(
+            h2, psql13,
+            PSQLTestDatabase("postgres:12-alpine"),
+            PSQLTestDatabase("postgres:11-alpine"),
+            PSQLTestDatabase("postgres:10-alpine"),
+            PSQLTestDatabase("postgres:9-alpine")
+        )
+    }
+    else -> listOf(h2, psql13)
+}
 
 suspend fun ContextDSL.forAllDatabases(tests: suspend ContextDSL.(ConnectionFactory) -> Unit) {
     databases.map { db ->

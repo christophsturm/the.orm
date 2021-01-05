@@ -19,10 +19,10 @@ fun main() {
     if (!H2_ONLY) {
         enableTestContainersReuse()
         if (CI)
-            postgresqlcontainer
+            psql13.postgresqlcontainer
         else
             thread {
-                postgresqlcontainer
+                psql13.postgresqlcontainer
             }
     }
     BlockHound.builder().allowBlockingCallsInside(

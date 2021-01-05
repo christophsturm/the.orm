@@ -20,7 +20,7 @@ object VertxTest {
     val context = describe("vertx support", disabled = TestConfig.H2_ONLY) {
 
         it("is not yet supported but seems to work with coroutines") {
-            val (databaseName, host, port) = PSQLTestDatabase().preparePostgresDB()
+            val (databaseName, host, port) = PSQLTestDatabase("postgres:13.1-alpine").preparePostgresDB()
             val connectOptions = PgConnectOptions()
                 .setPort(port)
                 .setHost(host)
