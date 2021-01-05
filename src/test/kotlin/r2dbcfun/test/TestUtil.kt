@@ -6,20 +6,21 @@ import io.r2dbc.spi.ConnectionFactory
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.TestConfig
-import r2dbcfun.TestConfig.ALLPSQL
+import r2dbcfun.TestConfig.ALL_PSQL
 import java.sql.DriverManager
 import java.util.*
 
 interface TestDatabase {
     val name: String
 
-    fun prepare(): ConnectionFactory
+    fun createDB(): ConnectionFactory
+    fun prepare() {}
 }
 
 class H2TestDatabase : TestDatabase {
     override val name = "H2"
 
-    override fun prepare(): ConnectionFactory {
+    override fun createDB(): ConnectionFactory {
         val uuid = UUID.randomUUID()
         val databaseName = "r2dbc-test$uuid"
         val jdbcUrl = "jdbc:h2:mem:$databaseName;DB_CLOSE_DELAY=-1"
@@ -30,10 +31,14 @@ class H2TestDatabase : TestDatabase {
 }
 
 
-class PSQLTestDatabase(val dockerImage: String) : TestDatabase {
+class PSQLTestDatabase(private val dockerImage: String) : TestDatabase {
     override val name = dockerImage
 
-    val postgresqlcontainer: PostgreSQLContainer<Nothing> by
+    override fun prepare() {
+        dockerContainer
+    }
+
+    val dockerContainer: PostgreSQLContainer<Nothing> by
     lazy {
         PostgreSQLContainer<Nothing>(dockerImage).apply {
 // WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
@@ -42,7 +47,7 @@ class PSQLTestDatabase(val dockerImage: String) : TestDatabase {
         }
     }
 
-    override fun prepare(): ConnectionFactory {
+    override fun createDB(): ConnectionFactory {
         val (databaseName, host, port) = preparePostgresDB()
         return ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
     }
@@ -52,8 +57,8 @@ class PSQLTestDatabase(val dockerImage: String) : TestDatabase {
         val uuid = UUID.randomUUID()
         val databaseName = "r2dbctest$uuid".replace("-", "_")
         // testcontainers says that it returns an ip address but it returns a host name.
-        val host = postgresqlcontainer.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
-        val port = postgresqlcontainer.getMappedPort(5432)
+        val host = dockerContainer.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
+        val port = dockerContainer.getMappedPort(5432)
         val db =
             DriverManager.getConnection("jdbc:postgresql://$host:$port/postgres", "test", "test")
         db.createStatement().executeUpdate("create database $databaseName")
@@ -76,7 +81,7 @@ val databases = when {
     TestConfig.H2_ONLY -> {
         listOf(h2)
     }
-    ALLPSQL -> {
+    ALL_PSQL -> {
         listOf(
             h2, psql13,
             PSQLTestDatabase("postgres:12-alpine"),
@@ -91,7 +96,7 @@ val databases = when {
 suspend fun ContextDSL.forAllDatabases(tests: suspend ContextDSL.(ConnectionFactory) -> Unit) {
     databases.map { db ->
         context("on ${db.name}") {
-            val connectionFactory = db.prepare()
+            val connectionFactory = db.createDB()
             tests(connectionFactory)
         }
     }

@@ -18,19 +18,25 @@ fun main() {
     }
     if (!H2_ONLY) {
         enableTestContainersReuse()
-        if (CI)
-            psql13.postgresqlcontainer
-        else
+        // prepare all database containers async at startup
+        val dbs = databases.map {
             thread {
-                psql13.postgresqlcontainer
+                it.prepare()
             }
+        }
+
+        // and on CI wait for the containers to avoid running into test timeouts
+        if (CI)
+            dbs.map { it.join() }
     }
     BlockHound.builder().allowBlockingCallsInside(
         UnixResolverDnsServerAddressStreamProvider::class.java.canonicalName,
         "parseEtcResolverSearchDomains"
     ).install()
 
-    Suite.fromClasses(findTestClasses(TransactionFunctionalTest::class)).run().check()
+    val classes = findTestClasses(TransactionFunctionalTest::class)
+    println(classes.joinToString { it.name })
+    Suite.fromClasses(classes).run().check()
 }
 
 
