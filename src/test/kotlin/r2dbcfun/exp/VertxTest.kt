@@ -9,7 +9,7 @@ import io.vertx.reactivex.sqlclient.RowSet
 import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.rx2.await
 import r2dbcfun.TestConfig
-import r2dbcfun.test.preparePostgresDB
+import r2dbcfun.test.PSQLTestDatabase
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
@@ -20,7 +20,7 @@ object VertxTest {
     val context = describe("vertx support", disabled = TestConfig.H2_ONLY) {
 
         it("is not yet supported but seems to work with coroutines") {
-            val (databaseName, host, port) = preparePostgresDB()
+            val (databaseName, host, port) = PSQLTestDatabase("postgres:13.1-alpine").preparePostgresDB()
             val connectOptions = PgConnectOptions()
                 .setPort(port)
                 .setHost(host)
