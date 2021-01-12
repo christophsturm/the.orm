@@ -6,7 +6,6 @@ import io.mockk.impl.JvmMockKGateway
 import io.netty.resolver.dns.UnixResolverDnsServerAddressStreamProvider
 import r2dbcfun.TestConfig.CI
 import r2dbcfun.TestConfig.H2_ONLY
-import r2dbcfun.test.functional.TransactionFunctionalTest
 import reactor.blockhound.BlockHound
 import java.io.File
 import kotlin.concurrent.thread
@@ -34,8 +33,8 @@ fun main() {
         "parseEtcResolverSearchDomains"
     ).install()
 
-    val classes = findTestClasses(TransactionFunctionalTest::class)
-    println(classes.joinToString { it.name })
+    val classes = findTestClasses()
+    println(classes.joinToString { it.simpleName!! })
     Suite.fromClasses(classes).run().check()
 }
 

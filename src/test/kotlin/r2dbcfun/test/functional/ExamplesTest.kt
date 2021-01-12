@@ -1,6 +1,6 @@
 package r2dbcfun.test.functional
 
-import failfast.context
+import failfast.describe
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -19,7 +19,7 @@ import r2dbcfun.transaction.transaction
  */
 
 object ExamplesTest {
-    val context = context {
+    val context = describe("examples") {
         forAllDatabases { connectionFactory ->
             val connection = connectionFactory.create().awaitSingle()!!
             val user = User(

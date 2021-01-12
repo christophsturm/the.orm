@@ -1,6 +1,6 @@
 package r2dbcfun.test.functional
 
-import failfast.context
+import failfast.describe
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitSingle
@@ -18,7 +18,7 @@ import strikt.assertions.isEqualTo
 import java.time.LocalDate
 
 object QueryFactoryFunctionalTest {
-    val context = context {
+    val context = describe("support for querying data") {
 
         forAllDatabases { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
@@ -30,7 +30,7 @@ object QueryFactoryFunctionalTest {
                 name = "a user",
                 email = "with email"
             )
-            context("query language") {
+            describe("query language") {
                 test("has a typesafe query api") {
                     val usersPerMonth = (1 until 12).map {
                         create(

@@ -2,7 +2,7 @@
 
 package r2dbcfun.exp
 
-import failfast.context
+import failfast.describe
 import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.asFlow
@@ -19,7 +19,7 @@ import strikt.assertions.isEqualTo
  * @see r2dbcfun.test.functional.RepositoryFunctionalTest for api usage.
  */
 object R2dbcTest {
-    val context = context {
+    val context = describe("the r2dbc api") {
         forAllDatabases()
         { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
