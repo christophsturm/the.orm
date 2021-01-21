@@ -1,7 +1,6 @@
 package r2dbcfun.test
 
-import failfast.FailFast.findTestClasses
-import failfast.Suite
+import failfast.runAllTests
 import io.mockk.impl.JvmMockKGateway
 import io.netty.resolver.dns.UnixResolverDnsServerAddressStreamProvider
 import r2dbcfun.TestConfig.CI
@@ -33,9 +32,7 @@ fun main() {
         "parseEtcResolverSearchDomains"
     ).install()
 
-    val classes = findTestClasses()
-    println(classes.joinToString { it.simpleName!! })
-    Suite.fromClasses(classes).run().check()
+    runAllTests()
 }
 
 
