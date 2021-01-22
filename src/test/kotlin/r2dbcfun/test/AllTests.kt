@@ -1,6 +1,6 @@
 package r2dbcfun.test
 
-import failfast.runAllTests
+import failfast.FailFast.runAllTests
 import io.mockk.impl.JvmMockKGateway
 import io.netty.resolver.dns.UnixResolverDnsServerAddressStreamProvider
 import r2dbcfun.TestConfig.CI
