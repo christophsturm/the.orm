@@ -1,6 +1,6 @@
 package r2dbcfun
 
-import failfast.context
+import failfast.describe
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.r2dbc.spi.Connection
@@ -10,7 +10,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
 object ConnectedRepositoryTest {
-    val context = context {
+    val context = describe(ConnectedRepository::class) {
         val connection = mockk<Connection>()
         test("exposes Repository and Connection") {
             expectThat(ConnectedRepository.create<Entity>(connection)) {

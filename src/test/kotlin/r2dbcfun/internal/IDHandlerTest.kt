@@ -1,11 +1,11 @@
 package r2dbcfun.internal
 
-import failfast.context
+import failfast.describe
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 object IDHandlerTest {
-    val context = context {
+    val context = describe(IDHandler::class) {
         context("assigning an id to a newly created instance") {
             test("assigns a long id") {
                 data class ClassWithLongId(val id: Long?, val otherProp: String)

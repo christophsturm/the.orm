@@ -1,7 +1,7 @@
 package r2dbcfun.test.functional
 
 import failfast.Suite
-import failfast.context
+import failfast.describe
 import io.r2dbc.spi.IsolationLevel
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -19,7 +19,7 @@ fun main() {
 }
 
 object TransactionFunctionalTest {
-    val context = context {
+    val context = describe("Transaction handling") {
 
         forAllDatabases { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
@@ -29,7 +29,7 @@ object TransactionFunctionalTest {
             )
             val repo = Repository.create<User>()
 
-            test("transaction isolation") {
+            it("has transaction isolation") {
                 val newConnection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
                 val isolationLevel = IsolationLevel.READ_COMMITTED
                 newConnection.setTransactionIsolationLevel(isolationLevel).awaitFirstOrNull()
