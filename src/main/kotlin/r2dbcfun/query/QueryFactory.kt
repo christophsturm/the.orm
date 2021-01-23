@@ -3,8 +3,9 @@ package r2dbcfun.query
 import io.r2dbc.spi.Connection
 import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import r2dbcfun.Repository
 import r2dbcfun.RepositoryException
 import r2dbcfun.ResultMapper
 import r2dbcfun.util.toIndexedPlaceholders
@@ -29,7 +30,8 @@ public fun <T : Any> KProperty1<T, LocalDate?>.between():
 
 public class QueryFactory<T : Any> internal constructor(
     kClass: KClass<T>,
-    private val resultMapper: ResultMapper<T>
+    private val resultMapper: ResultMapper<T>,
+    private val repository: Repository<T>
 ) {
     public companion object {
         public fun <T : Any, V> isNullCondition(property: KProperty1<T, V>): Condition<Unit> =
@@ -142,9 +144,11 @@ public class QueryFactory<T : Any> internal constructor(
         public suspend fun delete(): Int =
             createStatement(parameterValues, connection, deletePrefix + queryString).rowsUpdated.awaitSingle()
 
-        public suspend fun findOrCreate(): T {
-            return resultMapper.findBy(createStatement(parameterValues, connection, selectPrefix + queryString))
-                .single()
+        public suspend fun findOrCreate(creator: () -> T): T {
+            val existing = resultMapper.findBy(createStatement(parameterValues, connection, selectPrefix + queryString))
+                .singleOrNull()
+            return existing ?: repository.create(connection, creator())
+
         }
 
     }

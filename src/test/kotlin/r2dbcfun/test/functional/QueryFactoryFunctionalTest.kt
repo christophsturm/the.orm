@@ -2,6 +2,7 @@
 
 package r2dbcfun.test.functional
 
+import failfast.FailFast
 import failfast.describe
 import failfast.r2dbc.forAllDatabases
 import kotlinx.coroutines.flow.single
@@ -19,7 +20,12 @@ import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import java.time.LocalDate
+
+fun main() {
+    FailFast.runTest()
+}
 
 object QueryFactoryFunctionalTest {
     val context = describe("support for querying data") {
@@ -103,8 +109,16 @@ object QueryFactoryFunctionalTest {
                     val carrot = repo.create(Vegetable(name = "carrot"))
                     val queryByName = repo.repository.queryFactory.createQuery(Vegetable::name.isEqualTo())
                     it("finds an existing entity") {
-                        expectThat(queryByName.with(connection, "carrot").findOrCreate()).isEqualTo(carrot)
-
+                        expectThat(
+                            queryByName.with(connection, "carrot").findOrCreate { throw RuntimeException() }).isEqualTo(
+                            carrot
+                        )
+                    }
+                    it("creates a new entity if it does not yet exist") {
+                        expectThat(queryByName.with(connection, "tomato").findOrCreate { Vegetable(name = "tomato") }) {
+                            get { id }.isNotNull()
+                            get { name }.isEqualTo("tomato")
+                        }
                     }
                 }
             }
