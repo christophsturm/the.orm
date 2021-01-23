@@ -10,7 +10,7 @@ import java.io.File
 import kotlin.concurrent.thread
 
 fun main() {
-    // spin up dependencies in separate threads
+    // spin up dependencies in separate threads to speedup test
     thread {
         JvmMockKGateway()
     }

@@ -38,7 +38,7 @@ class PSQLTestDatabase(private val dockerImage: String) : TestDatabase {
         dockerContainer
     }
 
-    val dockerContainer: PostgreSQLContainer<Nothing> by
+    private val dockerContainer: PostgreSQLContainer<Nothing> by
     lazy {
         PostgreSQLContainer<Nothing>(dockerImage).apply {
 // WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")

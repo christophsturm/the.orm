@@ -11,12 +11,13 @@ public class NotFoundException(message: String) : RepositoryException(message)
 public class UniqueConstraintViolatedException(
     message: String,
     cause: Throwable?,
-    fieldName: KProperty1<*, *>?
-) : DataIntegrityViolationException(message, cause, fieldName)
+    field: KProperty1<*, *>?,
+    public val fieldValue: Any?
+) : DataIntegrityViolationException(message + " field:${field?.name} value:$fieldValue", cause, field)
 
 public open class DataIntegrityViolationException(
     message: String,
     cause: Throwable?,
-    public val fieldName: KProperty1<*, *>?
+    public val field: KProperty1<*, *>?
 ) :
     RepositoryException(message, cause)
