@@ -9,8 +9,13 @@ import kotlin.reflect.full.memberProperties
 
 internal class ExceptionInspector<T : Any>(private val tableName: String, kClass: KClass<T>) {
     private val fieldNamesProperties = kClass.memberProperties.associateBy { it.name.toLowerCase() }
-    fun r2dbcDataIntegrityViolationException(e: R2dbcDataIntegrityViolationException): DataIntegrityViolationException {
-        return UniqueConstraintViolatedException(e.message!!, e.cause, computeAffectedField(e))
+    fun r2dbcDataIntegrityViolationException(
+        e: R2dbcDataIntegrityViolationException,
+        instance: T
+    ): DataIntegrityViolationException {
+        val field = computeAffectedField(e)
+        val value = field?.invoke(instance)
+        return UniqueConstraintViolatedException(e.message!!, e.cause, field, value)
 
     }
 
