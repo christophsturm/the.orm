@@ -1,3 +1,5 @@
+@file:Suppress("NAME_SHADOWING")
+
 package r2dbcfun.test.functional
 
 import failfast.describe
@@ -5,6 +7,7 @@ import failfast.r2dbc.forAllDatabases
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitSingle
+import r2dbcfun.ConnectedRepository
 import r2dbcfun.NotFoundException
 import r2dbcfun.Repository
 import r2dbcfun.query.between
@@ -92,7 +95,17 @@ object QueryFactoryFunctionalTest {
                     expectThat(queryByName.with(connection, "kurt").delete()).isEqualTo(1)
                     expectThrows<NotFoundException> { repo.findById(connection, kurt.id!!) }
                     repo.findById(connection, freddi.id!!)
+                }
+                describe("findOrCreate") {
+                    data class Vegetable(val id: Long? = null, val name: String)
 
+                    val repo = ConnectedRepository.create<Vegetable>(connection)
+                    val carrot = repo.create(Vegetable(name = "carrot"))
+                    val queryByName = repo.repository.queryFactory.createQuery(Vegetable::name.isEqualTo())
+                    it("finds an existing entity") {
+                        expectThat(queryByName.with(connection, "carrot").findOrCreate()).isEqualTo(carrot)
+
+                    }
                 }
             }
 
