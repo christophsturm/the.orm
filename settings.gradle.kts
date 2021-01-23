@@ -7,3 +7,4 @@ pluginManagement {
 }
 
 rootProject.name = "r2dbcfun"
+includeBuild("../failfast")

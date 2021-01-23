@@ -1,6 +1,7 @@
 package r2dbcfun.test.functional
 
 import failfast.describe
+import failfast.r2dbc.forAllDatabases
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -8,7 +9,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.Repository
-import r2dbcfun.test.forAllDatabases
+import r2dbcfun.test.DBS
 import r2dbcfun.transaction.transaction
 
 
@@ -20,7 +21,7 @@ import r2dbcfun.transaction.transaction
 
 object ExamplesTest {
     val context = describe("examples") {
-        forAllDatabases { connectionFactory ->
+        forAllDatabases(DBS) { connectionFactory ->
             val connection = connectionFactory.create().awaitSingle()!!
             val user = User(
                 name = "a user",

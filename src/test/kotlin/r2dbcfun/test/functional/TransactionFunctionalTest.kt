@@ -2,13 +2,14 @@ package r2dbcfun.test.functional
 
 import failfast.Suite
 import failfast.describe
+import failfast.r2dbc.forAllDatabases
 import io.r2dbc.spi.IsolationLevel
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.Repository
 import r2dbcfun.query.like
-import r2dbcfun.test.forAllDatabases
+import r2dbcfun.test.DBS
 import r2dbcfun.transaction.transaction
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -21,7 +22,7 @@ fun main() {
 object TransactionFunctionalTest {
     val context = describe("Transaction handling") {
 
-        forAllDatabases { connectionFactory ->
+        forAllDatabases(DBS) { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
             val user = User(
                 name = "a user",

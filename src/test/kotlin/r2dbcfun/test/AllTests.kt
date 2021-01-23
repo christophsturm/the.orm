@@ -17,7 +17,7 @@ fun main() {
     if (!H2_ONLY) {
         enableTestContainersReuse()
         // prepare all database containers async at startup
-        val dbs = databases.map {
+        val dbs = DBS.databases.map {
             thread {
                 it.prepare()
             }

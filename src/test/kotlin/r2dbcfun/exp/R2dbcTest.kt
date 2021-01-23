@@ -3,12 +3,13 @@
 package r2dbcfun.exp
 
 import failfast.describe
+import failfast.r2dbc.forAllDatabases
 import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.executeInsert
-import r2dbcfun.test.forAllDatabases
+import r2dbcfun.test.DBS
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
@@ -20,7 +21,7 @@ import strikt.assertions.isEqualTo
  */
 object R2dbcTest {
     val context = describe("the r2dbc api") {
-        forAllDatabases()
+        forAllDatabases(DBS)
         { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
 

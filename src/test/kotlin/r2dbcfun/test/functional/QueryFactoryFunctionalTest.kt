@@ -1,6 +1,7 @@
 package r2dbcfun.test.functional
 
 import failfast.describe
+import failfast.r2dbc.forAllDatabases
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitSingle
@@ -10,7 +11,7 @@ import r2dbcfun.query.between
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.query.isNull
 import r2dbcfun.query.like
-import r2dbcfun.test.forAllDatabases
+import r2dbcfun.test.DBS
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactlyInAnyOrder
@@ -20,7 +21,7 @@ import java.time.LocalDate
 object QueryFactoryFunctionalTest {
     val context = describe("support for querying data") {
 
-        forAllDatabases { connectionFactory ->
+        forAllDatabases(DBS) { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
 
             val repo = Repository.create<User>()
