@@ -57,7 +57,7 @@ dependencies {
 //    testRuntimeOnly("io.projectreactor.netty:reactor-netty:0.9.14.RELEASE") // bump postgresql dependency
 
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.flywaydb:flyway-core:7.5.0")
+    testImplementation("org.flywaydb:flyway-core:7.5.1")
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
