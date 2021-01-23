@@ -27,7 +27,7 @@ internal class Inserter<T : Any>(
             try {
                 statement.executeInsert()
             } catch (e: R2dbcDataIntegrityViolationException) {
-                throw exceptionInspector.r2dbcDataIntegrityViolationException(e)
+                throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
             } catch (e: Exception) {
                 throw RepositoryException("error executing insert: $insertStatementString", e)
             }
