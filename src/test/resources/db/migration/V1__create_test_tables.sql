@@ -1,7 +1,7 @@
 create sequence users_id_seq no maxvalue;
 create table users
 (
-    id             bigint       not null default nextval('users_id_seq'),
+    id             bigint       not null default nextval('users_id_seq') primary key,
     name           varchar(100) not null,
     email          varchar(100) unique,
     is_cool        boolean,
@@ -13,8 +13,6 @@ create table users
 
 );
 
-alter table users
-    add primary key (id);
 
 
 create sequence serializable_users_id_seq no maxvalue;
@@ -39,3 +37,9 @@ alter table mismatchs
     add primary key (id);
 
 
+create sequence vegetables_id_seq no maxvalue;
+create table vegetables
+(
+    id   bigint      not null default nextval('vegetables_id_seq') primary key,
+    name varchar(20) not null
+);

@@ -9,7 +9,7 @@ import r2dbcfun.test.TestObjects.Entity
 object QueryFactoryTest {
     val context = describe(QueryFactory::class) {
         val resultMapper = mockk<ResultMapper<Entity>>(relaxed = true)
-        val queryFactory = QueryFactory(Entity::class, resultMapper)
+        val queryFactory = QueryFactory(Entity::class, resultMapper, mockk())
         val connection = mockk<Connection>()
         val condition = Entity::id.isEqualTo()
         test("can create query with one parameter") {
