@@ -9,6 +9,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.Repository
 import r2dbcfun.RepositoryException
 import r2dbcfun.ResultMapper
+import r2dbcfun.internal.IDHandler
 import r2dbcfun.util.toIndexedPlaceholders
 import r2dbcfun.util.toSnakeCase
 import java.time.LocalDate
@@ -32,7 +33,9 @@ public fun <T : Any> KProperty1<T, LocalDate?>.between():
 public class QueryFactory<T : Any> internal constructor(
     kClass: KClass<T>,
     private val resultMapper: ResultMapper<T>,
-    private val repository: Repository<T>
+    private val repository: Repository<T>,
+    private val idHandler: IDHandler<T>,
+    private val idProperty: KProperty1<T, Any>
 ) {
     public companion object {
         public fun <T : Any, V> isNullCondition(property: KProperty1<T, V>): Condition<Unit> =
@@ -150,6 +153,18 @@ public class QueryFactory<T : Any> internal constructor(
                 .singleOrNull()
             return existing ?: repository.create(connection, creator())
 
+        }
+
+        public suspend fun createOrUpdate(entity: T): T {
+            val existing = resultMapper.findBy(createStatement(parameterValues, connection, selectPrefix + queryString))
+                .singleOrNull()
+            if (existing == null) {
+                return repository.create(connection, entity)
+            } else {
+                val updatedInstance = idHandler.assignId(entity, idHandler.getId(idProperty.get(existing)))
+                repository.update(connection, updatedInstance)
+                return updatedInstance
+            }
         }
 
     }

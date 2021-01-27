@@ -27,6 +27,8 @@ fun main() {
     FailFast.runTest()
 }
 
+data class Vegetable(val id: Long? = null, val name: String, val weight: Double? = null)
+
 object QueryFactoryFunctionalTest {
     val context = describe("support for querying data") {
 
@@ -103,7 +105,6 @@ object QueryFactoryFunctionalTest {
                     repo.findById(connection, freddi.id!!)
                 }
                 describe("findOrCreate") {
-                    data class Vegetable(val id: Long? = null, val name: String)
 
                     val repo = ConnectedRepository.create<Vegetable>(connection)
                     val carrot = repo.create(Vegetable(name = "carrot"))
@@ -120,6 +121,29 @@ object QueryFactoryFunctionalTest {
                             get { name }.isEqualTo("tomato")
                         }
                     }
+                }
+                describe("createOrUpdate") {
+
+                    val repo = ConnectedRepository.create<Vegetable>(connection)
+                    val queryByName = repo.repository.queryFactory.createQuery(Vegetable::name.isEqualTo())
+                    it("creates a new entity if it does not yet exist") {
+                        expectThat(queryByName.with(connection, "tomato").createOrUpdate(Vegetable(name = "tomato"))) {
+                            get { id }.isNotNull()
+                            get { name }.isEqualTo("tomato")
+                        }
+                    }
+                    it("updates the existing entity if it already exists") {
+                        val carrot = repo.create(Vegetable(name = "carrot", weight = 10.0))
+                        expectThat(
+                            queryByName.with(connection, "carrot")
+                                .createOrUpdate(Vegetable(null, "carrot", weight = 20.0))
+                        ) {
+                            get<Long?> { id }.isEqualTo(carrot.id)
+                            get<String> { name }.isEqualTo("carrot")
+                            get<Double?> { weight }.isEqualTo(20.0)
+                        }
+                    }
+
                 }
             }
 
