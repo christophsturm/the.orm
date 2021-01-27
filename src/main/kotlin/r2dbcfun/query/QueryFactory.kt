@@ -1,6 +1,7 @@
 package r2dbcfun.query
 
 import io.r2dbc.spi.Connection
+import io.r2dbc.spi.R2dbcException
 import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.singleOrNull
@@ -128,12 +129,12 @@ public class QueryFactory<T : Any> internal constructor(
             val statement = try {
                 parameterValues.foldIndexed(connection.createStatement(sql))
                 { idx, statement, property -> statement.bind(idx, property) }
-            } catch (e: Exception) {
+            } catch (e: R2dbcException) {
                 throw RepositoryException("error creating statement for sql:$sql", e)
             }
             return try {
                 statement.execute().awaitSingle()
-            } catch (e: Exception) {
+            } catch (e: R2dbcException) {
                 throw RepositoryException("error executing select: $sql", e)
             }
         }

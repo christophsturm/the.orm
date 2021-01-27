@@ -3,9 +3,8 @@ package r2dbcfun.test.functional
 import failfast.Suite
 import failfast.describe
 import failfast.r2dbc.forAllDatabases
-import io.r2dbc.spi.IsolationLevel
-import kotlinx.coroutines.flow.toCollection
-import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.Repository
 import r2dbcfun.query.like
@@ -13,43 +12,40 @@ import r2dbcfun.test.DBS
 import r2dbcfun.transaction.transaction
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import java.util.*
 
 fun main() {
     Suite(TransactionFunctionalTest.context).run().check()
 }
 
 object TransactionFunctionalTest {
-    val context = describe("Transaction handling") {
+    val context = describe("FT: The transaction handling") {
+        val repo = Repository.create<User>()
+        val userNameLike = repo.queryFactory.createQuery(User::name.like())
 
         forAllDatabases(DBS) { connectionFactory ->
             val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
-            val user = User(
-                name = "a user",
-                email = "with email"
-            )
-            val repo = Repository.create<User>()
-
             it("has transaction isolation") {
-                val newConnection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
-                val isolationLevel = IsolationLevel.READ_COMMITTED
-                newConnection.setTransactionIsolationLevel(isolationLevel).awaitFirstOrNull()
-                val userNameLike = repo.queryFactory.createQuery(User::name.like())
-                val entries = 10
-                connection.transaction {
-                    repeat(entries) {
-                        repo.create(connection, user.copy(email = UUID.randomUUID().toString()))
-                    }
-                    expectThat(userNameLike.with(connection, "%").find().toCollection(mutableListOf()).size).isEqualTo(
-                        entries
-                    )
-                    expectThat(
-                        userNameLike.with(newConnection, "%").find().toCollection(mutableListOf()).size
-                    ).isEqualTo(0)
+                val differentConnection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
+                val user = connection.transaction {
+                    val user = repo.create(connection, User(name = "a user", email = "with email"))
+                    // the created user is visible in the same connection
+                    expectThat(userNameLike.with(connection, "%").find().single()).isEqualTo(user)
+                    // but a different connection does not see it
+                    expectThat(userNameLike.with(differentConnection, "%").find().count()).isEqualTo(0)
+                    user
                 }
-                expectThat(userNameLike.with(newConnection, "%").find().toCollection(mutableListOf()).size).isEqualTo(
-                    entries
-                )
+                // now the other connection sees them too
+                expectThat(userNameLike.with(differentConnection, "%").find().single()).isEqualTo(user)
+            }
+            it("rolls back when the transaction if the block fails") {
+                try {
+                    connection.transaction {
+                        repo.create(connection, User(name = "a user", email = "with email"))
+                        throw RuntimeException("failed (oops)")
+                    }
+                } catch (e: Exception) {
+                }
+                expectThat(userNameLike.with(connection, "%").find().count()).isEqualTo(0)
             }
         }
     }

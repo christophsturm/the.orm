@@ -16,6 +16,7 @@ import strikt.assertions.isTrue
 fun main() {
     Suite(TransactionTest.context).run()
 }
+
 object TransactionTest {
     init {
         // run this only once and not once per test
@@ -27,7 +28,7 @@ object TransactionTest {
         coEvery { connection.beginTransaction().awaitFirstOrNull() }.returns(null)
         coEvery { connection.commitTransaction().awaitFirstOrNull() }.returns(null)
         coEvery { connection.rollbackTransaction().awaitFirstOrNull() }.returns(null)
-        test("calls block") {
+        it("calls block") {
             var called = false
             connection.transaction {
                 coVerify { connection.beginTransaction().awaitFirstOrNull() }
@@ -35,6 +36,9 @@ object TransactionTest {
             }
             expectThat(called).isTrue()
             coVerify { connection.commitTransaction().awaitFirstOrNull() }
+        }
+        it("returns the result of the block") {
+            expectThat(connection.transaction { "RESULT" }).isEqualTo("RESULT")
         }
         test("rolls back transaction if exception occurs") {
             val runtimeException = RuntimeException("failed")

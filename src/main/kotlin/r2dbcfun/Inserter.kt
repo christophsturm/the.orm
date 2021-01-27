@@ -22,14 +22,12 @@ internal class Inserter<T : Any>(
     suspend fun create(connection: Connection, instance: T): T {
         val statement =
             insertProperties.foldIndexed(connection.createStatement(insertStatementString))
-                { idx, statement, property -> property.bindValue(statement, idx, instance) }
+            { idx, statement, property -> property.bindValue(statement, idx, instance) }
         val id =
             try {
                 statement.executeInsert()
             } catch (e: R2dbcDataIntegrityViolationException) {
                 throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
-            } catch (e: Exception) {
-                throw RepositoryException("error executing insert: $insertStatementString", e)
             }
 
         return idHandler.assignId(instance, id)
