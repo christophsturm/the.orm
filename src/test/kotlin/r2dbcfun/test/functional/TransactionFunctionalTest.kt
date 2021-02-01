@@ -37,7 +37,7 @@ object TransactionFunctionalTest {
                 // now the other connection sees them too
                 expectThat(userNameLike.with(differentConnection, "%").find().single()).isEqualTo(user)
             }
-            it("rolls back when the transaction if the block fails") {
+            it("rolls back the transaction if the block fails") {
                 try {
                     connection.transaction {
                         repo.create(connection, User(name = "a user", email = "with email"))

@@ -80,6 +80,8 @@ dependencies {
     testImplementation("io.vertx:vertx-pg-client:$vertxVersion")
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
+    testImplementation("org.junit.platform:junit-platform-launcher:1.7.0")
+
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
 kotlin { explicitApi() }
