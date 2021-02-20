@@ -40,6 +40,7 @@ alter table mismatchs
 create sequence vegetables_id_seq no maxvalue;
 create table vegetables
 (
-    id   bigint      not null default nextval('vegetables_id_seq') primary key,
-    name varchar(20) not null
+    id     bigint      not null default nextval('vegetables_id_seq') primary key,
+    name   varchar(20) not null unique,
+    weight decimal(5, 2)
 );
