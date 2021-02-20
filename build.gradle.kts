@@ -32,7 +32,7 @@ plugins {
 
 repositories {
     if (BuildConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
-    maven { setUrl("https://dl.bintray.com/christophsturm/maven/") }
+    maven { setUrl("https://oss.sonatype.org") }
     jcenter()
     mavenCentral()
 
@@ -48,8 +48,8 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     testImplementation("io.strikt:strikt-core:0.28.1")
-    testImplementation("com.christophsturm:failfast:0.2.1")
-    testImplementation("com.christophsturm:failfast-r2dbc:0.2.1")
+    testImplementation("com.christophsturm.failfast:failfast:0.3.0")
+    testImplementation("com.christophsturm.failfast:failfast-r2dbc:0.3.0")
 
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
@@ -80,14 +80,17 @@ dependencies {
     testImplementation("io.vertx:vertx-pg-client:$vertxVersion")
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
-    testImplementation("org.junit.platform:junit-platform-launcher:1.7.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.7.0")
 
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
 kotlin { explicitApi() }
 val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal
 tasks {
-    withType<KotlinCompile> { kotlinOptions.jvmTarget = "1.8" }
+    withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.useIR = true
+    }
     withType<Test> {
         enabled = false
     }
