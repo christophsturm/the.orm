@@ -90,7 +90,7 @@ val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.
 tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
-//        kotlinOptions.useIR = true
+        kotlinOptions.useIR = true
     }
     withType<Test> {
         enabled = false
