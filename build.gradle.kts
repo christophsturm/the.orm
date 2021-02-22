@@ -5,16 +5,18 @@ import com.jfrog.bintray.gradle.BintrayExtension
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import r2dbcfun.BuildConfig
+import r2dbcfun.BuildConfig.failfastVersion
 
 group = "r2dbcfun"
 version = "0.2.2"
 
 val coroutinesVersion = "1.4.2"
 val kotlinVersion = BuildConfig.kotlinVersion
-val serializationVersion = "1.0.1"
-val testcontainersVersion = "1.15.1"
+val serializationVersion = "1.1.0"
+val testcontainersVersion = "1.15.2"
 val log4j2Version = "2.14.0"
-val vertxVersion = "4.0.0"
+val vertxVersion = "4.0.2"
+val byteBuddyVersion = "1.10.21"
 
 plugins {
     java
@@ -26,7 +28,6 @@ plugins {
     id("com.jfrog.bintray") version "1.8.5"
     @Suppress("RemoveRedundantQualifierName")
     kotlin("plugin.serialization").version(r2dbcfun.BuildConfig.kotlinVersion)
-    id("tech.formatter-kt.formatter") version "0.6.14"
 }
 
 
@@ -47,29 +48,29 @@ dependencies {
     api("io.r2dbc:r2dbc-spi:0.8.3.RELEASE")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
-    testImplementation("io.strikt:strikt-core:0.28.1")
-    testImplementation("com.christophsturm.failfast:failfast:0.3.0")
-    testImplementation("com.christophsturm.failfast:failfast-r2dbc:0.3.0")
+    testImplementation("io.strikt:strikt-core:0.29.0")
+    testImplementation("com.christophsturm.failfast:failfast:$failfastVersion")
+    testImplementation("com.christophsturm.failfast:failfast-r2dbc:$failfastVersion")
 
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
-    testRuntimeOnly("org.postgresql:postgresql:42.2.18")
+    testRuntimeOnly("org.postgresql:postgresql:42.2.19")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.6.RELEASE")
     testRuntimeOnly("io.r2dbc:r2dbc-pool:0.8.5.RELEASE")
 //    testRuntimeOnly("io.projectreactor.netty:reactor-netty:0.9.14.RELEASE") // bump postgresql dependency
 
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.flywaydb:flyway-core:7.5.1")
+    testImplementation("org.flywaydb:flyway-core:7.5.4")
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
     testImplementation("io.projectreactor.tools:blockhound:1.0.4.RELEASE")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-    testImplementation("io.mockk:mockk:1.10.5")
-    testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.19")
-    testRuntimeOnly("net.bytebuddy:byte-buddy-agent:1.10.19")
+    testImplementation("io.mockk:mockk:1.10.6")
+    testRuntimeOnly("net.bytebuddy:byte-buddy:$byteBuddyVersion")
+    testRuntimeOnly("net.bytebuddy:byte-buddy-agent:$byteBuddyVersion")
 
     testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
@@ -80,7 +81,7 @@ dependencies {
     testImplementation("io.vertx:vertx-pg-client:$vertxVersion")
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.7.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.7.1")
 
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
@@ -89,7 +90,7 @@ val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.
 tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
-        kotlinOptions.useIR = true
+//        kotlinOptions.useIR = true
     }
     withType<Test> {
         enabled = false
