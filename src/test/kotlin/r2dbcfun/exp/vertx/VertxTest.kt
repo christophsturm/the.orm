@@ -13,6 +13,7 @@ import kotlinx.coroutines.rx2.await
 import r2dbcfun.TestConfig
 import r2dbcfun.test.DBS
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
 /*
@@ -43,6 +44,14 @@ object VertxTest {
             val result: RowSet<Row> =
                 client.preparedQuery("SELECT * FROM users WHERE id=$1").rxExecute(Tuple.of(1)).await()
             expectThat(result.size()).isEqualTo(0)
+        }
+        it("can insert with autoincrement") {
+            val result: RowSet<Row> =
+                client.preparedQuery("insert into users(name) values ($1) returning id").rxExecute(Tuple.of("belle"))
+                    .await()
+            expectThat(result.size()).isEqualTo(1)
+            expectThat(result.columnsNames()).containsExactly("id")
+            expectThat(result.single().get(Integer::class.java, "id").toInt()).isEqualTo(1)
         }
     }
 }
