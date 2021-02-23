@@ -12,7 +12,7 @@ version = "0.2.2"
 
 val coroutinesVersion = "1.4.2"
 val kotlinVersion = BuildConfig.kotlinVersion
-val serializationVersion = "1.1.0"
+val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.2"
 val log4j2Version = "2.14.0"
 val vertxVersion = "4.0.2"
