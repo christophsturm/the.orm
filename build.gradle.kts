@@ -1,7 +1,6 @@
 @file:Suppress("ConstantConditionIf")
 
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import com.jfrog.bintray.gradle.BintrayExtension
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import r2dbcfun.BuildConfig
@@ -25,7 +24,6 @@ plugins {
     id("com.github.ben-manes.versions") version "0.36.0"
     id("info.solidsoft.pitest") version "1.5.2"
     `maven-publish`
-    id("com.jfrog.bintray") version "1.8.5"
     @Suppress("RemoveRedundantQualifierName")
     kotlin("plugin.serialization").version(r2dbcfun.BuildConfig.kotlinVersion)
 }
@@ -33,7 +31,6 @@ plugins {
 
 repositories {
     if (BuildConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
-    maven { setUrl("https://oss.sonatype.org") }
     jcenter()
     mavenCentral()
 
@@ -104,36 +101,6 @@ artifacts {
     add("archives", tasks["sourceJar"])
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            artifact(tasks["sourceJar"])
-            groupId = project.group as String
-            artifactId = "r2dbcfun"
-            version = project.version as String
-        }
-    }
-}
-
-// BINTRAY_API_KEY= ... ./gradlew clean build publish bintrayUpload
-bintray {
-    user = "christophsturm"
-    key = System.getenv("BINTRAY_API_KEY")
-    publish = true
-    setPublications("mavenJava")
-    pkg(
-        delegateClosureOf<BintrayExtension.PackageConfig> {
-            repo = "maven"
-            name = "r2dbcfun"
-            version(
-                delegateClosureOf<BintrayExtension.VersionConfig> {
-                    name = project.version as String
-                }
-            )
-        }
-    )
-}
 plugins.withId("info.solidsoft.pitest") {
     configure<PitestPluginExtension> {
         //        verbose.set(true)
