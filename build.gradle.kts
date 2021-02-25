@@ -41,11 +41,11 @@ repositories {
 
 dependencies {
     implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
-    implementation(enforcedPlatform("io.r2dbc:r2dbc-bom:Arabba-SR8"))
+//    implementation(enforcedPlatform("io.r2dbc:r2dbc-bom:Arabba-SR8"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    api("io.r2dbc:r2dbc-spi:0.8.3.RELEASE")
+    api("io.r2dbc:r2dbc-spi:0.8.4.RELEASE")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     testImplementation("io.strikt:strikt-core:0.29.0")
@@ -56,8 +56,8 @@ dependencies {
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
     testRuntimeOnly("org.postgresql:postgresql:42.2.19")
-    testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.6.RELEASE")
-    testRuntimeOnly("io.r2dbc:r2dbc-pool:0.8.5.RELEASE")
+    testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.7.RELEASE")
+    testRuntimeOnly("io.r2dbc:r2dbc-pool:0.8.6.RELEASE")
 //    testRuntimeOnly("io.projectreactor.netty:reactor-netty:0.9.14.RELEASE") // bump postgresql dependency
 
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
@@ -90,7 +90,6 @@ val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.
 tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
-//        kotlinOptions.useIR = true
     }
     withType<Test> {
         enabled = false
