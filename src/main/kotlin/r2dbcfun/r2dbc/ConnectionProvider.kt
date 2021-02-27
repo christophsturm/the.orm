@@ -46,8 +46,12 @@ class R2dbcResult(private val result: io.r2dbc.spi.Result) {
     }
 }
 
-class R2dbcRow(private val row: Row) {
-    fun getLazy(key: String): LazyResult<Any?> {
+interface DBRow {
+    fun getLazy(key: String): LazyResult<Any?>
+}
+
+class R2dbcRow(private val row: Row) : DBRow {
+    override fun getLazy(key: String): LazyResult<Any?> {
         val value = row.get(key)
         return if (value is Clob) LazyResult { resolveClob(value) } else LazyResult { value }
     }
