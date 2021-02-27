@@ -152,6 +152,12 @@ val testMain = tasks.register("testMain", JavaExec::class) {
     if (needsRedefinition)
         jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
 }
+tasks.register("autoTest", JavaExec::class) {
+    main = "r2dbcfun.test.AutoTestKt"
+    classpath = sourceSets["test"].runtimeClasspath
+    if (needsRedefinition)
+        jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
+}
 
 tasks.check {
     dependsOn(testMain)
