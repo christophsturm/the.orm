@@ -16,14 +16,13 @@ internal class ResultMapper<T : Any>(
 
         val parameters: Flow<List<ResultPair>> =
             queryResult
-                .map { row, _ ->
+                .map { row ->
                     classInfo.fieldInfo
                         .map { entry ->
                             val result = row.get(entry.snakeCaseName)
                             ResultPair(entry, result)
                         }
                 }
-                .asFlow()
         return parameters.map { values ->
             val resolvedParameters =
                 values.associateTo(HashMap()) { (fieldInfo, result) ->
