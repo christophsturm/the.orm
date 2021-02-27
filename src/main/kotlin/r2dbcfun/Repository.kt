@@ -10,14 +10,14 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
-public interface PK {
-    public val id: Long
+interface PK {
+    val id: Long
 }
 
-public class Repository<T : Any>(kClass: KClass<T>) {
-    public companion object {
+class Repository<T : Any>(kClass: KClass<T>) {
+    companion object {
         /** creates a Repo for the entity <T> */
-        public inline fun <reified T : Any> create(): Repository<T> = Repository(T::class)
+        inline fun <reified T : Any> create(): Repository<T> = Repository(T::class)
     }
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
@@ -42,7 +42,7 @@ public class Repository<T : Any>(kClass: KClass<T>) {
 
     private val classInfo = ClassInfo(kClass, idHandler)
 
-    public val queryFactory: QueryFactory<T> =
+    val queryFactory: QueryFactory<T> =
         QueryFactory(kClass, ResultMapper(tableName, classInfo), this, idHandler, idProperty)
 
     /**
@@ -51,7 +51,7 @@ public class Repository<T : Any>(kClass: KClass<T>) {
      * @param instance the instance that will be used to set the fields of the newly created record
      * @return a copy of the instance with an assigned id field.
      */
-    public suspend fun create(connection: ConnectionProvider, instance: T): T =
+    suspend fun create(connection: ConnectionProvider, instance: T): T =
         inserter.create(connection.connection, instance)
 
     /**
@@ -59,7 +59,7 @@ public class Repository<T : Any>(kClass: KClass<T>) {
      *
      * @param instance the instance that will be used to update the record
      */
-    public suspend fun update(connection: ConnectionProvider, instance: T) {
+    suspend fun update(connection: ConnectionProvider, instance: T) {
         updater.update(connection.connection, instance)
     }
 
@@ -70,7 +70,7 @@ public class Repository<T : Any>(kClass: KClass<T>) {
      *
      * @param id the primary key of the object to load
      */
-    public suspend fun findById(connection: ConnectionProvider, id: PK): T {
+    suspend fun findById(connection: ConnectionProvider, id: PK): T {
         return try {
             byIdQuery.with(connection, id.id).find().single()
         } catch (e: NoSuchElementException) {
