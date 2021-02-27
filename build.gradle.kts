@@ -1,7 +1,6 @@
 @file:Suppress("ConstantConditionIf")
 
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import com.jfrog.bintray.gradle.BintrayExtension
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import r2dbcfun.BuildConfig
@@ -12,7 +11,7 @@ version = "0.2.2"
 
 val coroutinesVersion = "1.4.2"
 val kotlinVersion = BuildConfig.kotlinVersion
-val serializationVersion = "1.1.0"
+val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.2"
 val log4j2Version = "2.14.0"
 val vertxVersion = "4.0.2"
@@ -25,7 +24,6 @@ plugins {
     id("com.github.ben-manes.versions") version "0.36.0"
     id("info.solidsoft.pitest") version "1.5.2"
     `maven-publish`
-    id("com.jfrog.bintray") version "1.8.5"
     @Suppress("RemoveRedundantQualifierName")
     kotlin("plugin.serialization").version(r2dbcfun.BuildConfig.kotlinVersion)
 }
@@ -33,7 +31,6 @@ plugins {
 
 repositories {
     if (BuildConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
-    maven { setUrl("https://oss.sonatype.org") }
     jcenter()
     mavenCentral()
 
@@ -41,11 +38,11 @@ repositories {
 
 dependencies {
     implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
-    implementation(enforcedPlatform("io.r2dbc:r2dbc-bom:Arabba-SR8"))
+//    implementation(enforcedPlatform("io.r2dbc:r2dbc-bom:Arabba-SR8"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    api("io.r2dbc:r2dbc-spi:0.8.3.RELEASE")
+    api("io.r2dbc:r2dbc-spi:0.8.4.RELEASE")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     testImplementation("io.strikt:strikt-core:0.29.0")
@@ -56,8 +53,8 @@ dependencies {
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
     testRuntimeOnly("org.postgresql:postgresql:42.2.19")
-    testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.6.RELEASE")
-    testRuntimeOnly("io.r2dbc:r2dbc-pool:0.8.5.RELEASE")
+    testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.7.RELEASE")
+    testRuntimeOnly("io.r2dbc:r2dbc-pool:0.8.6.RELEASE")
 //    testRuntimeOnly("io.projectreactor.netty:reactor-netty:0.9.14.RELEASE") // bump postgresql dependency
 
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
@@ -90,7 +87,6 @@ val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.
 tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
-//        kotlinOptions.useIR = true
     }
     withType<Test> {
         enabled = false
@@ -105,36 +101,6 @@ artifacts {
     add("archives", tasks["sourceJar"])
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            artifact(tasks["sourceJar"])
-            groupId = project.group as String
-            artifactId = "r2dbcfun"
-            version = project.version as String
-        }
-    }
-}
-
-// BINTRAY_API_KEY= ... ./gradlew clean build publish bintrayUpload
-bintray {
-    user = "christophsturm"
-    key = System.getenv("BINTRAY_API_KEY")
-    publish = true
-    setPublications("mavenJava")
-    pkg(
-        delegateClosureOf<BintrayExtension.PackageConfig> {
-            repo = "maven"
-            name = "r2dbcfun"
-            version(
-                delegateClosureOf<BintrayExtension.VersionConfig> {
-                    name = project.version as String
-                }
-            )
-        }
-    )
-}
 plugins.withId("info.solidsoft.pitest") {
     configure<PitestPluginExtension> {
         //        verbose.set(true)
