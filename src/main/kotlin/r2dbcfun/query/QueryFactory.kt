@@ -1,14 +1,10 @@
 package r2dbcfun.query
 
-import io.r2dbc.spi.Connection
-import io.r2dbc.spi.R2dbcException
-import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.ConnectionProvider
 import r2dbcfun.Repository
-import r2dbcfun.RepositoryException
 import r2dbcfun.ResultMapper
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.util.toIndexedPlaceholders
@@ -125,46 +121,26 @@ class QueryFactory<T : Any> internal constructor(
         private val queryString: String,
         private val parameterValues: Sequence<Any>
     ) {
-        private suspend fun executeSelect(
-            parameterValues: Sequence<Any>,
-            connection: Connection,
-            sql: String
-        ): Result {
-            val statement = try {
-                parameterValues.foldIndexed(connection.createStatement(sql))
-                { idx, statement, property -> statement.bind(idx, property) }
-            } catch (e: R2dbcException) {
-                throw RepositoryException("error creating statement for sql:$sql", e)
-            }
-            return try {
-                statement.execute().awaitSingle()
-            } catch (e: R2dbcException) {
-                throw RepositoryException("error executing select: $sql", e)
-            }
-        }
 
         suspend fun find(): Flow<T> =
             resultMapper.mapQueryResult(
-                executeSelect(
+                connection.connection.executeSelect(
                     parameterValues,
-                    connection.connection,
                     selectPrefix + queryString
                 )
             )
 
         suspend fun delete(): Int =
-            executeSelect(
+            connection.connection.executeSelect(
                 parameterValues,
-                connection.connection,
                 deletePrefix + queryString
             ).rowsUpdated.awaitSingle()
 
         suspend fun findOrCreate(creator: () -> T): T {
             val existing =
                 resultMapper.mapQueryResult(
-                    executeSelect(
+                    connection.connection.executeSelect(
                         parameterValues,
-                        connection.connection,
                         selectPrefix + queryString
                     )
                 )
@@ -176,9 +152,8 @@ class QueryFactory<T : Any> internal constructor(
         suspend fun createOrUpdate(entity: T): T {
             val existing =
                 resultMapper.mapQueryResult(
-                    executeSelect(
+                    connection.connection.executeSelect(
                         parameterValues,
-                        connection.connection,
                         selectPrefix + queryString
                     )
                 )
@@ -195,3 +170,4 @@ class QueryFactory<T : Any> internal constructor(
     }
 
 }
+
