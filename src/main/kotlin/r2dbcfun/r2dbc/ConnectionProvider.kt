@@ -18,8 +18,20 @@ class ConnectionProvider(val r2dbcConnection: R2dbcConnection) {
     suspend fun <T> transaction(function: suspend () -> T): T = r2dbcConnection.connection.transaction(function)
 }
 
-class R2dbcConnection(val connection: io.r2dbc.spi.Connection) {
+interface DatabaseConnection {
     suspend fun executeSelect(
+        parameterValues: Sequence<Any>,
+        sql: String
+    ): R2dbcResult
+
+    fun beginTransaction(): Publisher<Void>
+    fun commitTransaction(): Publisher<Void>
+    fun createStatement(sql: String): Statement
+    fun rollbackTransaction(): Publisher<Void>
+}
+
+class R2dbcConnection(val connection: io.r2dbc.spi.Connection) : DatabaseConnection {
+    override suspend fun executeSelect(
         parameterValues: Sequence<Any>,
         sql: String
     ): R2dbcResult {
@@ -38,19 +50,19 @@ class R2dbcConnection(val connection: io.r2dbc.spi.Connection) {
         )
     }
 
-    fun beginTransaction(): Publisher<Void> {
+    override fun beginTransaction(): Publisher<Void> {
         return connection.beginTransaction()
     }
 
-    fun commitTransaction(): Publisher<Void> {
+    override fun commitTransaction(): Publisher<Void> {
         return connection.commitTransaction()
     }
 
-    fun createStatement(sql: String): Statement {
+    override fun createStatement(sql: String): Statement {
         return connection.createStatement(sql)
     }
 
-    fun rollbackTransaction(): Publisher<Void> {
+    override fun rollbackTransaction(): Publisher<Void> {
         return connection.rollbackTransaction()
     }
 }

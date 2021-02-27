@@ -2,7 +2,7 @@ package r2dbcfun
 
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.internal.IDHandler
-import r2dbcfun.r2dbc.R2dbcConnection
+import r2dbcfun.r2dbc.DatabaseConnection
 import r2dbcfun.util.toSnakeCase
 import kotlin.reflect.KProperty1
 
@@ -23,7 +23,7 @@ internal class Updater<T : Any>(
             @Suppress("SqlResolve") "UPDATE $table set $propertiesString where id=$1"
         }
 
-    suspend fun update(connection: R2dbcConnection, instance: T) {
+    suspend fun update(connection: DatabaseConnection, instance: T) {
         val statement =
             updateProperties.foldIndexed(
                 connection.createStatement(updateStatementString)
