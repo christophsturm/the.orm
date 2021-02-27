@@ -1,7 +1,6 @@
 package r2dbcfun
 
 import io.r2dbc.spi.Clob
-import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
@@ -19,7 +18,10 @@ internal class ResultMapper<T : Any>(
             queryResult
                 .map { row, _ ->
                     classInfo.fieldInfo
-                        .map { entry -> ResultPair(entry, row.get(entry.snakeCaseName)) }
+                        .map { entry ->
+                            val result = row.get(entry.snakeCaseName)
+                            ResultPair(entry, result)
+                        }
                 }
                 .asFlow()
         return parameters.map { values ->

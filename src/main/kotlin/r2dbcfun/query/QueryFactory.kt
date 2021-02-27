@@ -2,7 +2,6 @@ package r2dbcfun.query
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.ConnectionProvider
 import r2dbcfun.Repository
 import r2dbcfun.ResultMapper
@@ -134,7 +133,7 @@ class QueryFactory<T : Any> internal constructor(
             connection.connection.executeSelect(
                 parameterValues,
                 deletePrefix + queryString
-            ).rowsUpdated.awaitSingle()
+            ).rowsUpdated()
 
         suspend fun findOrCreate(creator: () -> T): T {
             val existing =
