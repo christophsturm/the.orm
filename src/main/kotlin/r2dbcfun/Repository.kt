@@ -53,7 +53,7 @@ class Repository<T : Any>(kClass: KClass<T>) {
      * @return a copy of the instance with an assigned id field.
      */
     suspend fun create(connection: ConnectionProvider, instance: T): T =
-        inserter.create(connection.r2dbcConnection, instance)
+        inserter.create(connection.dbConnection, instance)
 
     /**
      * updates a record in the database.
@@ -61,7 +61,7 @@ class Repository<T : Any>(kClass: KClass<T>) {
      * @param instance the instance that will be used to update the record
      */
     suspend fun update(connection: ConnectionProvider, instance: T) {
-        updater.update(connection.r2dbcConnection, instance)
+        updater.update(connection.dbConnection, instance)
     }
 
     private val byIdQuery = queryFactory.createQuery(isEqualToCondition(idProperty))

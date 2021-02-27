@@ -15,7 +15,7 @@ object ConnectedRepositoryTest {
         test("exposes Repository and Connection") {
             expectThat(ConnectedRepository.create<Entity>(connection)) {
                 get { repository }.isA<Repository<Entity>>()
-                get { this.connection }.isEqualTo(connection)
+                get { this.connectionProvider }.isEqualTo(connection)
             }
         }
 

@@ -161,7 +161,7 @@ object RepositoryFunctionalTest {
                                 )
                                 .id!!
                         @Suppress("SqlResolve") val color =
-                            connection.r2dbcConnection.createStatement("select * from Users where id = $1")
+                            connection.dbConnection.createStatement("select * from Users where id = $1")
                                 .bind("$1", id.id)
                                 .execute()
                                 .map { row ->
