@@ -12,7 +12,7 @@ internal class ResultMapper<T : Any>(
     private val classInfo: ClassInfo<T>
 ) {
 
-    internal suspend fun findBy(queryResult: Result): Flow<T> {
+    internal suspend fun mapQueryResult(queryResult: Result): Flow<T> {
         data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: Any?)
 
         val parameters: Flow<List<ResultPair>> =

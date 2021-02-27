@@ -125,7 +125,7 @@ class QueryFactory<T : Any> internal constructor(
         private val queryString: String,
         private val parameterValues: Sequence<Any>
     ) {
-        private suspend fun createStatement(
+        private suspend fun executeSelect(
             parameterValues: Sequence<Any>,
             connection: Connection,
             sql: String
@@ -144,10 +144,16 @@ class QueryFactory<T : Any> internal constructor(
         }
 
         suspend fun find(): Flow<T> =
-            resultMapper.findBy(createStatement(parameterValues, connection.connection, selectPrefix + queryString))
+            resultMapper.mapQueryResult(
+                executeSelect(
+                    parameterValues,
+                    connection.connection,
+                    selectPrefix + queryString
+                )
+            )
 
         suspend fun delete(): Int =
-            createStatement(
+            executeSelect(
                 parameterValues,
                 connection.connection,
                 deletePrefix + queryString
@@ -155,7 +161,13 @@ class QueryFactory<T : Any> internal constructor(
 
         suspend fun findOrCreate(creator: () -> T): T {
             val existing =
-                resultMapper.findBy(createStatement(parameterValues, connection.connection, selectPrefix + queryString))
+                resultMapper.mapQueryResult(
+                    executeSelect(
+                        parameterValues,
+                        connection.connection,
+                        selectPrefix + queryString
+                    )
+                )
                     .singleOrNull()
             return existing ?: repository.create(connection, creator())
 
@@ -163,7 +175,13 @@ class QueryFactory<T : Any> internal constructor(
 
         suspend fun createOrUpdate(entity: T): T {
             val existing =
-                resultMapper.findBy(createStatement(parameterValues, connection.connection, selectPrefix + queryString))
+                resultMapper.mapQueryResult(
+                    executeSelect(
+                        parameterValues,
+                        connection.connection,
+                        selectPrefix + queryString
+                    )
+                )
                     .singleOrNull()
             return if (existing == null) {
                 repository.create(connection, entity)
