@@ -9,13 +9,13 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.ConnectedRepository
-import r2dbcfun.ConnectionProvider
 import r2dbcfun.NotFoundException
 import r2dbcfun.Repository
 import r2dbcfun.query.between
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.query.isNull
 import r2dbcfun.query.like
+import r2dbcfun.r2dbc.ConnectionProvider
 import r2dbcfun.test.DBS
 import strikt.api.expectThat
 import strikt.api.expectThrows

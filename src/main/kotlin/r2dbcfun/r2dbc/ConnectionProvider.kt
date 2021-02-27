@@ -1,4 +1,4 @@
-package r2dbcfun
+package r2dbcfun.r2dbc
 
 import io.r2dbc.spi.Clob
 import io.r2dbc.spi.R2dbcException
@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
+import r2dbcfun.RepositoryException
 import r2dbcfun.transaction.transaction
 
 class ConnectionProvider(val connection: Connection) {

@@ -2,10 +2,10 @@ package r2dbcfun.query
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.singleOrNull
-import r2dbcfun.ConnectionProvider
 import r2dbcfun.Repository
 import r2dbcfun.ResultMapper
 import r2dbcfun.internal.IDHandler
+import r2dbcfun.r2dbc.ConnectionProvider
 import r2dbcfun.util.toIndexedPlaceholders
 import r2dbcfun.util.toSnakeCase
 import java.time.LocalDate

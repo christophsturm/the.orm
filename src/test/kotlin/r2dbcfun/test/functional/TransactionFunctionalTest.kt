@@ -6,9 +6,9 @@ import failfast.r2dbc.forAllDatabases
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.awaitSingle
-import r2dbcfun.ConnectionProvider
 import r2dbcfun.Repository
 import r2dbcfun.query.like
+import r2dbcfun.r2dbc.ConnectionProvider
 import r2dbcfun.test.DBS
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo

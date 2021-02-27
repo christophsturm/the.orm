@@ -1,6 +1,7 @@
 package r2dbcfun
 
 import io.r2dbc.spi.Connection
+import r2dbcfun.r2dbc.ConnectionProvider
 
 class ConnectedRepository<T : Any>(
     val repository: Repository<T>,

@@ -2,8 +2,8 @@ package r2dbcfun.query
 
 import failfast.describe
 import io.mockk.mockk
-import r2dbcfun.ConnectionProvider
 import r2dbcfun.ResultMapper
+import r2dbcfun.r2dbc.ConnectionProvider
 import r2dbcfun.test.TestObjects.Entity
 
 object QueryFactoryTest {

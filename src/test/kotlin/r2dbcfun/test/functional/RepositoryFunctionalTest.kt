@@ -4,10 +4,10 @@ import failfast.describe
 import failfast.r2dbc.forAllDatabases
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.Serializable
-import r2dbcfun.ConnectionProvider
 import r2dbcfun.NotFoundException
 import r2dbcfun.PK
 import r2dbcfun.Repository
+import r2dbcfun.r2dbc.ConnectionProvider
 import r2dbcfun.test.DBS
 import r2dbcfun.util.toSnakeCase
 import strikt.api.expectCatching
