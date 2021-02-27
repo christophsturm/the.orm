@@ -1,9 +1,9 @@
 package r2dbcfun.transaction
 
-import io.r2dbc.spi.Connection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import r2dbcfun.r2dbc.DatabaseConnection
 
-suspend fun <T> transaction(connection: Connection, function: suspend () -> T): T {
+suspend fun <T> transaction(connection: DatabaseConnection, function: suspend () -> T): T {
     connection.beginTransaction().awaitFirstOrNull() // also disables auto-commit
     val result = try {
         function()

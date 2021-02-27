@@ -12,10 +12,10 @@ import r2dbcfun.RepositoryException
 import r2dbcfun.executeInsert
 import r2dbcfun.transaction.transaction
 
-class ConnectionProvider(val r2dbcConnection: R2dbcConnection) {
+class ConnectionProvider(val r2dbcConnection: DatabaseConnection) {
     constructor(connection: io.r2dbc.spi.Connection) : this(R2dbcConnection(connection))
 
-    suspend fun <T> transaction(function: suspend () -> T): T = transaction(r2dbcConnection.connection, function)
+    suspend fun <T> transaction(function: suspend () -> T): T = transaction(r2dbcConnection, function)
 }
 
 interface DatabaseConnection {
