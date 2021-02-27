@@ -3,7 +3,7 @@ package r2dbcfun
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException
 import r2dbcfun.internal.ExceptionInspector
 import r2dbcfun.internal.IDHandler
-import r2dbcfun.r2dbc.DatabaseConnection
+import r2dbcfun.r2dbc.DBConnection
 import r2dbcfun.util.toSnakeCase
 
 internal class Inserter<T : Any>(
@@ -19,7 +19,7 @@ internal class Inserter<T : Any>(
             "INSERT INTO $table($fieldNames) values ($fieldPlaceHolders)"
         }
 
-    suspend fun create(connection: DatabaseConnection, instance: T): T {
+    suspend fun create(connection: DBConnection, instance: T): T {
         val statement =
             insertProperties.foldIndexed(connection.createStatement(insertStatementString))
             { idx, statement, property -> property.bindValue(statement, idx, instance) }

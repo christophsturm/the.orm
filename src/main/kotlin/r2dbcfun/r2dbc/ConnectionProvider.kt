@@ -12,13 +12,13 @@ import r2dbcfun.RepositoryException
 import r2dbcfun.executeInsert
 import r2dbcfun.transaction.transaction
 
-class ConnectionProvider(val r2dbcConnection: DatabaseConnection) {
+class ConnectionProvider(val r2dbcConnection: DBConnection) {
     constructor(connection: io.r2dbc.spi.Connection) : this(R2dbcConnection(connection))
 
     suspend fun <T> transaction(function: suspend () -> T): T = transaction(r2dbcConnection, function)
 }
 
-interface DatabaseConnection {
+interface DBConnection {
     suspend fun executeSelect(
         parameterValues: Sequence<Any>,
         sql: String
@@ -38,7 +38,7 @@ interface Statement {
     suspend fun executeInsert(): Long
 }
 
-class R2dbcConnection(val connection: io.r2dbc.spi.Connection) : DatabaseConnection {
+class R2dbcConnection(val connection: io.r2dbc.spi.Connection) : DBConnection {
     override suspend fun executeSelect(
         parameterValues: Sequence<Any>,
         sql: String

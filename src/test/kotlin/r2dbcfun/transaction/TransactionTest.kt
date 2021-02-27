@@ -7,7 +7,7 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.reactivestreams.Publisher
-import r2dbcfun.r2dbc.DatabaseConnection
+import r2dbcfun.r2dbc.DBConnection
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
@@ -24,7 +24,7 @@ object TransactionTest {
     }
 
     val context = describe("transaction handling") {
-        val connection = mockk<DatabaseConnection>("database connection")
+        val connection = mockk<DBConnection>("database connection")
         coEvery { connection.beginTransaction().awaitFirstOrNull() }.returns(null)
         coEvery { connection.commitTransaction().awaitFirstOrNull() }.returns(null)
         coEvery { connection.rollbackTransaction().awaitFirstOrNull() }.returns(null)
