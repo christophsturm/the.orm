@@ -10,24 +10,24 @@ import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.RepositoryException
 import r2dbcfun.transaction.transaction
 
-class ConnectionProvider(val connection: Connection) {
-    constructor(connection: io.r2dbc.spi.Connection) : this(Connection(connection))
+class ConnectionProvider(val r2dbcConnection: R2dbcConnection) {
+    constructor(connection: io.r2dbc.spi.Connection) : this(R2dbcConnection(connection))
 
-    suspend fun <T> transaction(function: suspend () -> T): T = connection.transaction(function)
+    suspend fun <T> transaction(function: suspend () -> T): T = r2dbcConnection.transaction(function)
 }
 
-class Connection(val connection: io.r2dbc.spi.Connection) : io.r2dbc.spi.Connection by connection {
+class R2dbcConnection(val connection: io.r2dbc.spi.Connection) : io.r2dbc.spi.Connection by connection {
     suspend fun executeSelect(
         parameterValues: Sequence<Any>,
         sql: String
-    ): Result {
+    ): R2dbcResult {
         val statement = try {
             parameterValues.foldIndexed(createStatement(sql))
             { idx, statement, property -> statement.bind(idx, property) }
         } catch (e: R2dbcException) {
             throw RepositoryException("error creating statement for sql:$sql", e)
         }
-        return Result(
+        return R2dbcResult(
             try {
                 statement.execute().awaitSingle()
             } catch (e: R2dbcException) {
@@ -38,15 +38,15 @@ class Connection(val connection: io.r2dbc.spi.Connection) : io.r2dbc.spi.Connect
 
 }
 
-class Result(private val result: io.r2dbc.spi.Result) {
+class R2dbcResult(private val result: io.r2dbc.spi.Result) {
     suspend fun rowsUpdated(): Int = result.rowsUpdated.awaitSingle()
 
-    fun <T : Any> map(mappingFunction: (t: ResultRow) -> T): Flow<T> {
-        return result.map { row, _ -> mappingFunction(ResultRow(row)) }.asFlow()
+    fun <T : Any> map(mappingFunction: (t: R2dbcRow) -> T): Flow<T> {
+        return result.map { row, _ -> mappingFunction(R2dbcRow(row)) }.asFlow()
     }
 }
 
-class ResultRow(private val row: Row) {
+class R2dbcRow(private val row: Row) {
     fun getLazy(key: String): LazyResult<Any?> {
         val value = row.get(key)
         return if (value is Clob) LazyResult { resolveClob(value) } else LazyResult { value }

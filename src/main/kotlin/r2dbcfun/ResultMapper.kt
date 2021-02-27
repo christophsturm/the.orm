@@ -3,14 +3,14 @@ package r2dbcfun
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import r2dbcfun.r2dbc.LazyResult
-import r2dbcfun.r2dbc.Result
+import r2dbcfun.r2dbc.R2dbcResult
 
 internal class ResultMapper<T : Any>(
     private val table: String,
     private val classInfo: ClassInfo<T>
 ) {
 
-    internal suspend fun mapQueryResult(queryResult: Result): Flow<T> {
+    internal suspend fun mapQueryResult(queryResult: R2dbcResult): Flow<T> {
         data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: LazyResult<Any?>)
 
         val parameters: Flow<List<ResultPair>> =

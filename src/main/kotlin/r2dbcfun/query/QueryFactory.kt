@@ -123,14 +123,14 @@ class QueryFactory<T : Any> internal constructor(
 
         suspend fun find(): Flow<T> =
             resultMapper.mapQueryResult(
-                connection.connection.executeSelect(
+                connection.r2dbcConnection.executeSelect(
                     parameterValues,
                     selectPrefix + queryString
                 )
             )
 
         suspend fun delete(): Int =
-            connection.connection.executeSelect(
+            connection.r2dbcConnection.executeSelect(
                 parameterValues,
                 deletePrefix + queryString
             ).rowsUpdated()
@@ -138,7 +138,7 @@ class QueryFactory<T : Any> internal constructor(
         suspend fun findOrCreate(creator: () -> T): T {
             val existing =
                 resultMapper.mapQueryResult(
-                    connection.connection.executeSelect(
+                    connection.r2dbcConnection.executeSelect(
                         parameterValues,
                         selectPrefix + queryString
                     )
@@ -151,7 +151,7 @@ class QueryFactory<T : Any> internal constructor(
         suspend fun createOrUpdate(entity: T): T {
             val existing =
                 resultMapper.mapQueryResult(
-                    connection.connection.executeSelect(
+                    connection.r2dbcConnection.executeSelect(
                         parameterValues,
                         selectPrefix + queryString
                     )
