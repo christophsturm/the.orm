@@ -34,7 +34,7 @@ object ExamplesTest {
                 val entries = 1000
                 coroutineScope {
                     launch {
-                        connection.transaction {
+                        transaction(connection) {
                             repeat(entries) {
                                 channel.send(async {
                                     repo.create(user.copy(email = java.util.UUID.randomUUID().toString()))

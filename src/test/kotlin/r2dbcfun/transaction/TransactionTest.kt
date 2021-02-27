@@ -30,7 +30,7 @@ object TransactionTest {
         coEvery { connection.rollbackTransaction().awaitFirstOrNull() }.returns(null)
         it("calls block") {
             var called = false
-            connection.transaction {
+            transaction(connection) {
                 coVerify { connection.beginTransaction().awaitFirstOrNull() }
                 called = true
             }
@@ -38,12 +38,12 @@ object TransactionTest {
             coVerify { connection.commitTransaction().awaitFirstOrNull() }
         }
         it("returns the result of the block") {
-            expectThat(connection.transaction { "RESULT" }).isEqualTo("RESULT")
+            expectThat(transaction(connection) { "RESULT" }).isEqualTo("RESULT")
         }
         test("rolls back transaction if exception occurs") {
             val runtimeException = RuntimeException("failed")
             expectThrows<RuntimeException> {
-                connection.transaction {
+                transaction(connection) {
                     throw runtimeException
                 }
             }.isEqualTo(runtimeException)

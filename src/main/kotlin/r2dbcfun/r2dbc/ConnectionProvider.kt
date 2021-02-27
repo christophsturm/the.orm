@@ -15,7 +15,7 @@ import r2dbcfun.transaction.transaction
 class ConnectionProvider(val r2dbcConnection: R2dbcConnection) {
     constructor(connection: io.r2dbc.spi.Connection) : this(R2dbcConnection(connection))
 
-    suspend fun <T> transaction(function: suspend () -> T): T = r2dbcConnection.connection.transaction(function)
+    suspend fun <T> transaction(function: suspend () -> T): T = transaction(r2dbcConnection.connection, function)
 }
 
 interface DatabaseConnection {

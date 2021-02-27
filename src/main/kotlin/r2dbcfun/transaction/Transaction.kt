@@ -3,14 +3,14 @@ package r2dbcfun.transaction
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 
-suspend fun <T> Connection.transaction(function: suspend () -> T): T {
-    this.beginTransaction().awaitFirstOrNull() // also disables auto-commit
+suspend fun <T> transaction(connection: Connection, function: suspend () -> T): T {
+    connection.beginTransaction().awaitFirstOrNull() // also disables auto-commit
     val result = try {
         function()
     } catch (e: Exception) {
-        this.rollbackTransaction().awaitFirstOrNull()
+        connection.rollbackTransaction().awaitFirstOrNull()
         throw e
     }
-    this.commitTransaction().awaitFirstOrNull()
+    connection.commitTransaction().awaitFirstOrNull()
     return result
 }
