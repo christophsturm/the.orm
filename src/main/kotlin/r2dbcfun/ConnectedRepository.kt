@@ -4,10 +4,13 @@ import io.r2dbc.spi.Connection
 
 public class ConnectedRepository<T : Any>(
     public val repository: Repository<T>,
-    public val connection: Connection
+    public val connection: ConnectionProvider
 ) {
     public companion object {
         public inline fun <reified T : Any> create(connection: Connection): ConnectedRepository<T> =
+            create(ConnectionProvider(connection))
+
+        public inline fun <reified T : Any> create(connection: ConnectionProvider): ConnectedRepository<T> =
             ConnectedRepository(Repository(T::class), connection)
     }
 

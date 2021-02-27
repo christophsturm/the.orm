@@ -6,10 +6,10 @@ import failfast.r2dbc.forAllDatabases
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.awaitSingle
+import r2dbcfun.ConnectionProvider
 import r2dbcfun.Repository
 import r2dbcfun.query.like
 import r2dbcfun.test.DBS
-import r2dbcfun.transaction.transaction
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
@@ -23,7 +23,7 @@ object TransactionFunctionalTest {
         val userNameLike = repo.queryFactory.createQuery(User::name.like())
 
         forAllDatabases(DBS) { connectionFactory ->
-            val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
+            val connection = ConnectionProvider(autoClose(connectionFactory.create().awaitSingle()) { it.close() })
             it("has transaction isolation") {
                 val differentConnection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
                 val user = connection.transaction {
@@ -31,11 +31,15 @@ object TransactionFunctionalTest {
                     // the created user is visible in the same connection
                     expectThat(userNameLike.with(connection, "%").find().single()).isEqualTo(user)
                     // but a different connection does not see it
-                    expectThat(userNameLike.with(differentConnection, "%").find().count()).isEqualTo(0)
+                    expectThat(
+                        userNameLike.with(ConnectionProvider(differentConnection), "%").find().count()
+                    ).isEqualTo(0)
                     user
                 }
                 // now the other connection sees them too
-                expectThat(userNameLike.with(differentConnection, "%").find().single()).isEqualTo(user)
+                expectThat(userNameLike.with(ConnectionProvider(differentConnection), "%").find().single()).isEqualTo(
+                    user
+                )
             }
             it("rolls back the transaction if the block fails") {
                 try {

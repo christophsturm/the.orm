@@ -30,7 +30,6 @@ plugins {
 
 
 repositories {
-    if (BuildConfig.eap) maven { setUrl("http://dl.bintray.com/kotlin/kotlin-eap") }
     jcenter()
     mavenCentral()
 
@@ -82,7 +81,7 @@ dependencies {
 
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
-kotlin { explicitApi() }
+//kotlin { explicitApi() }
 val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal
 tasks {
     withType<KotlinCompile> {
@@ -147,7 +146,7 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
 }
 tasks.wrapper { distributionType = Wrapper.DistributionType.ALL }
 
-val testMain = task("testMain", JavaExec::class) {
+val testMain = tasks.register("testMain", JavaExec::class) {
     main = "r2dbcfun.test.AllTestsKt"
     classpath = sourceSets["test"].runtimeClasspath
     if (needsRedefinition)

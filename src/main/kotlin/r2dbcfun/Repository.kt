@@ -1,6 +1,5 @@
 package r2dbcfun
 
-import io.r2dbc.spi.Connection
 import kotlinx.coroutines.flow.single
 import r2dbcfun.internal.ExceptionInspector
 import r2dbcfun.internal.IDHandler
@@ -52,16 +51,16 @@ public class Repository<T : Any>(kClass: KClass<T>) {
      * @param instance the instance that will be used to set the fields of the newly created record
      * @return a copy of the instance with an assigned id field.
      */
-    public suspend fun create(connection: Connection, instance: T): T =
-        inserter.create(connection, instance)
+    public suspend fun create(connection: ConnectionProvider, instance: T): T =
+        inserter.create(connection.connection, instance)
 
     /**
      * updates a record in the database.
      *
      * @param instance the instance that will be used to update the record
      */
-    public suspend fun update(connection: Connection, instance: T) {
-        updater.update(connection, instance)
+    public suspend fun update(connection: ConnectionProvider, instance: T) {
+        updater.update(connection.connection, instance)
     }
 
     private val byIdQuery = queryFactory.createQuery(isEqualToCondition(idProperty))
@@ -71,7 +70,7 @@ public class Repository<T : Any>(kClass: KClass<T>) {
      *
      * @param id the primary key of the object to load
      */
-    public suspend fun findById(connection: Connection, id: PK): T {
+    public suspend fun findById(connection: ConnectionProvider, id: PK): T {
         return try {
             byIdQuery.with(connection, id.id).find().single()
         } catch (e: NoSuchElementException) {

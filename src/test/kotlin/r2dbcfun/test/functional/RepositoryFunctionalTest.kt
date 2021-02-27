@@ -4,6 +4,7 @@ import failfast.describe
 import failfast.r2dbc.forAllDatabases
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.Serializable
+import r2dbcfun.ConnectionProvider
 import r2dbcfun.NotFoundException
 import r2dbcfun.PK
 import r2dbcfun.Repository
@@ -27,7 +28,7 @@ object RepositoryFunctionalTest {
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
     val context = describe("the repository class") {
         forAllDatabases(DBS) { connectionFactory ->
-            val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
+            val connection = ConnectionProvider(autoClose(connectionFactory.create().awaitSingle()) { it.close() })
 
             context("with a user class") {
                 val repo = Repository.create<User>()
@@ -159,7 +160,7 @@ object RepositoryFunctionalTest {
                                 )
                                 .id!!
                         @Suppress("SqlResolve") val color =
-                            connection.createStatement("select * from Users where id = $1")
+                            connection.connection.createStatement("select * from Users where id = $1")
                                 .bind("$1", id.id)
                                 .execute()
                                 .awaitSingle()

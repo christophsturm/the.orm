@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.ConnectedRepository
+import r2dbcfun.ConnectionProvider
 import r2dbcfun.NotFoundException
 import r2dbcfun.Repository
 import r2dbcfun.query.between
@@ -33,7 +34,7 @@ object QueryFactoryFunctionalTest {
     val context = describe("support for querying data") {
 
         forAllDatabases(DBS) { connectionFactory ->
-            val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
+            val connection = ConnectionProvider(autoClose(connectionFactory.create().awaitSingle()) { it.close() })
 
             val repo = Repository.create<User>()
             suspend fun create(instance: User) = repo.create(connection, instance)

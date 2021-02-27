@@ -2,7 +2,7 @@ package r2dbcfun.query
 
 import failfast.describe
 import io.mockk.mockk
-import io.r2dbc.spi.Connection
+import r2dbcfun.ConnectionProvider
 import r2dbcfun.ResultMapper
 import r2dbcfun.test.TestObjects.Entity
 
@@ -10,7 +10,7 @@ object QueryFactoryTest {
     val context = describe(QueryFactory::class) {
         val resultMapper = mockk<ResultMapper<Entity>>(relaxed = true)
         val queryFactory = QueryFactory(Entity::class, resultMapper, mockk(), mockk(), mockk())
-        val connection = mockk<Connection>()
+        val connection = mockk<ConnectionProvider>()
         val condition = Entity::id.isEqualTo()
         test("can create query with one parameter") {
             val query = queryFactory.createQuery(condition)

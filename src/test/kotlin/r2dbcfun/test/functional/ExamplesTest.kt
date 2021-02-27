@@ -8,7 +8,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitSingle
-import r2dbcfun.Repository
+import r2dbcfun.ConnectedRepository
 import r2dbcfun.test.DBS
 import r2dbcfun.transaction.transaction
 
@@ -27,7 +27,7 @@ object ExamplesTest {
                 name = "a user",
                 email = "with email"
             )
-            val repo = Repository.create<User>()
+            val repo = ConnectedRepository.create<User>(connection)
 
             test("throttled bulk inserts") {
                 val channel = Channel<Deferred<User>>(capacity = 40)
@@ -37,7 +37,7 @@ object ExamplesTest {
                         connection.transaction {
                             repeat(entries) {
                                 channel.send(async {
-                                    repo.create(connection, user.copy(email = java.util.UUID.randomUUID().toString()))
+                                    repo.create(user.copy(email = java.util.UUID.randomUUID().toString()))
                                 })
                             }
                         }

@@ -6,6 +6,7 @@ import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import r2dbcfun.ConnectionProvider
 import r2dbcfun.Repository
 import r2dbcfun.RepositoryException
 import r2dbcfun.ResultMapper
@@ -73,7 +74,7 @@ public class QueryFactory<T : Any> internal constructor(
 
     public inner class OneParameterQuery<P1 : Any> internal constructor(p1: Condition<P1>) {
         private val query = Query(p1)
-        public fun with(connection: Connection, p1: P1): QueryWithParameters =
+        public fun with(connection: ConnectionProvider, p1: P1): QueryWithParameters =
             query.with(connection, p1)
     }
 
@@ -82,7 +83,7 @@ public class QueryFactory<T : Any> internal constructor(
         p2: Condition<P2>
     ) {
         private val query = Query(p1, p2)
-        public fun with(connection: Connection, p1: P1, p2: P2): QueryWithParameters =
+        public fun with(connection: ConnectionProvider, p1: P1, p2: P2): QueryWithParameters =
             query.with(connection, p1, p2)
     }
 
@@ -92,7 +93,7 @@ public class QueryFactory<T : Any> internal constructor(
         p3: Condition<P3>
     ) {
         private val query = Query(p1, p2, p3)
-        public  fun with(connection: Connection, p1: P1, p2: P2, p3: P3): QueryWithParameters =
+        public fun with(connection: ConnectionProvider, p1: P1, p2: P2, p3: P3): QueryWithParameters =
             query.with(connection, p1, p2, p3)
     }
 
@@ -104,7 +105,7 @@ public class QueryFactory<T : Any> internal constructor(
                 "${snakeCaseForProperty[it.prop]} ${it.conditionString}"
             }.toIndexedPlaceholders()
 
-        public fun with(connection: Connection, vararg parameter: Any): QueryWithParameters {
+        public fun with(connection: ConnectionProvider, vararg parameter: Any): QueryWithParameters {
             val parameterValues =
                 parameter.asSequence()
                     // remove Unit parameters because conditions that have no parameters use it
@@ -120,7 +121,7 @@ public class QueryFactory<T : Any> internal constructor(
     }
 
     public inner class QueryWithParameters(
-        private val connection: Connection,
+        private val connection: ConnectionProvider,
         private val queryString: String,
         private val parameterValues: Sequence<Any>
     ) {
@@ -143,21 +144,27 @@ public class QueryFactory<T : Any> internal constructor(
         }
 
         public suspend fun find(): Flow<T> =
-            resultMapper.findBy(createStatement(parameterValues, connection, selectPrefix + queryString))
+            resultMapper.findBy(createStatement(parameterValues, connection.connection, selectPrefix + queryString))
 
         public suspend fun delete(): Int =
-            createStatement(parameterValues, connection, deletePrefix + queryString).rowsUpdated.awaitSingle()
+            createStatement(
+                parameterValues,
+                connection.connection,
+                deletePrefix + queryString
+            ).rowsUpdated.awaitSingle()
 
         public suspend fun findOrCreate(creator: () -> T): T {
-            val existing = resultMapper.findBy(createStatement(parameterValues, connection, selectPrefix + queryString))
-                .singleOrNull()
+            val existing =
+                resultMapper.findBy(createStatement(parameterValues, connection.connection, selectPrefix + queryString))
+                    .singleOrNull()
             return existing ?: repository.create(connection, creator())
 
         }
 
         public suspend fun createOrUpdate(entity: T): T {
-            val existing = resultMapper.findBy(createStatement(parameterValues, connection, selectPrefix + queryString))
-                .singleOrNull()
+            val existing =
+                resultMapper.findBy(createStatement(parameterValues, connection.connection, selectPrefix + queryString))
+                    .singleOrNull()
             if (existing == null) {
                 return repository.create(connection, entity)
             } else {
