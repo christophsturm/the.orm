@@ -15,10 +15,10 @@ import r2dbcfun.transaction.transaction
 class ConnectionProvider(val r2dbcConnection: R2dbcConnection) {
     constructor(connection: io.r2dbc.spi.Connection) : this(R2dbcConnection(connection))
 
-    suspend fun <T> transaction(function: suspend () -> T): T = r2dbcConnection.transaction(function)
+    suspend fun <T> transaction(function: suspend () -> T): T = r2dbcConnection.connection.transaction(function)
 }
 
-class R2dbcConnection(val connection: io.r2dbc.spi.Connection) : io.r2dbc.spi.Connection by connection {
+class R2dbcConnection(val connection: io.r2dbc.spi.Connection) {
     suspend fun executeSelect(
         parameterValues: Sequence<Any>,
         sql: String
@@ -38,19 +38,19 @@ class R2dbcConnection(val connection: io.r2dbc.spi.Connection) : io.r2dbc.spi.Co
         )
     }
 
-    override fun beginTransaction(): Publisher<Void> {
+    fun beginTransaction(): Publisher<Void> {
         return connection.beginTransaction()
     }
 
-    override fun commitTransaction(): Publisher<Void> {
+    fun commitTransaction(): Publisher<Void> {
         return connection.commitTransaction()
     }
 
-    override fun createStatement(sql: String): Statement {
+    fun createStatement(sql: String): Statement {
         return connection.createStatement(sql)
     }
 
-    override fun rollbackTransaction(): Publisher<Void> {
+    fun rollbackTransaction(): Publisher<Void> {
         return connection.rollbackTransaction()
     }
 }
