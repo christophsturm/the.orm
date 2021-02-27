@@ -139,9 +139,9 @@ object QueryFactoryFunctionalTest {
                             queryByName.with(connection, "carrot")
                                 .createOrUpdate(Vegetable(null, "carrot", weight = 20.0))
                         ) {
-                            get<Long?> { id }.isEqualTo(carrot.id)
-                            get<String> { name }.isEqualTo("carrot")
-                            get<Double?> { weight }.isEqualTo(20.0)
+                            get { id }.isEqualTo(carrot.id)
+                            get { name }.isEqualTo("carrot")
+                            get { weight }.isEqualTo(20.0)
                         }
                     }
 

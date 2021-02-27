@@ -165,12 +165,12 @@ class QueryFactory<T : Any> internal constructor(
             val existing =
                 resultMapper.findBy(createStatement(parameterValues, connection.connection, selectPrefix + queryString))
                     .singleOrNull()
-            if (existing == null) {
-                return repository.create(connection, entity)
+            return if (existing == null) {
+                repository.create(connection, entity)
             } else {
                 val updatedInstance = idHandler.assignId(entity, idHandler.getId(idProperty.get(existing)))
                 repository.update(connection, updatedInstance)
-                return updatedInstance
+                updatedInstance
             }
         }
 
