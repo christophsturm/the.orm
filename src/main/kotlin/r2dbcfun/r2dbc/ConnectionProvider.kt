@@ -41,13 +41,13 @@ class Connection(val connection: io.r2dbc.spi.Connection) : io.r2dbc.spi.Connect
 class Result(private val result: io.r2dbc.spi.Result) {
     suspend fun rowsUpdated(): Int = result.rowsUpdated.awaitSingle()
 
-    fun <T> map(mappingFunction: (t: ResultRow) -> List<T>): Flow<List<T>> {
+    fun <T : Any> map(mappingFunction: (t: ResultRow) -> T): Flow<T> {
         return result.map { row, _ -> mappingFunction(ResultRow(row)) }.asFlow()
     }
 }
 
 class ResultRow(private val row: Row) {
-    fun get(key: String): LazyResult<Any?> {
+    fun getLazy(key: String): LazyResult<Any?> {
         val value = row.get(key)
         return if (value is Clob) LazyResult { resolveClob(value) } else LazyResult { value }
     }

@@ -18,7 +18,7 @@ internal class ResultMapper<T : Any>(
                 .map { row ->
                     classInfo.fieldInfo
                         .map { entry ->
-                            val result = row.get(entry.snakeCaseName)
+                            val result = row.getLazy(entry.snakeCaseName)
                             ResultPair(entry, result)
                         }
                 }
