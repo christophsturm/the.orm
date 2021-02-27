@@ -3,13 +3,13 @@ package r2dbcfun.r2dbc
 import io.r2dbc.spi.Clob
 import io.r2dbc.spi.R2dbcException
 import io.r2dbc.spi.Row
-import io.r2dbc.spi.Statement
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import org.reactivestreams.Publisher
 import r2dbcfun.RepositoryException
+import r2dbcfun.executeInsert
 import r2dbcfun.transaction.transaction
 
 class ConnectionProvider(val r2dbcConnection: R2dbcConnection) {
@@ -22,7 +22,7 @@ interface DatabaseConnection {
     suspend fun executeSelect(
         parameterValues: Sequence<Any>,
         sql: String
-    ): R2dbcResult
+    ): DBResult
 
     fun beginTransaction(): Publisher<Void>
     fun commitTransaction(): Publisher<Void>
@@ -30,24 +30,30 @@ interface DatabaseConnection {
     fun rollbackTransaction(): Publisher<Void>
 }
 
+interface Statement {
+    fun bind(idx: Int, property: Any): Statement
+    fun bind(field: String, property: Any): Statement
+    suspend fun execute(): DBResult
+    fun bindNull(index: Int, dbClass: Class<out Any>): Statement
+    suspend fun executeInsert(): Long
+}
+
 class R2dbcConnection(val connection: io.r2dbc.spi.Connection) : DatabaseConnection {
     override suspend fun executeSelect(
         parameterValues: Sequence<Any>,
         sql: String
-    ): R2dbcResult {
+    ): DBResult {
         val statement = try {
             parameterValues.foldIndexed(createStatement(sql))
             { idx, statement, property -> statement.bind(idx, property) }
         } catch (e: R2dbcException) {
             throw RepositoryException("error creating statement for sql:$sql", e)
         }
-        return R2dbcResult(
-            try {
-                statement.execute().awaitSingle()
-            } catch (e: R2dbcException) {
-                throw RepositoryException("error executing select: $sql", e)
-            }
-        )
+        return try {
+            statement.execute()
+        } catch (e: R2dbcException) {
+            throw RepositoryException("error executing select: $sql", e)
+        }
     }
 
     override fun beginTransaction(): Publisher<Void> {
@@ -59,12 +65,38 @@ class R2dbcConnection(val connection: io.r2dbc.spi.Connection) : DatabaseConnect
     }
 
     override fun createStatement(sql: String): Statement {
-        return connection.createStatement(sql)
+        return R2dbcStatement(connection.createStatement(sql))
     }
 
     override fun rollbackTransaction(): Publisher<Void> {
         return connection.rollbackTransaction()
     }
+}
+
+class R2dbcStatement(val statement: io.r2dbc.spi.Statement) : Statement {
+    override fun bind(idx: Int, property: Any): Statement {
+        statement.bind(idx, property)
+        return this
+    }
+
+    override fun bind(field: String, property: Any): Statement {
+        statement.bind(field, property)
+        return this
+    }
+
+    override suspend fun execute(): DBResult {
+        return R2dbcResult(statement.execute().awaitSingle())
+    }
+
+    override fun bindNull(index: Int, dbClass: Class<out Any>): Statement {
+        statement.bindNull(index, dbClass)
+        return this
+    }
+
+    override suspend fun executeInsert(): Long {
+        return statement.executeInsert()
+    }
+
 }
 
 interface DBResult {
@@ -82,6 +114,7 @@ class R2dbcResult(private val result: io.r2dbc.spi.Result) : DBResult {
 
 interface DBRow {
     fun getLazy(key: String): LazyResult<Any?>
+    fun <T> get(key: String, type: Class<T>): T?
 }
 
 class R2dbcRow(private val row: Row) : DBRow {
@@ -89,6 +122,8 @@ class R2dbcRow(private val row: Row) : DBRow {
         val value = row.get(key)
         return if (value is Clob) LazyResult { resolveClob(value) } else LazyResult { value }
     }
+
+    override fun <T> get(key: String, type: Class<T>): T? = row.get(key, type)
 
     private suspend fun resolveClob(result: Clob): String {
         val sb = StringBuilder()

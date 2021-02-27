@@ -2,6 +2,7 @@ package r2dbcfun.test.functional
 
 import failfast.describe
 import failfast.r2dbc.forAllDatabases
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.Serializable
 import r2dbcfun.NotFoundException
@@ -163,14 +164,12 @@ object RepositoryFunctionalTest {
                             connection.r2dbcConnection.createStatement("select * from Users where id = $1")
                                 .bind("$1", id.id)
                                 .execute()
-                                .awaitSingle()
-                                .map { row, _ ->
+                                .map { row ->
                                     row.get(
                                         User::favoriteColor.name.toSnakeCase(),
                                         String::class.java
-                                    )
-                                }
-                                .awaitSingle()
+                                    )!!
+                                }.single()
                         expectThat(color).isEqualTo("RED")
                     }
                 }

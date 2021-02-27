@@ -1,6 +1,5 @@
 package r2dbcfun
 
-import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.r2dbc.DatabaseConnection
 import r2dbcfun.util.toSnakeCase
@@ -29,7 +28,7 @@ internal class Updater<T : Any>(
                 connection.createStatement(updateStatementString)
                     .bind(0, idHandler.getId(idProperty.call(instance)))
             ) { idx, statement, entry -> entry.bindValue(statement, idx + 1, instance) }
-        val rowsUpdated = statement.execute().awaitSingle().rowsUpdated.awaitSingle()
+        val rowsUpdated = statement.execute().rowsUpdated()
         if (rowsUpdated != 1) throw RepositoryException("rowsUpdated was $rowsUpdated instead of 1")
     }
 }
