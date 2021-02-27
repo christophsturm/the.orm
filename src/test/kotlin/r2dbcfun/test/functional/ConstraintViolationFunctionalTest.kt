@@ -1,12 +1,10 @@
 package r2dbcfun.test.functional
 
 import failfast.describe
-import failfast.r2dbc.forAllDatabases
-import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.ConnectedRepository
 import r2dbcfun.UniqueConstraintViolatedException
-import r2dbcfun.r2dbc.ConnectionProvider
 import r2dbcfun.test.DBS
+import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThrows
 import strikt.assertions.endsWith
 import strikt.assertions.isEqualTo
@@ -15,14 +13,8 @@ import java.time.LocalDate
 
 object ConstraintViolationFunctionalTest {
     val context = describe("constraint error handling") {
-        forAllDatabases(DBS) { connectionFactory ->
-            val repo =
-                ConnectedRepository.create<User>(
-                    ConnectionProvider(
-                        autoClose(
-                            connectionFactory.create().awaitSingle()
-                        ) { it.close() })
-                )
+        forAllDatabases(DBS) { createConnectionProvider ->
+            val repo = ConnectedRepository.create<User>(createConnectionProvider())
 
             it("throws DataIntegrityViolationException exception on constraint violation") {
                 val user = User(

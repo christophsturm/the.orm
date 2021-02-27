@@ -3,13 +3,9 @@
 package r2dbcfun.exp
 
 import failfast.describe
-import failfast.r2dbc.forAllDatabases
-import io.r2dbc.spi.Result
 import kotlinx.coroutines.flow.toCollection
-import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactive.awaitSingle
-import r2dbcfun.executeInsert
 import r2dbcfun.test.DBS
+import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
@@ -22,23 +18,22 @@ import strikt.assertions.isEqualTo
 object R2dbcTest {
     val context = describe("the r2dbc api") {
         forAllDatabases(DBS)
-        { connectionFactory ->
-            val connection = autoClose(connectionFactory.create().awaitSingle()) { it.close() }
-
+        { createConnectionProvider ->
+            val connection = createConnectionProvider()
             test("can insert values and select result") {
                 val firstId =
-                    connection.createStatement("insert into users(name) values($1)")
+                    connection.dbConnection.createStatement("insert into users(name) values($1)")
                         .bind("$1", "belle")
                         .executeInsert()
                 val secondId =
-                    connection.createStatement("insert into users(name) values($1)")
+                    connection.dbConnection.createStatement("insert into users(name) values($1)")
                         .bind("$1", "sebastian")
                         .executeInsert()
 
-                val selectResult: Result =
-                    connection.createStatement("select * from users").execute().awaitSingle()
+                val selectResult =
+                    connection.dbConnection.createStatement("select * from users").execute()
                 val namesFlow =
-                    selectResult.map { row, _ -> row.get("NAME", String::class.java) as String }.asFlow()
+                    selectResult.map { row -> row.get("NAME", String::class.java) as String }
                 val names = namesFlow.toCollection(mutableListOf())
                 expectThat(firstId).isEqualTo(1)
                 expectThat(secondId).isEqualTo(2)

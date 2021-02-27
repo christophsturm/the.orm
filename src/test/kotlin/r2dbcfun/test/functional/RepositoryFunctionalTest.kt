@@ -1,15 +1,13 @@
 package r2dbcfun.test.functional
 
 import failfast.describe
-import failfast.r2dbc.forAllDatabases
 import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.Serializable
 import r2dbcfun.NotFoundException
 import r2dbcfun.PK
 import r2dbcfun.Repository
-import r2dbcfun.r2dbc.ConnectionProvider
 import r2dbcfun.test.DBS
+import r2dbcfun.test.forAllDatabases
 import r2dbcfun.util.toSnakeCase
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -28,9 +26,8 @@ object RepositoryFunctionalTest {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
     val context = describe("the repository class") {
-        forAllDatabases(DBS) { connectionFactory ->
-            val connection = ConnectionProvider(autoClose(connectionFactory.create().awaitSingle()) { it.close() })
-
+        forAllDatabases(DBS) { createConnectionProvider ->
+            val connection = createConnectionProvider()
             context("with a user class") {
                 val repo = Repository.create<User>()
                 context("Creating Rows") {

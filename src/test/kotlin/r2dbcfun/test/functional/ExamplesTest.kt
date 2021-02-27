@@ -1,16 +1,14 @@
 package r2dbcfun.test.functional
 
 import failfast.describe
-import failfast.r2dbc.forAllDatabases
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.ConnectedRepository
-import r2dbcfun.r2dbc.ConnectionProvider
 import r2dbcfun.test.DBS
+import r2dbcfun.test.forAllDatabases
 
 
 /**
@@ -21,20 +19,20 @@ import r2dbcfun.test.DBS
 
 object ExamplesTest {
     val context = describe("examples") {
-        forAllDatabases(DBS) { connectionFactory ->
-            val connection = ConnectionProvider(connectionFactory.create().awaitSingle()!!)
+        forAllDatabases(DBS) { createConnectionProvider ->
+            val connectionProvider = createConnectionProvider()
             val user = User(
                 name = "a user",
                 email = "with email"
             )
-            val repo = ConnectedRepository.create<User>(connection)
+            val repo = ConnectedRepository.create<User>(connectionProvider)
 
             test("throttled bulk inserts") {
                 val channel = Channel<Deferred<User>>(capacity = 40)
                 val entries = 1000
                 coroutineScope {
                     launch {
-                        connection.transaction() {
+                        connectionProvider.transaction() {
                             repeat(entries) {
                                 channel.send(async {
                                     repo.create(user.copy(email = java.util.UUID.randomUUID().toString()))

@@ -4,10 +4,8 @@ package r2dbcfun.test.functional
 
 import failfast.FailFast
 import failfast.describe
-import failfast.r2dbc.forAllDatabases
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
-import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.ConnectedRepository
 import r2dbcfun.NotFoundException
 import r2dbcfun.Repository
@@ -15,8 +13,8 @@ import r2dbcfun.query.between
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.query.isNull
 import r2dbcfun.query.like
-import r2dbcfun.r2dbc.ConnectionProvider
 import r2dbcfun.test.DBS
+import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactlyInAnyOrder
@@ -33,11 +31,11 @@ data class Vegetable(val id: Long? = null, val name: String, val weight: Double?
 object QueryFactoryFunctionalTest {
     val context = describe("support for querying data") {
 
-        forAllDatabases(DBS) { connectionFactory ->
-            val connection = ConnectionProvider(autoClose(connectionFactory.create().awaitSingle()) { it.close() })
+        forAllDatabases(DBS) { createConnectionProvider ->
+            val connectionProvider = createConnectionProvider()
 
             val repo = Repository.create<User>()
-            suspend fun create(instance: User) = repo.create(connection, instance)
+            suspend fun create(instance: User) = repo.create(connectionProvider, instance)
 
             val user = User(
                 name = "a user",
@@ -60,7 +58,7 @@ object QueryFactoryFunctionalTest {
 
                     expectThat(
                         findByUserNameLikeAndBirthdayBetween.with(
-                            connection,
+                            connectionProvider,
                             "%",
                             Pair(LocalDate.of(2000, 4, 2), LocalDate.of(2000, 6, 2))
                         ).find().toCollection(mutableListOf())
@@ -85,15 +83,15 @@ object QueryFactoryFunctionalTest {
                         repo.queryFactory.createQuery(User::isCool.isEqualTo())
                     val findByNullCoolness =
                         repo.queryFactory.createQuery(User::isCool.isNull())
-                    expectThat(findByNullCoolness.with(connection, Unit).find().single())
+                    expectThat(findByNullCoolness.with(connectionProvider, Unit).find().single())
                         .isEqualTo(userOfUndefinedCoolness)
                     // this does not compile because equaling by null makes no sense
                     // anyway:
                     // expectThat(findByCoolness(connection,
                     // null).single()).isEqualTo(userOfUndefinedCoolness)
-                    expectThat(findByCoolness.with(connection, false).find().single())
+                    expectThat(findByCoolness.with(connectionProvider, false).find().single())
                         .isEqualTo(uncoolUser)
-                    expectThat(findByCoolness.with(connection, true).find().single())
+                    expectThat(findByCoolness.with(connectionProvider, true).find().single())
                         .isEqualTo(coolUser)
                 }
                 test("can delete by query") {
@@ -101,23 +99,26 @@ object QueryFactoryFunctionalTest {
                     val freddi = create(user.copy(name = "freddi", email = "freddi@email.com"))
                     val queryByName = repo.queryFactory.createQuery(User::name.isEqualTo())
 
-                    expectThat(queryByName.with(connection, "kurt").delete()).isEqualTo(1)
-                    expectThrows<NotFoundException> { repo.findById(connection, kurt.id!!) }
-                    repo.findById(connection, freddi.id!!)
+                    expectThat(queryByName.with(connectionProvider, "kurt").delete()).isEqualTo(1)
+                    expectThrows<NotFoundException> { repo.findById(connectionProvider, kurt.id!!) }
+                    repo.findById(connectionProvider, freddi.id!!)
                 }
                 describe("findOrCreate") {
 
-                    val repo = ConnectedRepository.create<Vegetable>(connection)
+                    val repo = ConnectedRepository.create<Vegetable>(connectionProvider)
                     val carrot = repo.create(Vegetable(name = "carrot"))
                     val queryByName = repo.repository.queryFactory.createQuery(Vegetable::name.isEqualTo())
                     it("finds an existing entity") {
                         expectThat(
-                            queryByName.with(connection, "carrot").findOrCreate { throw RuntimeException() }).isEqualTo(
+                            queryByName.with(connectionProvider, "carrot")
+                                .findOrCreate { throw RuntimeException() }).isEqualTo(
                             carrot
                         )
                     }
                     it("creates a new entity if it does not yet exist") {
-                        expectThat(queryByName.with(connection, "tomato").findOrCreate { Vegetable(name = "tomato") }) {
+                        expectThat(
+                            queryByName.with(connectionProvider, "tomato")
+                                .findOrCreate { Vegetable(name = "tomato") }) {
                             get { id }.isNotNull()
                             get { name }.isEqualTo("tomato")
                         }
@@ -125,10 +126,12 @@ object QueryFactoryFunctionalTest {
                 }
                 describe("createOrUpdate") {
 
-                    val repo = ConnectedRepository.create<Vegetable>(connection)
+                    val repo = ConnectedRepository.create<Vegetable>(connectionProvider)
                     val queryByName = repo.repository.queryFactory.createQuery(Vegetable::name.isEqualTo())
                     it("creates a new entity if it does not yet exist") {
-                        expectThat(queryByName.with(connection, "tomato").createOrUpdate(Vegetable(name = "tomato"))) {
+                        expectThat(
+                            queryByName.with(connectionProvider, "tomato").createOrUpdate(Vegetable(name = "tomato"))
+                        ) {
                             get { id }.isNotNull()
                             get { name }.isEqualTo("tomato")
                         }
@@ -136,7 +139,7 @@ object QueryFactoryFunctionalTest {
                     it("updates the existing entity if it already exists") {
                         val carrot = repo.create(Vegetable(name = "carrot", weight = 10.0))
                         expectThat(
-                            queryByName.with(connection, "carrot")
+                            queryByName.with(connectionProvider, "carrot")
                                 .createOrUpdate(Vegetable(null, "carrot", weight = 20.0))
                         ) {
                             get { id }.isEqualTo(carrot.id)

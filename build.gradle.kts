@@ -46,7 +46,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     testImplementation("io.strikt:strikt-core:0.29.0")
     testImplementation("com.christophsturm.failfast:failfast:$failfastVersion")
-    testImplementation("com.christophsturm.failfast:failfast-r2dbc:$failfastVersion")
+//    testImplementation("com.christophsturm.failfast:failfast-r2dbc:$failfastVersion")
 
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
