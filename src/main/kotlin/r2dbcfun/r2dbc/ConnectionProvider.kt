@@ -6,15 +6,13 @@ import io.r2dbc.spi.Row
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
-import org.reactivestreams.Publisher
 import r2dbcfun.RepositoryException
 import r2dbcfun.executeInsert
 import r2dbcfun.transaction.transaction
 
 class ConnectionProvider(val dbConnection: DBConnection) {
-    constructor(connection: io.r2dbc.spi.Connection) : this(R2dbcConnection(connection))
-
     suspend fun <T> transaction(function: suspend () -> T): T = transaction(dbConnection, function)
 }
 
@@ -24,10 +22,10 @@ interface DBConnection {
         sql: String
     ): DBResult
 
-    fun beginTransaction(): Publisher<Void>
-    fun commitTransaction(): Publisher<Void>
+    suspend fun beginTransaction()
+    suspend fun commitTransaction()
     fun createStatement(sql: String): Statement
-    fun rollbackTransaction(): Publisher<Void>
+    suspend fun rollbackTransaction()
 }
 
 interface Statement {
@@ -56,20 +54,20 @@ class R2dbcConnection(val connection: io.r2dbc.spi.Connection) : DBConnection {
         }
     }
 
-    override fun beginTransaction(): Publisher<Void> {
-        return connection.beginTransaction()
+    override suspend fun beginTransaction() {
+        connection.beginTransaction().awaitFirstOrNull()
     }
 
-    override fun commitTransaction(): Publisher<Void> {
-        return connection.commitTransaction()
+    override suspend fun commitTransaction() {
+        connection.commitTransaction().awaitFirstOrNull()
     }
 
     override fun createStatement(sql: String): Statement {
         return R2dbcStatement(connection.createStatement(sql))
     }
 
-    override fun rollbackTransaction(): Publisher<Void> {
-        return connection.rollbackTransaction()
+    override suspend fun rollbackTransaction() {
+        connection.rollbackTransaction().awaitFirstOrNull()
     }
 }
 

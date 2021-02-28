@@ -9,6 +9,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.r2dbc.ConnectionProvider
+import r2dbcfun.r2dbc.R2dbcConnection
 import java.sql.DriverManager
 import java.util.*
 
@@ -110,7 +111,7 @@ class R2dbcConnectionProviderFactory(val connectionFactory: ConnectionFactory) :
     override suspend fun create(): ConnectionProvider {
         val connection = connectionFactory.create().awaitSingle()
         connections.add(connection)
-        return ConnectionProvider(connection)
+        return ConnectionProvider(R2dbcConnection(connection))
     }
 
     override suspend fun close() {

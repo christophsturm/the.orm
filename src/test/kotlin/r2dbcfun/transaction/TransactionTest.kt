@@ -1,12 +1,9 @@
 package r2dbcfun.transaction
 
-import failfast.*
-import io.mockk.coEvery
+import failfast.Suite
+import failfast.describe
 import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.reactivestreams.Publisher
 import r2dbcfun.r2dbc.DBConnection
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -18,24 +15,17 @@ fun main() {
 }
 
 object TransactionTest {
-    init {
-        // run this only once and not once per test
-        mockkStatic(Publisher<Any>::awaitFirstOrNull)       // <*> is more correct but will throw an internal error
-    }
 
     val context = describe("transaction handling") {
-        val connection = mockk<DBConnection>("database connection")
-        coEvery { connection.beginTransaction().awaitFirstOrNull() }.returns(null)
-        coEvery { connection.commitTransaction().awaitFirstOrNull() }.returns(null)
-        coEvery { connection.rollbackTransaction().awaitFirstOrNull() }.returns(null)
+        val connection = mockk<DBConnection>("database connection", relaxed = true)
         it("calls block") {
             var called = false
             transaction(connection) {
-                coVerify { connection.beginTransaction().awaitFirstOrNull() }
+                coVerify { connection.beginTransaction() }
                 called = true
             }
             expectThat(called).isTrue()
-            coVerify { connection.commitTransaction().awaitFirstOrNull() }
+            coVerify { connection.commitTransaction() }
         }
         it("returns the result of the block") {
             expectThat(transaction(connection) { "RESULT" }).isEqualTo("RESULT")
@@ -47,7 +37,7 @@ object TransactionTest {
                     throw runtimeException
                 }
             }.isEqualTo(runtimeException)
-            coVerify { connection.rollbackTransaction().awaitFirstOrNull() }
+            coVerify { connection.rollbackTransaction() }
 
         }
     }
