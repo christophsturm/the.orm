@@ -1,8 +1,10 @@
 package r2dbcfun.test
 
 import failfast.ContextDSL
+import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
@@ -19,20 +21,20 @@ open class DBTestUtil(val databaseName: String) {
     interface TestDatabase {
         val name: String
 
-        fun createDB(): ConnectionFactory
+        fun createDB(): ConnectionProviderFactory
         fun prepare() {}
     }
 
     inner class H2TestDatabase : TestDatabase {
         override val name = "H2"
 
-        override fun createDB(): ConnectionFactory {
+        override fun createDB(): ConnectionProviderFactory {
             val uuid = UUID.randomUUID()
             val databaseName = "$databaseName$uuid"
             val jdbcUrl = "jdbc:h2:mem:$databaseName;DB_CLOSE_DELAY=-1"
             val flyway = Flyway.configure().dataSource(jdbcUrl, "", "").load()
             flyway.migrate()
-            return ConnectionFactories.get("r2dbc:h2:mem:///$databaseName;DB_CLOSE_DELAY=-1")
+            return R2dbcConnectionProviderFactory(ConnectionFactories.get("r2dbc:h2:mem:///$databaseName;DB_CLOSE_DELAY=-1"))
         }
     }
 
@@ -53,9 +55,9 @@ open class DBTestUtil(val databaseName: String) {
             }
         }
 
-        override fun createDB(): ConnectionFactory {
+        override fun createDB(): ConnectionProviderFactory {
             val (databaseName, host, port) = preparePostgresDB()
-            return ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
+            return R2dbcConnectionProviderFactory(ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1"))
         }
 
         fun preparePostgresDB(): NameHostAndPort {
@@ -103,15 +105,37 @@ open class DBTestUtil(val databaseName: String) {
 
 }
 
+class R2dbcConnectionProviderFactory(val connectionFactory: ConnectionFactory) : ConnectionProviderFactory {
+    private val connections = mutableListOf<Connection>()
+    override suspend fun create(): ConnectionProvider {
+        val connection = connectionFactory.create().awaitSingle()
+        connections.add(connection)
+        return ConnectionProvider(connection)
+    }
+
+    override suspend fun close() {
+        connections.forEach {
+            it.close().awaitFirstOrNull()
+        }
+    }
+
+}
+
+interface ConnectionProviderFactory {
+    suspend fun create(): ConnectionProvider
+    suspend fun close()
+
+}
+
 suspend fun ContextDSL.forAllDatabases(
     dbs: DBTestUtil,
     tests: suspend ContextDSL.(suspend () -> ConnectionProvider) -> Unit
 ) {
     dbs.databases.map { db ->
         context("on ${db.name}") {
-            val createDB = db.createDB()
+            val createDB = autoClose(db.createDB()) { it.close() }
             val connectionFactory: suspend () -> ConnectionProvider =
-                { ConnectionProvider(autoClose(createDB.create().awaitSingle()) { it.close() }) }
+                { createDB.create() }
             tests(connectionFactory)
         }
     }

@@ -3,7 +3,10 @@
 package r2dbcfun.exp
 
 import failfast.describe
+import io.r2dbc.spi.ConnectionFactories
 import kotlinx.coroutines.flow.toCollection
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.test.DBS
 import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThat
@@ -39,6 +42,17 @@ object R2dbcTest {
                 expectThat(secondId).isEqualTo(2)
                 expectThat(names).containsExactly("belle", "sebastian")
             }
+        }
+        test("can open and close pool") {
+            val (databaseName, host, port) = DBS.psql13.preparePostgresDB()
+            val factory =
+                ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
+            val connection1 = factory.create().awaitSingle()
+            val connection2 = factory.create().awaitSingle()
+            connection1.createStatement("select * from users").execute().awaitSingle()
+            connection2.createStatement("select * from users").execute().awaitSingle()
+            connection1.close().awaitFirstOrNull()
+            connection2.close().awaitFirstOrNull()
 
         }
 

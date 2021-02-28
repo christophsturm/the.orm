@@ -1,6 +1,6 @@
 package r2dbcfun.test.functional
 
-import failfast.Suite
+import failfast.FailFast
 import failfast.describe
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.single
@@ -12,7 +12,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 fun main() {
-    Suite(TransactionFunctionalTest.context).run().check()
+    FailFast.runTest()
 }
 
 object TransactionFunctionalTest {
