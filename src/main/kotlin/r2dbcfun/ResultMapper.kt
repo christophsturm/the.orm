@@ -2,8 +2,8 @@ package r2dbcfun
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import r2dbcfun.r2dbc.DBResult
-import r2dbcfun.r2dbc.LazyResult
+import r2dbcfun.dbio.r2dbc.DBResult
+import r2dbcfun.dbio.r2dbc.LazyResult
 
 internal class ResultMapper<T : Any>(
     private val table: String,

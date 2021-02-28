@@ -1,6 +1,6 @@
 package r2dbcfun
 
-import r2dbcfun.r2dbc.Statement
+import r2dbcfun.dbio.r2dbc.Statement
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf

@@ -4,7 +4,7 @@ import failfast.Suite
 import failfast.describe
 import io.mockk.coVerify
 import io.mockk.mockk
-import r2dbcfun.r2dbc.DBConnection
+import r2dbcfun.dbio.r2dbc.DBConnection
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo

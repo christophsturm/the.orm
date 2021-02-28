@@ -1,4 +1,4 @@
-package r2dbcfun.r2dbc
+package r2dbcfun.dbio.r2dbc
 
 import io.r2dbc.spi.Clob
 import io.r2dbc.spi.R2dbcException

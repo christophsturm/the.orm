@@ -1,9 +1,9 @@
 package r2dbcfun
 
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException
+import r2dbcfun.dbio.r2dbc.DBConnection
 import r2dbcfun.internal.ExceptionInspector
 import r2dbcfun.internal.IDHandler
-import r2dbcfun.r2dbc.DBConnection
 import r2dbcfun.util.toSnakeCase
 
 internal class Inserter<T : Any>(

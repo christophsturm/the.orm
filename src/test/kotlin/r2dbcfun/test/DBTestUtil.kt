@@ -8,8 +8,8 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
-import r2dbcfun.r2dbc.ConnectionProvider
-import r2dbcfun.r2dbc.R2dbcConnection
+import r2dbcfun.dbio.r2dbc.ConnectionProvider
+import r2dbcfun.dbio.r2dbc.R2dbcConnection
 import java.sql.DriverManager
 import java.util.*
 

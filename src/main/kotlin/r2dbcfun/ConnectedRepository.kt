@@ -1,6 +1,6 @@
 package r2dbcfun
 
-import r2dbcfun.r2dbc.ConnectionProvider
+import r2dbcfun.dbio.r2dbc.ConnectionProvider
 
 class ConnectedRepository<T : Any>(
     val repository: Repository<T>,

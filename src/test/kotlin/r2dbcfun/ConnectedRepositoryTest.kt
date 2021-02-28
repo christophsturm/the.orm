@@ -3,7 +3,7 @@ package r2dbcfun
 import failfast.describe
 import io.mockk.coVerify
 import io.mockk.mockk
-import r2dbcfun.r2dbc.ConnectionProvider
+import r2dbcfun.dbio.r2dbc.ConnectionProvider
 import r2dbcfun.test.TestObjects.Entity
 import strikt.api.expectThat
 import strikt.assertions.isA

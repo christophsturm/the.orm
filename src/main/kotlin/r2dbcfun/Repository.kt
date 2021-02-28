@@ -1,11 +1,11 @@
 package r2dbcfun
 
 import kotlinx.coroutines.flow.single
+import r2dbcfun.dbio.r2dbc.ConnectionProvider
 import r2dbcfun.internal.ExceptionInspector
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.query.QueryFactory
 import r2dbcfun.query.QueryFactory.Companion.isEqualToCondition
-import r2dbcfun.r2dbc.ConnectionProvider
 import r2dbcfun.util.toSnakeCase
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
