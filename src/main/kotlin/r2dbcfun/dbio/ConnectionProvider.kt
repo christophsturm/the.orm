@@ -1,7 +1,6 @@
 package r2dbcfun.dbio
 
 import kotlinx.coroutines.flow.Flow
-import r2dbcfun.dbio.r2dbc.R2dbcRow
 import r2dbcfun.transaction.transaction
 
 class ConnectionProvider(val dbConnection: DBConnection) {
@@ -30,7 +29,7 @@ interface Statement {
 
 interface DBResult {
     suspend fun rowsUpdated(): Int
-    fun <T : Any> map(mappingFunction: (t: R2dbcRow) -> T): Flow<T>
+    fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T>
 }
 
 interface DBRow {

@@ -57,33 +57,44 @@ open class DBTestUtil(val databaseName: String) {
         }
 
         override fun createDB(): ConnectionProviderFactory {
-            val (databaseName, host, port) = preparePostgresDB()
-            return R2dbcConnectionProviderFactory(ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1"))
+            val db = preparePostgresDB()
+            return R2dbcConnectionProviderFactory(ConnectionFactories.get("r2dbc:pool:postgresql://test:test@${db.host}:${db.port}/${db.databaseName}?initialSize=1"))
         }
 
-        fun preparePostgresDB(): NameHostAndPort {
+        fun preparePostgresDB(): PostgresDb {
             Class.forName("org.postgresql.Driver")
             val uuid = UUID.randomUUID()
             val databaseName = "$databaseName$uuid".replace("-", "_")
             // testcontainers says that it returns an ip address but it returns a host name.
             val host = dockerContainer.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
             val port = dockerContainer.getMappedPort(5432)
-            val db =
-                DriverManager.getConnection("jdbc:postgresql://$host:$port/postgres", "test", "test")
-            @Suppress("SqlNoDataSourceInspection")
-            db.createStatement().executeUpdate("create database $databaseName")
-            db.close()
+            val postgresDb = PostgresDb(databaseName, host, port)
+            postgresDb.createDb()
 
             val flyway =
                 Flyway.configure()
                     .dataSource("jdbc:postgresql://$host:$port/$databaseName", "test", "test")
                     .load()
             flyway.migrate()
-            return NameHostAndPort(databaseName, host, port)
+            return postgresDb
         }
+
     }
 
-    data class NameHostAndPort(val databaseName: String, val host: String, val port: Int)
+    data class PostgresDb(val databaseName: String, val host: String, val port: Int) {
+        fun createDb() {
+            val db =
+                DriverManager.getConnection(
+                    "jdbc:postgresql://$host:$port/postgres",
+                    "test",
+                    "test"
+                )
+            @Suppress("SqlNoDataSourceInspection")
+            db.createStatement().executeUpdate("create database $databaseName")
+            db.close()
+        }
+
+    }
 
     private val h2 = H2TestDatabase()
     val psql13 = PSQLTestDatabase("postgres:13-alpine")
