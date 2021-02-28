@@ -32,7 +32,7 @@ object ExamplesTest {
                 val entries = 1000
                 coroutineScope {
                     launch {
-                        connectionProvider.transaction() {
+                        connectionProvider.transaction {
                             repeat(entries) {
                                 channel.send(async {
                                     repo.create(user.copy(email = java.util.UUID.randomUUID().toString()))

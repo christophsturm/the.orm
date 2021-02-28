@@ -58,7 +58,10 @@ open class DBTestUtil(val databaseName: String) {
 
         override fun createDB(): ConnectionProviderFactory {
             val db = preparePostgresDB()
-            return R2dbcConnectionProviderFactory(ConnectionFactories.get("r2dbc:pool:postgresql://test:test@${db.host}:${db.port}/${db.databaseName}?initialSize=1"))
+            return R2dbcConnectionProviderFactory(
+                ConnectionFactories.get("r2dbc:postgresql://test:test@${db.host}:${db.port}/${db.databaseName}?initialSize=1&maxLifeTime=PT0S"),
+                db
+            )
         }
 
         fun preparePostgresDB(): PostgresDb {
@@ -81,8 +84,16 @@ open class DBTestUtil(val databaseName: String) {
 
     }
 
-    data class PostgresDb(val databaseName: String, val host: String, val port: Int) {
+    data class PostgresDb(val databaseName: String, val host: String, val port: Int) : AutoCloseable {
         fun createDb() {
+            executeSql("create database $databaseName")
+        }
+
+        private fun dropDb() {
+            executeSql("drop database $databaseName")
+        }
+
+        private fun executeSql(command: String) {
             val db =
                 DriverManager.getConnection(
                     "jdbc:postgresql://$host:$port/postgres",
@@ -90,8 +101,12 @@ open class DBTestUtil(val databaseName: String) {
                     "test"
                 )
             @Suppress("SqlNoDataSourceInspection")
-            db.createStatement().executeUpdate("create database $databaseName")
+            db.createStatement().executeUpdate(command)
             db.close()
+        }
+
+        override fun close() {
+            dropDb()
         }
 
     }
@@ -117,7 +132,10 @@ open class DBTestUtil(val databaseName: String) {
 
 }
 
-class R2dbcConnectionProviderFactory(val connectionFactory: ConnectionFactory) : ConnectionProviderFactory {
+class R2dbcConnectionProviderFactory(
+    private val connectionFactory: ConnectionFactory,
+    private val closable: AutoCloseable? = null
+) : ConnectionProviderFactory {
     private val connections = mutableListOf<Connection>()
     override suspend fun create(): ConnectionProvider {
         val connection = connectionFactory.create().awaitSingle()
@@ -129,6 +147,7 @@ class R2dbcConnectionProviderFactory(val connectionFactory: ConnectionFactory) :
         connections.forEach {
             it.close().awaitFirstOrNull()
         }
+        closable?.close()
     }
 
 }
