@@ -1,6 +1,6 @@
 package r2dbcfun
 
-import r2dbcfun.dbio.r2dbc.DBConnection
+import r2dbcfun.dbio.DBConnection
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.util.toSnakeCase
 import kotlin.reflect.KProperty1

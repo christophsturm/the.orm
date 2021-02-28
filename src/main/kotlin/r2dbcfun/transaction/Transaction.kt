@@ -1,6 +1,6 @@
 package r2dbcfun.transaction
 
-import r2dbcfun.dbio.r2dbc.DBConnection
+import r2dbcfun.dbio.DBConnection
 
 suspend fun <T> transaction(connection: DBConnection, function: suspend () -> T): T {
     connection.beginTransaction()
