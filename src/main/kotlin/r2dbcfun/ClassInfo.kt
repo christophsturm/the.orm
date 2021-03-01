@@ -1,5 +1,6 @@
 package r2dbcfun
 
+import io.vertx.sqlclient.data.Numeric
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.util.toSnakeCase
 import java.math.BigDecimal
@@ -24,7 +25,7 @@ private val fieldConverters =
         Short::class to passThroughFieldConverter,
         Long::class to passThroughFieldConverter,
         Double::class to FieldConverter { (it as Number?)?.toDouble() },
-        BigDecimal::class to passThroughFieldConverter,
+        BigDecimal::class to FieldConverter { if (it is Numeric) it.bigDecimalValue() else it },
         LocalDate::class to passThroughFieldConverter
     )
 

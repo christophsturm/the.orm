@@ -46,11 +46,10 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
 
-    // verx support lives in testing until it is usable
-    testImplementation("io.vertx:vertx-rx-java2:$vertxVersion")
+    implementation("io.vertx:vertx-rx-java2:$vertxVersion")
 
-    testImplementation("io.vertx:vertx-pg-client:$vertxVersion")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
+    implementation("io.vertx:vertx-pg-client:$vertxVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
 
 
     testImplementation("io.strikt:strikt-core:0.29.0")
