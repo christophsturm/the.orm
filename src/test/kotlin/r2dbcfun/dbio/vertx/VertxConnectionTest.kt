@@ -31,20 +31,9 @@ object VertxConnectionTest {
 }
 
 class VertxConnection(val client: Pool) : DBConnection {
-    override suspend fun beginTransaction() {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun commitTransaction() {
-        TODO("Not yet implemented")
-    }
 
     override fun createStatement(sql: String): Statement {
         return VertxStatement(client.preparedQuery(sql))
-    }
-
-    override suspend fun rollbackTransaction() {
-        TODO("Not yet implemented")
     }
 
     override fun createInsertStatement(sql: String): Statement {

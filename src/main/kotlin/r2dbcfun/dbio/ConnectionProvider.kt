@@ -8,11 +8,7 @@ class ConnectionProvider(val dbConnection: DBConnection) {
 }
 
 interface DBConnection {
-
-    suspend fun beginTransaction()
-    suspend fun commitTransaction()
     fun createStatement(sql: String): Statement
-    suspend fun rollbackTransaction()
     fun createInsertStatement(sql: String): Statement
     suspend fun <T> transaction(function: suspend () -> T): T
 }
