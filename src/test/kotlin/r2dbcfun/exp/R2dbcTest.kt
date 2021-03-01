@@ -5,8 +5,10 @@ package r2dbcfun.exp
 import failfast.describe
 import io.r2dbc.spi.ConnectionFactories
 import kotlinx.coroutines.flow.toCollection
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import r2dbcfun.dbio.r2dbc.R2dbcConnection
 import r2dbcfun.test.DBS
 import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThat
@@ -23,20 +25,22 @@ object R2dbcTest {
         forAllDatabases(DBS)
         { createConnectionProvider ->
             val connection = createConnectionProvider()
+            val conn = (connection.dbConnection as R2dbcConnection).connection
             test("can insert values and select result") {
                 val firstId =
-                    connection.dbConnection.createStatement("insert into users(name) values($1)")
+                    conn.createStatement("insert into users(name) values($1)")
                         .bind("$1", "belle")
-                        .executeInsert()
+                        .returnGeneratedValues().execute().awaitSingle()
+                        .map { row, _ -> row.get(0, java.lang.Long::class.java)!!.toLong() }.awaitSingle()
                 val secondId =
-                    connection.dbConnection.createStatement("insert into users(name) values($1)")
+                    conn.createStatement("insert into users(name) values($1)")
                         .bind("$1", "sebastian")
-                        .executeInsert()
-
+                        .returnGeneratedValues().execute().awaitSingle()
+                        .map { row, _ -> row.get(0, java.lang.Long::class.java)!!.toLong() }.awaitSingle()
                 val selectResult =
-                    connection.dbConnection.createStatement("select * from users").execute()
+                    conn.createStatement("select * from users").execute().awaitSingle()
                 val namesFlow =
-                    selectResult.map { row -> row.get("NAME", String::class.java) as String }
+                    selectResult.map { row, _ -> row.get("NAME", String::class.java) as String }.asFlow()
                 val names = namesFlow.toCollection(mutableListOf())
                 expectThat(firstId).isEqualTo(1)
                 expectThat(secondId).isEqualTo(2)
