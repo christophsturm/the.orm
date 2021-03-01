@@ -3,10 +3,10 @@ package r2dbcfun.dbio.vertx
 import failfast.FailFast
 import failfast.describe
 import io.mockk.mockk
+import io.vertx.reactivex.sqlclient.Pool
 import io.vertx.reactivex.sqlclient.PreparedQuery
 import io.vertx.reactivex.sqlclient.Row
 import io.vertx.reactivex.sqlclient.RowSet
-import io.vertx.reactivex.sqlclient.SqlClient
 import io.vertx.reactivex.sqlclient.Tuple
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -30,7 +30,7 @@ object VertxConnectionTest {
     }
 }
 
-class VertxConnection(val client: SqlClient) : DBConnection {
+class VertxConnection(val client: Pool) : DBConnection {
     override suspend fun beginTransaction() {
         TODO("Not yet implemented")
     }
