@@ -16,12 +16,12 @@ internal class PropertyReader<T>(private val property: KProperty1<T, *>) {
 
     /** bind this property's value to a Statement */
     internal fun bindValue(statement: Statement, index: Int, instance: T): Statement {
-        val value = property.call(instance)
+        val value = value(instance)
         return try {
             if (value == null) {
                 statement.bindNull(index, dbClass)
             } else {
-                statement.bind(index, if (isEnum) value.toString() else value)
+                statement.bind(index, value)
             }
         } catch (e: java.lang.IllegalArgumentException) {
             throw RepositoryException(
@@ -29,5 +29,11 @@ internal class PropertyReader<T>(private val property: KProperty1<T, *>) {
                 e
             )
         }
+    }
+
+    fun value(instance: T): Any? {
+        val value = property.call(instance)
+        return if (value != null && isEnum) value.toString() else value
+
     }
 }

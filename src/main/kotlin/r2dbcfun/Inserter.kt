@@ -12,6 +12,7 @@ internal class Inserter<T : Any>(
     private val idHandler: IDHandler<T>,
     private val exceptionInspector: ExceptionInspector<T>
 ) {
+    private val types: List<Class<*>> = insertProperties.map { it.dbClass }
     private val insertStatementString =
         run {
             val fieldNames = insertProperties.joinToString { it.name.toSnakeCase() }
@@ -20,13 +21,12 @@ internal class Inserter<T : Any>(
         }
 
     suspend fun create(connection: DBConnection, instance: T): T {
-        val statement =
-            insertProperties.foldIndexed(connection.createStatement(insertStatementString))
-            { idx, statement, property -> property.bindValue(statement, idx, instance) }
+        val values = insertProperties.asSequence().map { it.value(instance) }
+        val statement = connection.createStatement(insertStatementString)
 
         val id =
             try {
-                statement.executeInsert()
+                statement.executeInsert(types, values)
             } catch (e: R2dbcDataIntegrityViolationException) {
                 throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
             }
