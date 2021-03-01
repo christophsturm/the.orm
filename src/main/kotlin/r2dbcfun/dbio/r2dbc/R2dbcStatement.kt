@@ -3,7 +3,6 @@ package r2dbcfun.dbio.r2dbc
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.dbio.DBResult
 import r2dbcfun.dbio.Statement
-import r2dbcfun.executeInsert
 
 class R2dbcStatement(private val statement: io.r2dbc.spi.Statement) : Statement {
     override fun bind(idx: Int, property: Any): Statement {
@@ -26,7 +25,8 @@ class R2dbcStatement(private val statement: io.r2dbc.spi.Statement) : Statement 
     }
 
     override suspend fun executeInsert(): Long {
-        return statement.executeInsert()
+        return statement.returnGeneratedValues().execute().awaitSingle()
+            .map { row, _ -> row.get(0, java.lang.Long::class.java)!!.toLong() }.awaitSingle()
     }
 
 }
