@@ -22,11 +22,11 @@ internal class Inserter<T : Any>(
 
     suspend fun create(connection: DBConnection, instance: T): T {
         val values = insertProperties.asSequence().map { it.value(instance) }
-        val statement = connection.createStatement(insertStatementString)
+        val statement = connection.createInsertStatement(insertStatementString)
 
         val id =
             try {
-                statement.executeInsert(types, values)
+                statement.execute(types, values).getId()
             } catch (e: R2dbcDataIntegrityViolationException) {
                 throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
             }

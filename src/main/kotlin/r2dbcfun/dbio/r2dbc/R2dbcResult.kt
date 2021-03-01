@@ -9,7 +9,7 @@ import r2dbcfun.dbio.DBRow
 class R2dbcResult(private val result: io.r2dbc.spi.Result) : DBResult {
     override suspend fun rowsUpdated(): Int = result.rowsUpdated.awaitSingle()
 
-    override fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T> {
+    override suspend fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T> {
         return result.map { row, _ -> mappingFunction(R2dbcRow(row)) }.asFlow()
     }
 }

@@ -24,19 +24,15 @@ class R2dbcStatement(private val statement: io.r2dbc.spi.Statement) : Statement 
         return this
     }
 
-    suspend fun executeInsert(): Long {
-        return statement.returnGeneratedValues().execute().awaitSingle()
-            .map { row, _ -> row.get(0, java.lang.Long::class.java)!!.toLong() }.awaitSingle()
-    }
 
-    override suspend fun executeInsert(types: List<Class<*>>, values: Sequence<Any?>): Long {
+    override suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult {
         values.forEachIndexed { index, o ->
             if (o == null) {
                 statement.bindNull(index, types[index])
             } else
                 statement.bind(index, o)
         }
-        return executeInsert()
+        return execute()
     }
 
 }
