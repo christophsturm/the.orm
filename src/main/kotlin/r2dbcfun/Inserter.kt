@@ -23,6 +23,7 @@ internal class Inserter<T : Any>(
         val statement =
             insertProperties.foldIndexed(connection.createStatement(insertStatementString))
             { idx, statement, property -> property.bindValue(statement, idx, instance) }
+
         val id =
             try {
                 statement.executeInsert()

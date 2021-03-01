@@ -11,6 +11,7 @@ internal class Updater<T : Any>(
     private val idHandler: IDHandler<T>,
     private val idProperty: KProperty1<T, Any>
 ) {
+    private val types: List<Class<*>> = updateProperties.map { it.dbClass }
     private val updateStatementString =
         run {
             val propertiesString =

@@ -104,5 +104,9 @@ class VertxStatement(val preparedQuery: PreparedQuery<RowSet<Row>>) :
         TODO("Not yet implemented")
     }
 
+    override suspend fun executeInsert(types: List<Class<*>>, values: Sequence<Any>): Long {
+        TODO("Not yet implemented")
+    }
+
 }
 
