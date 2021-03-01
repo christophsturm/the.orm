@@ -51,6 +51,10 @@ class VertxConnection(val client: Pool) : DBConnection {
         return createStatement("$sql returning id")
     }
 
+    override suspend fun <T> transaction(function: suspend () -> T): T {
+        TODO("Not yet implemented")
+    }
+
 }
 
 class VertxStatement(val preparedQuery: PreparedQuery<RowSet<Row>>) :

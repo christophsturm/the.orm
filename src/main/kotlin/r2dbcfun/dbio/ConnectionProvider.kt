@@ -2,10 +2,9 @@ package r2dbcfun.dbio
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
-import r2dbcfun.transaction.transaction
 
 class ConnectionProvider(val dbConnection: DBConnection) {
-    suspend fun <T> transaction(function: suspend () -> T): T = transaction(dbConnection, function)
+    suspend fun <T> transaction(function: suspend () -> T): T = dbConnection.transaction(function)
 }
 
 interface DBConnection {
@@ -15,6 +14,7 @@ interface DBConnection {
     fun createStatement(sql: String): Statement
     suspend fun rollbackTransaction()
     fun createInsertStatement(sql: String): Statement
+    suspend fun <T> transaction(function: suspend () -> T): T
 }
 
 suspend fun DBConnection.executeSelect(

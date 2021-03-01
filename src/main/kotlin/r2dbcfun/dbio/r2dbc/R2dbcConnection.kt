@@ -25,4 +25,17 @@ class R2dbcConnection(val connection: io.r2dbc.spi.Connection) : DBConnection {
     override suspend fun rollbackTransaction() {
         connection.rollbackTransaction().awaitFirstOrNull()
     }
+
+    override suspend fun <T> transaction(function: suspend () -> T): T {
+        connection.beginTransaction().awaitFirstOrNull()
+        val result = try {
+            function()
+        } catch (e: Exception) {
+            connection.rollbackTransaction().awaitFirstOrNull()
+            throw e
+        }
+        connection.commitTransaction().awaitFirstOrNull()
+        return result
+    }
+
 }
