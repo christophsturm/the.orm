@@ -55,31 +55,13 @@ class VertxConnection(val client: SqlClient) : DBConnection {
 
 class VertxStatement(val preparedQuery: PreparedQuery<RowSet<Row>>) :
     Statement {
-    override fun bind(idx: Int, property: Any): Statement {
-        TODO("Not yet implemented")
-    }
-
-    override fun bind(field: String, property: Any): Statement {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun execute(): DBResult {
-        TODO("Not yet implemented")
-    }
-
-    override fun bindNull(index: Int, dbClass: Class<out Any>): Statement {
-        TODO("Not yet implemented")
-    }
-
-
     override suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult {
         val rowSet = preparedQuery.rxExecute(Tuple.from(values.toList())).await()
         return VertxResult(rowSet)
     }
-
 }
 
-class VertxResult(val rows: RowSet<Row>) : DBResult {
+class VertxResult(private val rows: RowSet<Row>) : DBResult {
     override suspend fun rowsUpdated(): Int {
         return rows.rowCount()
     }

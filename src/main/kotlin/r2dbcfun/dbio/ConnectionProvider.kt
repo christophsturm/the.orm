@@ -23,10 +23,6 @@ suspend fun DBConnection.executeSelect(
 ): DBResult = createStatement(sql).execute(listOf(), parameterValues)
 
 interface Statement {
-    fun bind(idx: Int, property: Any): Statement
-    fun bind(field: String, property: Any): Statement
-    suspend fun execute(): DBResult
-    fun bindNull(index: Int, dbClass: Class<out Any>): Statement
     suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult
 }
 

@@ -163,8 +163,7 @@ object RepositoryFunctionalTest {
                                 .id!!
                         @Suppress("SqlResolve") val color =
                             connection.dbConnection.createStatement("select * from Users where id = $1")
-                                .bind("$1", id.id)
-                                .execute()
+                                .execute(listOf(Long::class.java), sequenceOf(id.id))
                                 .map { row ->
                                     row.get(
                                         User::favoriteColor.name.toSnakeCase(),
