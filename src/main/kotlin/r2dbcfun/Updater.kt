@@ -11,7 +11,7 @@ internal class Updater<T : Any>(
     private val idHandler: IDHandler<T>,
     private val idProperty: KProperty1<T, Any>
 ) {
-    private val types: List<Class<*>> = updateProperties.map { it.dbClass }
+    private val types: List<Class<*>> = listOf(Long::class.java)/*PK*/ + updateProperties.map { it.dbClass }
     private val updateStatementString =
         run {
             val propertiesString =
@@ -24,12 +24,13 @@ internal class Updater<T : Any>(
         }
 
     suspend fun update(connection: DBConnection, instance: T) {
+        val values = updateProperties.asSequence().map { it.value(instance) }
+
+        val id = idHandler.getId(idProperty.call(instance))
         val statement =
-            updateProperties.foldIndexed(
-                connection.createStatement(updateStatementString)
-                    .bind(0, idHandler.getId(idProperty.call(instance)))
-            ) { idx, statement, entry -> entry.bindValue(statement, idx + 1, instance) }
-        val rowsUpdated = statement.execute().rowsUpdated()
+            connection.createStatement(updateStatementString)
+
+        val rowsUpdated = statement.execute(types, sequenceOf(sequenceOf(id), values).flatten()).rowsUpdated()
         if (rowsUpdated != 1) throw RepositoryException("rowsUpdated was $rowsUpdated instead of 1")
     }
 }

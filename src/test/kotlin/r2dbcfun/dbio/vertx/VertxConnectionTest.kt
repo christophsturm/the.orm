@@ -31,10 +31,6 @@ object VertxConnectionTest {
 }
 
 class VertxConnection(val client: SqlClient) : DBConnection {
-    override suspend fun executeSelect(parameterValues: Sequence<Any>, sql: String): DBResult {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun beginTransaction() {
         TODO("Not yet implemented")
     }
@@ -97,7 +93,8 @@ class VertxResult(val rows: RowSet<Row>) : DBResult {
 
 class VertxRow(val row: Row) : DBRow {
     override fun getLazy(key: String): LazyResult<Any?> {
-        TODO("Not yet implemented")
+        val result = get(key, Object::class.java)
+        return LazyResult { result }
     }
 
     override fun <T> get(key: String, type: Class<T>): T? {

@@ -9,10 +9,6 @@ class ConnectionProvider(val dbConnection: DBConnection) {
 }
 
 interface DBConnection {
-    suspend fun executeSelect(
-        parameterValues: Sequence<Any>,
-        sql: String
-    ): DBResult
 
     suspend fun beginTransaction()
     suspend fun commitTransaction()
@@ -20,6 +16,11 @@ interface DBConnection {
     suspend fun rollbackTransaction()
     fun createInsertStatement(sql: String): Statement
 }
+
+suspend fun DBConnection.executeSelect(
+    parameterValues: Sequence<Any>,
+    sql: String
+): DBResult = createStatement(sql).execute(listOf(), parameterValues)
 
 interface Statement {
     fun bind(idx: Int, property: Any): Statement

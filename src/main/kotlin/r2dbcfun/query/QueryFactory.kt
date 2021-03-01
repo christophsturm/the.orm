@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.singleOrNull
 import r2dbcfun.Repository
 import r2dbcfun.ResultMapper
 import r2dbcfun.dbio.ConnectionProvider
+import r2dbcfun.dbio.executeSelect
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.util.toIndexedPlaceholders
 import r2dbcfun.util.toSnakeCase
