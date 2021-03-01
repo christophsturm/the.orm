@@ -37,6 +37,10 @@ class R2dbcConnection(val connection: io.r2dbc.spi.Connection) : DBConnection {
         return R2dbcStatement(connection.createStatement(sql))
     }
 
+    override fun createInsertStatement(sql: String): Statement {
+        return R2dbcStatement(connection.createStatement(sql).returnGeneratedValues())
+    }
+
     override suspend fun rollbackTransaction() {
         connection.rollbackTransaction().awaitFirstOrNull()
     }

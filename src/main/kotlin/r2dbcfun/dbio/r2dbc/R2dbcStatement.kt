@@ -24,7 +24,7 @@ class R2dbcStatement(private val statement: io.r2dbc.spi.Statement) : Statement 
         return this
     }
 
-    override suspend fun executeInsert(): Long {
+    suspend fun executeInsert(): Long {
         return statement.returnGeneratedValues().execute().awaitSingle()
             .map { row, _ -> row.get(0, java.lang.Long::class.java)!!.toLong() }.awaitSingle()
     }

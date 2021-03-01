@@ -17,6 +17,7 @@ interface DBConnection {
     suspend fun commitTransaction()
     fun createStatement(sql: String): Statement
     suspend fun rollbackTransaction()
+    fun createInsertStatement(sql: String): Statement
 }
 
 interface Statement {
@@ -24,7 +25,6 @@ interface Statement {
     fun bind(field: String, property: Any): Statement
     suspend fun execute(): DBResult
     fun bindNull(index: Int, dbClass: Class<out Any>): Statement
-    suspend fun executeInsert(): Long
     suspend fun executeInsert(types: List<Class<*>>, values: Sequence<Any?>): Long
 }
 

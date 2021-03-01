@@ -202,9 +202,10 @@ interface ConnectionProviderFactory {
 
 suspend fun ContextDSL.forAllDatabases(
     dbs: DBTestUtil,
+    additionalDatabases: List<DBTestUtil.TestDatabase> = listOf(),
     tests: suspend ContextDSL.(suspend () -> ConnectionProvider) -> Unit
 ) {
-    dbs.databases.map { db ->
+    (dbs.databases + additionalDatabases).map { db ->
         context("on ${db.name}") {
             val createDB = autoClose(db.createDB()) { it.close() }
             val connectionFactory: suspend () -> ConnectionProvider =
