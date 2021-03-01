@@ -41,9 +41,18 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
+
     api("io.r2dbc:r2dbc-spi:0.8.4.RELEASE")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
+
+    // verx support lives in testing until it is usable
+    testImplementation("io.vertx:vertx-rx-java2:$vertxVersion")
+
+    testImplementation("io.vertx:vertx-pg-client:$vertxVersion")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
+
+
     testImplementation("io.strikt:strikt-core:0.29.0")
     testImplementation("com.christophsturm.failfast:failfast:$failfastVersion")
 //    testImplementation("com.christophsturm.failfast:failfast-r2dbc:$failfastVersion")
@@ -72,11 +81,7 @@ dependencies {
     testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-jul:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version")
-    testImplementation("io.vertx:vertx-rx-java2:$vertxVersion")
 
-    testImplementation("io.vertx:vertx-pg-client:$vertxVersion")
-
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.7.1")
 
 }
