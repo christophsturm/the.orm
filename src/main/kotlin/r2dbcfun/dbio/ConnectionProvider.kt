@@ -25,7 +25,7 @@ interface Statement {
     suspend fun execute(): DBResult
     fun bindNull(index: Int, dbClass: Class<out Any>): Statement
     suspend fun executeInsert(): Long
-    suspend fun executeInsert(types: List<Class<*>>, values: Sequence<Any>): Long
+    suspend fun executeInsert(types: List<Class<*>>, values: Sequence<Any?>): Long
 }
 
 interface DBResult {

@@ -17,8 +17,14 @@ object DBConnectionTest {
             val connection = createConnectionProvider().dbConnection
             it("can insert with autoincrement") {
                 val result =
-                    connection.createStatement("insert into users(name) values ($1)").bind(0, "belle")
+                    connection.createStatement("insert into users(name) values ($1)")
                         .executeInsert(listOf(String::class.java), sequenceOf("belle"))
+                expectThat(result).isEqualTo(1)
+            }
+            it("can insert null values with autoincrement") {
+                val result =
+                    connection.createStatement("insert into users(name, email) values ($1, $2)")
+                        .executeInsert(listOf(String::class.java, String::class.java), sequenceOf("belle", null))
                 expectThat(result).isEqualTo(1)
             }
 
