@@ -4,12 +4,17 @@ import failfast.ContextDSL
 import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
+import io.vertx.pgclient.PgConnectOptions
+import io.vertx.reactivex.pgclient.PgPool
+import io.vertx.reactivex.sqlclient.SqlClient
+import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.dbio.ConnectionProvider
 import r2dbcfun.dbio.r2dbc.R2dbcConnection
+import r2dbcfun.dbio.vertx.VertxConnection
 import java.sql.DriverManager
 import java.util.*
 
@@ -40,10 +45,8 @@ open class DBTestUtil(val databaseName: String) {
     }
 
 
-    inner class PSQLTestDatabase(private val dockerImage: String) : TestDatabase {
-        override val name = dockerImage
-
-        override fun prepare() {
+    inner class PSQLContainer(val dockerImage: String) {
+        fun prepare() {
             dockerContainer
         }
 
@@ -56,13 +59,6 @@ open class DBTestUtil(val databaseName: String) {
             }
         }
 
-        override fun createDB(): ConnectionProviderFactory {
-            val db = preparePostgresDB()
-            return R2dbcConnectionProviderFactory(
-                ConnectionFactories.get("r2dbc:postgresql://test:test@${db.host}:${db.port}/${db.databaseName}?initialSize=1&maxLifeTime=PT0S"),
-                db
-            )
-        }
 
         fun preparePostgresDB(): PostgresDb {
             Class.forName("org.postgresql.Driver")
@@ -80,6 +76,19 @@ open class DBTestUtil(val databaseName: String) {
                     .load()
             flyway.migrate()
             return postgresDb
+        }
+
+    }
+
+    class R2DBCPostgresFactory(val psqlContainer: PSQLContainer) : TestDatabase {
+        override val name = "R2DBC-${psqlContainer.dockerImage}"
+
+        override fun createDB(): ConnectionProviderFactory {
+            val db = psqlContainer.preparePostgresDB()
+            return R2dbcConnectionProviderFactory(
+                ConnectionFactories.get("r2dbc:postgresql://test:test@${db.host}:${db.port}/${db.databaseName}?initialSize=1&maxLifeTime=PT0S"),
+                db
+            )
         }
 
     }
@@ -112,25 +121,58 @@ open class DBTestUtil(val databaseName: String) {
     }
 
     private val h2 = H2TestDatabase()
-    val psql13 = PSQLTestDatabase("postgres:13-alpine")
-    val databases = when {
-        TestConfig.H2_ONLY -> {
-            listOf(h2)
+    val psql13 = PSQLContainer("postgres:13-alpine")
+    val postgreSQLContainers = if (TestConfig.ALL_PSQL) listOf(
+        psql13,
+        PSQLContainer("postgres:12-alpine"),
+        PSQLContainer("postgres:11-alpine"),
+        PSQLContainer("postgres:10-alpine"),
+        PSQLContainer("postgres:9-alpine")
+    )
+    else
+        listOf(psql13)
+
+    val databases = if (TestConfig.H2_ONLY) {
+        listOf(h2)
+    } else listOf(h2) + postgreSQLContainers.map { R2DBCPostgresFactory(it) }
+    val unstableDatabases = postgreSQLContainers.map { VertxPSQLTestDatabase(it) }
+
+    inner class VertxPSQLTestDatabase(val psql: PSQLContainer) : TestDatabase {
+        override val name = "Vertx-${psql.dockerImage}"
+        override fun createDB(): ConnectionProviderFactory {
+            val database = psql.preparePostgresDB()
+            val connectOptions = PgConnectOptions()
+                .setPort(database.port)
+                .setHost(database.host)
+                .setDatabase(database.databaseName)
+                .setUser("test")
+                .setPassword("test")
+
+            return VertxConnectionProviderFactory(connectOptions, database)
         }
-        TestConfig.ALL_PSQL -> {
-            listOf(
-                h2, psql13,
-                PSQLTestDatabase("postgres:12-alpine"),
-                PSQLTestDatabase("postgres:11-alpine"),
-                PSQLTestDatabase("postgres:10-alpine"),
-                PSQLTestDatabase("postgres:9-alpine")
-            )
-        }
-        else -> listOf(h2, psql13)
+    }
+
+}
+
+class VertxConnectionProviderFactory(val poolOptions: PgConnectOptions, val db: AutoCloseable) :
+    ConnectionProviderFactory {
+    val clients = mutableListOf<SqlClient>()
+    override suspend fun create(): ConnectionProvider {
+        val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(5))
+        clients.add(client)
+        return ConnectionProvider(VertxConnection(client))
     }
 
 
+    override suspend fun close() {
+        clients.forEach {
+            it.close()
+        }
+        db.close()
+    }
+
 }
+
 
 class R2dbcConnectionProviderFactory(
     private val connectionFactory: ConnectionFactory,
