@@ -30,11 +30,7 @@ object VertxTest {
             .setUser("test")
             .setPassword("test")
 
-// Pool options
-        val poolOptions = PoolOptions().setMaxSize(5)
-
-// Create the client pool
-        val client: SqlClient = autoClose(PgPool.pool(connectOptions, poolOptions)) { it.close() }
+        val client: SqlClient = autoClose(PgPool.pool(connectOptions, PoolOptions().setMaxSize(5))) { it.close() }
 
         it("can run sql queries") {
             val result: RowSet<Row> = client.query("SELECT * FROM users WHERE id=1").rxExecute().await()
