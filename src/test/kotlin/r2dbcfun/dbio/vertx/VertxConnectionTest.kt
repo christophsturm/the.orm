@@ -5,6 +5,7 @@ import io.vertx.reactivex.sqlclient.PreparedQuery
 import io.vertx.reactivex.sqlclient.Row
 import io.vertx.reactivex.sqlclient.RowSet
 import io.vertx.reactivex.sqlclient.SqlConnection
+import io.vertx.reactivex.sqlclient.Transaction
 import io.vertx.reactivex.sqlclient.Tuple
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.rx2.await
 import r2dbcfun.dbio.DBConnection
 import r2dbcfun.dbio.DBResult
 import r2dbcfun.dbio.DBRow
+import r2dbcfun.dbio.DBTransaction
 import r2dbcfun.dbio.LazyResult
 import r2dbcfun.dbio.Statement
 
@@ -30,20 +32,24 @@ class VertxConnection(private val client: SqlConnection) : DBConnection {
     }
 
 
-    override suspend fun beginTransaction() {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun commitTransaction() {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun rollbackTransaction() {
-        TODO("Not yet implemented")
+    override suspend fun beginTransaction(): DBTransaction {
+        return VertxTransaction(client.rxBegin().await())
     }
 
     override suspend fun close() {
         client.rxClose().await()
+    }
+
+}
+
+
+class VertxTransaction(val transaction: Transaction) : DBTransaction {
+    override suspend fun rollbackTransaction() {
+        transaction.rxRollback().await()
+    }
+
+    override suspend fun commitTransaction() {
+        transaction.rxCommit().await()
     }
 
 }

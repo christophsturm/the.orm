@@ -6,14 +6,14 @@ import kotlinx.coroutines.flow.single
 class TransactionalConnectionProvider(val connectionFactory: ConnectionFactory) : ConnectionProvider {
     override suspend fun <T> transaction(function: suspend (ConnectionProvider) -> T): T {
         val connection = connectionFactory.getConnection()
-        connection.beginTransaction()
+        val transaction = connection.beginTransaction()
         val result = try {
             function(FixedConnectionProvider(connection))
         } catch (e: Exception) {
-            connection.rollbackTransaction()
+            transaction.rollbackTransaction()
             throw e
         }
-        connection.commitTransaction()
+        transaction.commitTransaction()
         connection.close()
         return result
     }
@@ -23,7 +23,6 @@ class TransactionalConnectionProvider(val connectionFactory: ConnectionFactory) 
         return try {
             function(connection)
         } catch (e: Exception) {
-            connection.rollbackTransaction()
             throw e
         } finally {
             connection.close()
@@ -46,9 +45,7 @@ interface ConnectionProvider {
 interface DBConnection {
     fun createStatement(sql: String): Statement
     fun createInsertStatement(sql: String): Statement
-    suspend fun beginTransaction()
-    suspend fun commitTransaction()
-    suspend fun rollbackTransaction()
+    suspend fun beginTransaction(): DBTransaction
     suspend fun close()
 }
 
@@ -78,4 +75,9 @@ interface DBRow {
 
 class LazyResult<T>(val get: suspend () -> T) {
     suspend fun resolve() = get()
+}
+
+interface DBTransaction {
+    suspend fun rollbackTransaction()
+    suspend fun commitTransaction()
 }

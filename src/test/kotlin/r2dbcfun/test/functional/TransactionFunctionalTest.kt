@@ -20,7 +20,7 @@ object TransactionFunctionalTest {
         val repo = Repository.create<User>()
         val userNameLike = repo.queryFactory.createQuery(User::name.like())
 
-        forAllDatabases(DBS) { createConnectionProvider ->
+        forAllDatabases(DBS, DBS.unstableDatabases) { createConnectionProvider ->
             val connectionProvider = createConnectionProvider()
             it("has transaction isolation") {
                 val differentConnectionProvider = createConnectionProvider()

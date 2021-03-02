@@ -7,6 +7,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import r2dbcfun.dbio.ConnectionFactory
 import r2dbcfun.dbio.DBConnection
+import r2dbcfun.dbio.DBTransaction
 import r2dbcfun.dbio.TransactionalConnectionProvider
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -22,6 +23,8 @@ object ConnectionProviderTest {
         val connectionFactory = mockk<ConnectionFactory>()
         val r2dbcConnection = mockk<DBConnection>(relaxed = true)
         coEvery { connectionFactory.getConnection() }.returns(r2dbcConnection)
+        val transaction = mockk<DBTransaction>(relaxed = true)
+        coEvery { r2dbcConnection.beginTransaction() }.returns(transaction)
         val connectionProvider = TransactionalConnectionProvider(connectionFactory)
         it("calls block") {
             var called = false
@@ -30,7 +33,7 @@ object ConnectionProviderTest {
                 called = true
             }
             expectThat(called).isTrue()
-            coVerify { r2dbcConnection.commitTransaction() }
+            coVerify { transaction.commitTransaction() }
         }
         it("returns the result of the block") {
             expectThat(connectionProvider.transaction() { "RESULT" }).isEqualTo("RESULT")
@@ -42,7 +45,7 @@ object ConnectionProviderTest {
                     throw runtimeException
                 }
             }.isEqualTo(runtimeException)
-            coVerify { r2dbcConnection.rollbackTransaction() }
+            coVerify { transaction.rollbackTransaction() }
 
         }
     }
