@@ -117,53 +117,61 @@ class QueryFactory<T : Any> internal constructor(
     }
 
     inner class QueryWithParameters(
-        private val connection: ConnectionProvider,
+        private val connectionProvider: ConnectionProvider,
         private val queryString: String,
         private val parameterValues: Sequence<Any>
     ) {
 
         suspend fun find(): Flow<T> =
             resultMapper.mapQueryResult(
-                connection.dbConnection.executeSelect(
-                    parameterValues,
-                    selectPrefix + queryString
-                )
+                connectionProvider.withConnection { connection ->
+                    connection.executeSelect(
+                        parameterValues,
+                        selectPrefix + queryString
+                    )
+                }
             )
 
         suspend fun delete(): Int =
-            connection.dbConnection.executeSelect(
-                parameterValues,
-                deletePrefix + queryString
-            ).rowsUpdated()
+            connectionProvider.transaction { connection ->
+                connection.executeSelect(
+                    parameterValues,
+                    deletePrefix + queryString
+                ).rowsUpdated()
+            }
 
         suspend fun findOrCreate(creator: () -> T): T {
-            val existing =
-                resultMapper.mapQueryResult(
-                    connection.dbConnection.executeSelect(
-                        parameterValues,
-                        selectPrefix + queryString
+            return connectionProvider.transaction { connection ->
+                val existing =
+                    resultMapper.mapQueryResult(
+                        connection.executeSelect(
+                            parameterValues,
+                            selectPrefix + queryString
+                        )
                     )
-                )
-                    .singleOrNull()
-            return existing ?: repository.create(connection, creator())
-
+                        .singleOrNull()
+                existing ?: repository.create(connectionProvider, creator())
+            }
         }
 
         suspend fun createOrUpdate(entity: T): T {
-            val existing =
-                resultMapper.mapQueryResult(
-                    connection.dbConnection.executeSelect(
-                        parameterValues,
-                        selectPrefix + queryString
+            return connectionProvider.transaction { connection ->
+
+                val existing =
+                    resultMapper.mapQueryResult(
+                        connection.executeSelect(
+                            parameterValues,
+                            selectPrefix + queryString
+                        )
                     )
-                )
-                    .singleOrNull()
-            return if (existing == null) {
-                repository.create(connection, entity)
-            } else {
-                val updatedInstance = idHandler.assignId(entity, idHandler.getId(idProperty.get(existing)))
-                repository.update(connection, updatedInstance)
-                updatedInstance
+                        .singleOrNull()
+                if (existing == null) {
+                    repository.create(connectionProvider, entity)
+                } else {
+                    val updatedInstance = idHandler.assignId(entity, idHandler.getId(idProperty.get(existing)))
+                    repository.update(connectionProvider, updatedInstance)
+                    updatedInstance
+                }
             }
         }
 

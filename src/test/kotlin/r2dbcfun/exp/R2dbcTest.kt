@@ -25,7 +25,7 @@ object R2dbcTest {
         forAllDatabases(DBS)
         { createConnectionProvider ->
             val connection = createConnectionProvider()
-            val conn = (connection.dbConnection as R2dbcConnection).connection
+            val conn = (connection.connectionFactory.getConnection() as R2dbcConnection).connection
             test("can insert values and select result") {
                 val firstId =
                     conn.createStatement("insert into users(name) values($1)")

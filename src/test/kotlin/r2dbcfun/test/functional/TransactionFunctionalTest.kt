@@ -22,7 +22,7 @@ object TransactionFunctionalTest {
 
         forAllDatabases(DBS) { createConnectionProvider ->
             val connectionProvider = createConnectionProvider()
-            it("has transaction isolation") {
+            itWill("has transaction isolation") {
                 val differentConnectionProvider = createConnectionProvider()
                 val user = connectionProvider.transaction {
                     val user = repo.create(connectionProvider, User(name = "a user", email = "with email"))
@@ -39,7 +39,7 @@ object TransactionFunctionalTest {
                     user
                 )
             }
-            it("rolls back the transaction if the block fails") {
+            itWill("rolls back the transaction if the block fails") {
                 try {
                     connectionProvider.transaction {
                         repo.create(connectionProvider, User(name = "a user", email = "with email"))

@@ -1,0 +1,25 @@
+package r2dbcfun.dbio.r2dbc
+
+import failfast.describe
+import io.r2dbc.pool.ConnectionPool
+import io.r2dbc.pool.ConnectionPoolConfiguration
+import io.r2dbc.spi.ConnectionFactories
+import r2dbcfun.dbio.DBConnection
+import java.time.Duration
+
+
+object R2dbcConnectionProviderTest {
+    val context = describe(R2dbcConnectionFactory::class) {
+        test("creates connections from a connection Pool") {
+            val connectionFactory = ConnectionFactories.get("r2dbc:h2:mem:///any")
+            val pool = ConnectionPool(
+                ConnectionPoolConfiguration.builder(connectionFactory)
+                    .maxIdleTime(Duration.ofMillis(1000))
+                    .maxSize(20)
+                    .build()
+            )
+
+            val connection: DBConnection = R2dbcConnectionFactory(pool).getConnection()
+        }
+    }
+}

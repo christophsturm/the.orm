@@ -1,21 +1,21 @@
 package r2dbcfun.test
 
 import failfast.ContextDSL
-import io.r2dbc.spi.Connection
+import io.r2dbc.pool.ConnectionPool
+import io.r2dbc.pool.ConnectionPoolConfiguration
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.reactivex.pgclient.PgPool
 import io.vertx.reactivex.sqlclient.SqlClient
 import io.vertx.sqlclient.PoolOptions
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.reactive.awaitSingle
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.dbio.ConnectionProvider
-import r2dbcfun.dbio.r2dbc.R2dbcConnection
-import r2dbcfun.dbio.vertx.VertxConnection
+import r2dbcfun.dbio.r2dbc.R2dbcConnectionFactory
+import r2dbcfun.dbio.vertx.VertxConnectionFactory
 import java.sql.DriverManager
+import java.time.Duration
 import java.util.*
 
 object TestConfig {
@@ -115,7 +115,11 @@ open class DBTestUtil(val databaseName: String) {
         }
 
         override fun close() {
-            dropDb()
+            try {
+                dropDb()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
     }
@@ -135,7 +139,7 @@ open class DBTestUtil(val databaseName: String) {
     val databases = if (TestConfig.H2_ONLY) {
         listOf(h2)
     } else listOf(h2) + postgreSQLContainers.map { R2DBCPostgresFactory(it) }
-    val unstableDatabases = postgreSQLContainers.map { VertxPSQLTestDatabase(it) }
+    val unstableDatabases = listOf<TestDatabase>()//postgreSQLContainers.map { VertxPSQLTestDatabase(it) }
 
     inner class VertxPSQLTestDatabase(val psql: PSQLContainer) : TestDatabase {
         override val name = "Vertx-${psql.dockerImage}"
@@ -160,7 +164,7 @@ class VertxConnectionProviderFactory(val poolOptions: PgConnectOptions, val db: 
     override suspend fun create(): ConnectionProvider {
         val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(5))
         clients.add(client)
-        return ConnectionProvider(VertxConnection(client))
+        return ConnectionProvider(VertxConnectionFactory(client))
     }
 
 
@@ -175,19 +179,24 @@ class VertxConnectionProviderFactory(val poolOptions: PgConnectOptions, val db: 
 
 
 class R2dbcConnectionProviderFactory(
-    private val connectionFactory: ConnectionFactory,
+    val connectionFactory: ConnectionFactory,
     private val closable: AutoCloseable? = null
 ) : ConnectionProviderFactory {
-    private val connections = mutableListOf<Connection>()
+    private val connections = mutableListOf<ConnectionPool>()
     override suspend fun create(): ConnectionProvider {
-        val connection = connectionFactory.create().awaitSingle()
-        connections.add(connection)
-        return ConnectionProvider(R2dbcConnection(connection))
+        val pool = ConnectionPool(
+            ConnectionPoolConfiguration.builder(connectionFactory)
+                .maxIdleTime(Duration.ofMillis(1000))
+                .maxSize(5)
+                .build()
+        )
+        connections.add(pool)
+        return ConnectionProvider(R2dbcConnectionFactory(pool))
     }
 
     override suspend fun close() {
         connections.forEach {
-            it.close().awaitFirstOrNull()
+            it.close()
         }
         closable?.close()
     }

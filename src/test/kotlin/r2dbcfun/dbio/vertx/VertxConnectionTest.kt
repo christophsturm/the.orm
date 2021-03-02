@@ -1,18 +1,15 @@
 package r2dbcfun.dbio.vertx
 
 import failfast.FailFast
-import failfast.describe
-import io.mockk.mockk
-import io.vertx.reactivex.sqlclient.Pool
 import io.vertx.reactivex.sqlclient.PreparedQuery
 import io.vertx.reactivex.sqlclient.Row
 import io.vertx.reactivex.sqlclient.RowSet
+import io.vertx.reactivex.sqlclient.SqlConnection
 import io.vertx.reactivex.sqlclient.Tuple
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.rx2.await
-import r2dbcfun.dbio.ConnectionProvider
 import r2dbcfun.dbio.DBConnection
 import r2dbcfun.dbio.DBResult
 import r2dbcfun.dbio.DBRow
@@ -22,16 +19,8 @@ import r2dbcfun.dbio.Statement
 fun main() {
     FailFast.runTest()
 }
-object VertxConnectionTest {
-    val context = describe(VertxConnection::class) {
-        it("works with ConnectionProvider") {
-            ConnectionProvider(VertxConnection(mockk()))
-        }
-    }
-}
 
-class VertxConnection(val client: Pool) : DBConnection {
-
+class VertxConnection(private val client: SqlConnection) : DBConnection {
     override fun createStatement(sql: String): Statement {
         return VertxStatement(client.preparedQuery(sql))
     }
@@ -40,8 +29,21 @@ class VertxConnection(val client: Pool) : DBConnection {
         return createStatement("$sql returning id")
     }
 
-    override suspend fun <T> transaction(function: suspend () -> T): T {
+
+    override suspend fun beginTransaction() {
         TODO("Not yet implemented")
+    }
+
+    override suspend fun commitTransaction() {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun rollbackTransaction() {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun close() {
+        client.rxClose().await()
     }
 
 }

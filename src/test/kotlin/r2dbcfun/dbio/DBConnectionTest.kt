@@ -14,20 +14,23 @@ fun main() {
 object DBConnectionTest {
     val context = describe(DBConnection::class) {
         forAllDatabases(DBS, DBS.unstableDatabases) { createConnectionProvider ->
-            val connection = createConnectionProvider().dbConnection
             it("can insert with autoincrement") {
                 val result =
-                    connection.createInsertStatement("insert into users(name) values ($1)")
-                        .execute(listOf(String::class.java), sequenceOf("belle")).getId()
+                    createConnectionProvider().transaction { connection ->
+                        connection.createInsertStatement("insert into users(name) values ($1)")
+                            .execute(listOf(String::class.java), sequenceOf("belle")).getId()
+                    }
                 expectThat(result).isEqualTo(1)
             }
             it("can insert null values with autoincrement") {
                 val result =
-                    connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
-                        .execute(listOf(String::class.java, String::class.java), sequenceOf("belle", null)).getId()
+                    createConnectionProvider().transaction { connection ->
+                        connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
+                            .execute(listOf(String::class.java, String::class.java), sequenceOf("belle", null))
+                            .getId()
+                    }
                 expectThat(result).isEqualTo(1)
             }
-
         }
     }
 }

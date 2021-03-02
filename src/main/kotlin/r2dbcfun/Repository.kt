@@ -52,16 +52,20 @@ class Repository<T : Any>(kClass: KClass<T>) {
      * @param instance the instance that will be used to set the fields of the newly created record
      * @return a copy of the instance with an assigned id field.
      */
-    suspend fun create(connection: ConnectionProvider, instance: T): T =
-        inserter.create(connection.dbConnection, instance)
+    suspend fun create(connectionProvider: ConnectionProvider, instance: T): T =
+        connectionProvider.withConnection { connection ->
+            inserter.create(connection, instance)
+        }
 
     /**
      * updates a record in the database.
      *
      * @param instance the instance that will be used to update the record
      */
-    suspend fun update(connection: ConnectionProvider, instance: T) {
-        updater.update(connection.dbConnection, instance)
+    suspend fun update(connectionProvider: ConnectionProvider, instance: T) {
+        connectionProvider.withConnection { connection ->
+            updater.update(connection, instance)
+        }
     }
 
     private val byIdQuery = queryFactory.createQuery(isEqualToCondition(idProperty))
@@ -71,9 +75,9 @@ class Repository<T : Any>(kClass: KClass<T>) {
      *
      * @param id the primary key of the object to load
      */
-    suspend fun findById(connection: ConnectionProvider, id: PK): T {
+    suspend fun findById(connectionProvider: ConnectionProvider, id: PK): T {
         return try {
-            byIdQuery.with(connection, id.id).find().single()
+            byIdQuery.with(connectionProvider, id.id).find().single()
         } catch (e: NoSuchElementException) {
             throw NotFoundException("No $tableName found for id ${id.id}")
         }

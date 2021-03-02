@@ -44,6 +44,7 @@ dependencies {
 
     api("io.r2dbc:r2dbc-spi:0.8.4.RELEASE")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+    implementation("io.r2dbc:r2dbc-pool:0.8.6.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
 
     implementation("io.vertx:vertx-rx-java2:$vertxVersion")
@@ -61,7 +62,6 @@ dependencies {
     testRuntimeOnly("com.h2database:h2:1.4.200")
     testRuntimeOnly("org.postgresql:postgresql:42.2.19")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.7.RELEASE")
-    testRuntimeOnly("io.r2dbc:r2dbc-pool:0.8.6.RELEASE")
 //    testRuntimeOnly("io.projectreactor.netty:reactor-netty:0.9.14.RELEASE") // bump postgresql dependency
 
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")

@@ -29,7 +29,7 @@ object RepositoryFunctionalTest {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
     val context = describe("the repository class") {
-        forAllDatabases(DBS, DBS.unstableDatabases) { createConnectionProvider ->
+        forAllDatabases(DBS) { createConnectionProvider ->
 //        forAllDatabases(DBS,DBS.unstableDatabases) { createConnectionProvider ->
             val connection = createConnectionProvider()
             context("with a user class") {
@@ -162,14 +162,17 @@ object RepositoryFunctionalTest {
                                 )
                                 .id!!
                         @Suppress("SqlResolve") val color =
-                            connection.dbConnection.createStatement("select * from Users where id = $1")
-                                .execute(listOf(Long::class.java), sequenceOf(id.id))
-                                .map { row ->
-                                    row.get(
-                                        User::favoriteColor.name.toSnakeCase(),
-                                        String::class.java
-                                    )!!
-                                }.single()
+                            connection.withConnection { connection ->
+                                connection.createStatement("select * from Users where id = $1")
+                                    .execute(listOf(Long::class.java), sequenceOf(id.id))
+                                    .map { row ->
+                                        row.get(
+                                            User::favoriteColor.name.toSnakeCase(),
+                                            String::class.java
+                                        )!!
+                                    }.single()
+
+                            }
                         expectThat(color).isEqualTo("RED")
                     }
                 }
