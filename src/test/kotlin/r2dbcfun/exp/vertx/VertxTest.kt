@@ -1,6 +1,7 @@
 package r2dbcfun.exp.vertx
 
 
+import failfast.FailFast
 import failfast.describe
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.reactivex.pgclient.PgPool
@@ -16,9 +17,10 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
-/*
- * just playing with the vertx pg client api here. maybe at some point r2dbcfun will support this too.
- */
+fun main() {
+    FailFast.runTest()
+}
+
 @Suppress("SqlNoDataSourceInspection", "SqlResolve")
 object VertxTest {
     val context = describe("vertx support", disabled = TestConfig.H2_ONLY) {

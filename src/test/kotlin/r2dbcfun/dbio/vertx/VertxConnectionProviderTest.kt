@@ -1,5 +1,6 @@
 package r2dbcfun.dbio.vertx
 
+import failfast.FailFast
 import failfast.describe
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.reactivex.pgclient.PgPool
@@ -8,6 +9,10 @@ import kotlinx.coroutines.rx2.await
 import r2dbcfun.dbio.ConnectionFactory
 import r2dbcfun.dbio.DBConnection
 import r2dbcfun.test.DBS
+
+fun main() {
+    FailFast.runTest()
+}
 
 object VertxConnectionProviderTest {
     val context = describe(VertxConnectionFactory::class) {
@@ -20,7 +25,7 @@ object VertxConnectionProviderTest {
                 .setUser("test")
                 .setPassword("test")
 
-            val pool = PgPool.pool(connectOptions, PoolOptions().setMaxSize(5))
+            val pool = autoClose(PgPool.pool(connectOptions, PoolOptions().setMaxSize(5))) { it.rxClose().await() }
 
             val connection: DBConnection = VertxConnectionFactory(pool).getConnection()
         }
