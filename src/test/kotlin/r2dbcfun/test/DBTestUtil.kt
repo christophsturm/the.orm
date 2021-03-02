@@ -137,7 +137,7 @@ open class DBTestUtil(val databaseName: String) {
     val databases = if (TestConfig.H2_ONLY) {
         listOf(h2)
     } else listOf(h2) + postgreSQLContainers.map { R2DBCPostgresFactory(it) }
-    val unstableDatabases = listOf<TestDatabase>()//postgreSQLContainers.map { VertxPSQLTestDatabase(it) }
+    val unstableDatabases = postgreSQLContainers.map { VertxPSQLTestDatabase(it) }
 
     inner class VertxPSQLTestDatabase(val psql: PSQLContainer) : TestDatabase {
         override val name = "Vertx-${psql.dockerImage}"
