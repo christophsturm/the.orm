@@ -59,7 +59,6 @@ interface Statement {
 }
 
 interface DBResult {
-
     suspend fun rowsUpdated(): Int
     suspend fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T>
     suspend fun getId(): Long {

@@ -6,7 +6,7 @@ import r2dbcfun.dbio.DBConnection
 import r2dbcfun.dbio.DBTransaction
 import r2dbcfun.dbio.Statement
 
-class R2dbcConnection(val connection: io.r2dbc.spi.Connection) : DBConnection {
+class R2dbcConnection(val connection: Connection) : DBConnection {
 
     override suspend fun beginTransaction(): DBTransaction {
         connection.beginTransaction().awaitFirstOrNull()
