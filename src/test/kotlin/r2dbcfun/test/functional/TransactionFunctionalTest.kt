@@ -22,9 +22,9 @@ object TransactionFunctionalTest {
 
         forAllDatabases(DBS) { createConnectionProvider ->
             val connectionProvider = createConnectionProvider()
-            itWill("has transaction isolation") {
+            it("has transaction isolation") {
                 val differentConnectionProvider = createConnectionProvider()
-                val user = connectionProvider.transaction {
+                val user = connectionProvider.transaction { connectionProvider ->
                     val user = repo.create(connectionProvider, User(name = "a user", email = "with email"))
                     // the created user is visible in the same connection
                     expectThat(userNameLike.with(connectionProvider, "%").find().single()).isEqualTo(user)

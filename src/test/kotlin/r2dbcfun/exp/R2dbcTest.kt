@@ -1,4 +1,4 @@
-@file:Suppress("SqlResolve")
+@file:Suppress("SqlResolve", "SqlNoDataSourceInspection")
 
 package r2dbcfun.exp
 
@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import r2dbcfun.dbio.TransactionalConnectionProvider
 import r2dbcfun.dbio.r2dbc.R2dbcConnection
 import r2dbcfun.test.DBS
 import r2dbcfun.test.forAllDatabases
@@ -25,7 +26,8 @@ object R2dbcTest {
         forAllDatabases(DBS)
         { createConnectionProvider ->
             val connection = createConnectionProvider()
-            val conn = (connection.connectionFactory.getConnection() as R2dbcConnection).connection
+            val conn =
+                ((connection as TransactionalConnectionProvider).connectionFactory.getConnection() as R2dbcConnection).connection
             test("can insert values and select result") {
                 val firstId =
                     conn.createStatement("insert into users(name) values($1)")

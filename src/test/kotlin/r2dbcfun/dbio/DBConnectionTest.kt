@@ -16,7 +16,7 @@ object DBConnectionTest {
         forAllDatabases(DBS, DBS.unstableDatabases) { createConnectionProvider ->
             it("can insert with autoincrement") {
                 val result =
-                    createConnectionProvider().transaction { connection ->
+                    createConnectionProvider().withConnection { connection ->
                         connection.createInsertStatement("insert into users(name) values ($1)")
                             .execute(listOf(String::class.java), sequenceOf("belle")).getId()
                     }
@@ -24,7 +24,7 @@ object DBConnectionTest {
             }
             it("can insert null values with autoincrement") {
                 val result =
-                    createConnectionProvider().transaction { connection ->
+                    createConnectionProvider().withConnection { connection ->
                         connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
                             .execute(listOf(String::class.java, String::class.java), sequenceOf("belle", null))
                             .getId()

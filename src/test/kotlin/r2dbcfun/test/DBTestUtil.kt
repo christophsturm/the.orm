@@ -12,6 +12,7 @@ import io.vertx.sqlclient.PoolOptions
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.dbio.ConnectionProvider
+import r2dbcfun.dbio.TransactionalConnectionProvider
 import r2dbcfun.dbio.r2dbc.R2dbcConnectionFactory
 import r2dbcfun.dbio.vertx.VertxConnectionFactory
 import java.sql.DriverManager
@@ -164,7 +165,7 @@ class VertxConnectionProviderFactory(val poolOptions: PgConnectOptions, val db: 
     override suspend fun create(): ConnectionProvider {
         val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(5))
         clients.add(client)
-        return ConnectionProvider(VertxConnectionFactory(client))
+        return TransactionalConnectionProvider(VertxConnectionFactory(client))
     }
 
 
@@ -191,7 +192,7 @@ class R2dbcConnectionProviderFactory(
                 .build()
         )
         connections.add(pool)
-        return ConnectionProvider(R2dbcConnectionFactory(pool))
+        return TransactionalConnectionProvider(R2dbcConnectionFactory(pool))
     }
 
     override suspend fun close() {

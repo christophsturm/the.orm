@@ -6,8 +6,8 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import r2dbcfun.dbio.ConnectionFactory
-import r2dbcfun.dbio.ConnectionProvider
 import r2dbcfun.dbio.DBConnection
+import r2dbcfun.dbio.TransactionalConnectionProvider
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
@@ -22,10 +22,10 @@ object ConnectionProviderTest {
         val connectionFactory = mockk<ConnectionFactory>()
         val r2dbcConnection = mockk<DBConnection>(relaxed = true)
         coEvery { connectionFactory.getConnection() }.returns(r2dbcConnection)
-        val connectionProvider = ConnectionProvider(connectionFactory)
+        val connectionProvider = TransactionalConnectionProvider(connectionFactory)
         it("calls block") {
             var called = false
-            connectionProvider.transaction() {
+            connectionProvider.transaction {
                 coVerify { r2dbcConnection.beginTransaction() }
                 called = true
             }

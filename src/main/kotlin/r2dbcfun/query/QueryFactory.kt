@@ -133,7 +133,7 @@ class QueryFactory<T : Any> internal constructor(
             )
 
         suspend fun delete(): Int =
-            connectionProvider.transaction { connection ->
+            connectionProvider.withConnection { connection ->
                 connection.executeSelect(
                     parameterValues,
                     deletePrefix + queryString
@@ -141,7 +141,7 @@ class QueryFactory<T : Any> internal constructor(
             }
 
         suspend fun findOrCreate(creator: () -> T): T {
-            return connectionProvider.transaction { connection ->
+            return connectionProvider.withConnection { connection ->
                 val existing =
                     resultMapper.mapQueryResult(
                         connection.executeSelect(
@@ -155,7 +155,7 @@ class QueryFactory<T : Any> internal constructor(
         }
 
         suspend fun createOrUpdate(entity: T): T {
-            return connectionProvider.transaction { connection ->
+            return connectionProvider.withConnection { connection ->
 
                 val existing =
                     resultMapper.mapQueryResult(
