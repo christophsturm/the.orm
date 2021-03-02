@@ -1,6 +1,7 @@
 package r2dbcfun
 
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException
+import io.vertx.pgclient.PgException
 import r2dbcfun.dbio.DBConnection
 import r2dbcfun.internal.ExceptionInspector
 import r2dbcfun.internal.IDHandler
@@ -29,6 +30,8 @@ internal class Inserter<T : Any>(
                 statement.execute(types, values).getId()
             } catch (e: R2dbcDataIntegrityViolationException) {
                 throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
+            } catch (e: PgException) {
+                throw exceptionInspector.pgException(e, instance)
             }
 
         return idHandler.assignId(instance, id)

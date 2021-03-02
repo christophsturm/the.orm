@@ -1,6 +1,7 @@
 package r2dbcfun.internal
 
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException
+import io.vertx.pgclient.PgException
 import r2dbcfun.DataIntegrityViolationException
 import r2dbcfun.UniqueConstraintViolatedException
 import kotlin.reflect.KClass
@@ -13,14 +14,13 @@ internal class ExceptionInspector<T : Any>(private val tableName: String, kClass
         e: R2dbcDataIntegrityViolationException,
         instance: T
     ): DataIntegrityViolationException {
-        val field = computeAffectedField(e)
+        val field = computeAffectedField(e.message!!)
         val value = field?.invoke(instance)
         return UniqueConstraintViolatedException(e.message!!, e.cause, field, value)
 
     }
 
-    private fun computeAffectedField(e: R2dbcDataIntegrityViolationException): KProperty1<T, *>? {
-        val message = e.message!!
+    private fun computeAffectedField(message: String): KProperty1<T, *>? {
 
         val fieldString = when {
 
@@ -28,10 +28,18 @@ internal class ExceptionInspector<T : Any>(private val tableName: String, kClass
             message.contains("Unique index or primary key violation") -> message.substringAfter("PUBLIC.${tableName.toUpperCase()}(")
                 .substringBefore(")")
             // psql: duplicate key value violates unique constraint "users_email_key"
+            // psqlv:duplicate key value violates unique constraint \"users_email_key\""
             message.startsWith("duplicate key value violates unique constraint") -> message.substringAfter("constraint \"${tableName}_")
                 .substringBefore("_key\"")
             else -> null
         }
         return fieldNamesProperties[fieldString?.toLowerCase()]
+    }
+
+    fun pgException(e: PgException, instance: T): DataIntegrityViolationException {
+        val field = computeAffectedField(e.errorMessage)
+        val value = field?.invoke(instance)
+        return UniqueConstraintViolatedException(e.errorMessage, e.cause, field, value)
+
     }
 }
