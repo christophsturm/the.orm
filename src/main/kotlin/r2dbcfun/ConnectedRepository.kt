@@ -14,4 +14,8 @@ class ConnectedRepository<T : Any>(
     suspend fun create(entity: T): T = repository.create(connectionProvider, entity)
     suspend fun update(entity: T): Unit = repository.update(connectionProvider, entity)
     suspend fun findById(pk: PK): T = repository.findById(connectionProvider, pk)
+    suspend fun <R> transaction(function: suspend (ConnectedRepository<T>) -> R): R =
+        connectionProvider.transaction { transactionConnectionProvider ->
+            function(ConnectedRepository(repository, transactionConnectionProvider))
+        }
 }
