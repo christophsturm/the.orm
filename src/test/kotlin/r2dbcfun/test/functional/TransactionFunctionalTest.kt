@@ -20,34 +20,40 @@ object TransactionFunctionalTest {
         val repo = Repository.create<User>()
         val userNameLike = repo.queryFactory.createQuery(User::name.like())
 
-        forAllDatabases(databases = DBS.databases) { createConnectionProvider ->
+        forAllDatabases(DBS.databases) { createConnectionProvider ->
             val connectionProvider = createConnectionProvider()
-            it("has transaction isolation") {
-                val differentConnectionProvider = createConnectionProvider()
-                val user = connectionProvider.transaction { connectionProvider ->
-                    val user = repo.create(connectionProvider, User(name = "a user", email = "with email"))
-                    // the created user is visible in the same connection
-                    expectThat(userNameLike.with(connectionProvider, "%").find().single()).isEqualTo(user)
-                    // but a different connection does not see it
-                    expectThat(
-                        userNameLike.with(differentConnectionProvider, "%").find().count()
-                    ).isEqualTo(0)
-                    user
-                }
-                // now the other connection sees them too
-                expectThat(userNameLike.with(differentConnectionProvider, "%").find().single()).isEqualTo(
-                    user
-                )
-            }
-            it("rolls back the transaction if the block fails") {
-                try {
-                    connectionProvider.transaction { connectionProvider ->
-                        repo.create(connectionProvider, User(name = "a user", email = "with email"))
-                        throw RuntimeException("failed (oops)")
+
+            describe("a transaction started with the connectionProvider") {
+                it("has transaction isolation") {
+                    val user = connectionProvider.transaction { transactionConnectionProvider ->
+                        val user =
+                            repo.create(transactionConnectionProvider, User(name = "a user", email = "with email"))
+                        // the created user is visible in the same connection
+                        expectThat(
+                            userNameLike.with(transactionConnectionProvider, "%").find().single()
+                        ).isEqualTo(user)
+                        // but the outer connection does not see it
+                        expectThat(
+                            userNameLike.with(connectionProvider, "%").find().count()
+                        ).isEqualTo(0)
+                        user
                     }
-                } catch (e: Exception) {
+                    // now the outer connection sees them too
+                    expectThat(userNameLike.with(connectionProvider, "%").find().single()).isEqualTo(
+                        user
+                    )
                 }
-                expectThat(userNameLike.with(connectionProvider, "%").find().count()).isEqualTo(0)
+                it("rolls back the transaction if the block fails") {
+                    try {
+                        connectionProvider.transaction { connectionProvider ->
+                            repo.create(connectionProvider, User(name = "a user", email = "with email"))
+                            throw RuntimeException("failed (oops)")
+                        }
+                    } catch (e: Exception) {
+                    }
+                    expectThat(userNameLike.with(connectionProvider, "%").find().count()).isEqualTo(0)
+                }
+
             }
         }
     }
