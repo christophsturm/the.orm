@@ -9,6 +9,7 @@ import io.vertx.pgclient.PgConnectOptions
 import io.vertx.reactivex.pgclient.PgPool
 import io.vertx.reactivex.sqlclient.SqlClient
 import io.vertx.sqlclient.PoolOptions
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.dbio.ConnectionProvider
@@ -87,7 +88,7 @@ open class DBTestUtil(val databaseName: String) {
         override fun createDB(): ConnectionProviderFactory {
             val db = psqlContainer.preparePostgresDB()
             return R2dbcConnectionProviderFactory(
-                ConnectionFactories.get("r2dbc:postgresql://test:test@${db.host}:${db.port}/${db.databaseName}?initialSize=1&maxLifeTime=PT0S"),
+                ConnectionFactories.get("r2dbc:postgresql://test:test@${db.host}:${db.port}/${db.databaseName}"),
                 db
             )
         }
@@ -116,11 +117,7 @@ open class DBTestUtil(val databaseName: String) {
         }
 
         override fun close() {
-            try {
-                dropDb()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            dropDb()
         }
 
     }
@@ -180,10 +177,10 @@ class VertxConnectionProviderFactory(val poolOptions: PgConnectOptions, val db: 
 
 
 class R2dbcConnectionProviderFactory(
-    val connectionFactory: ConnectionFactory,
+    private val connectionFactory: ConnectionFactory,
     private val closable: AutoCloseable? = null
 ) : ConnectionProviderFactory {
-    private val connections = mutableListOf<ConnectionPool>()
+    private val pools = mutableListOf<ConnectionPool>()
     override suspend fun create(): ConnectionProvider {
         val pool = ConnectionPool(
             ConnectionPoolConfiguration.builder(connectionFactory)
@@ -191,15 +188,27 @@ class R2dbcConnectionProviderFactory(
                 .maxSize(5)
                 .build()
         )
-        connections.add(pool)
+        pools.add(pool)
         return TransactionalConnectionProvider(R2dbcConnectionFactory(pool))
     }
 
     override suspend fun close() {
-        connections.forEach {
-            it.close()
+        val poolMetrics = buildString {
+            pools.forEach {
+                val metrics = it.metrics.get()
+                append("allocatedSize: ${metrics.allocatedSize()}")
+                append(" acquiredSize: ${metrics.acquiredSize()}")
+                it.disposeLater().awaitFirstOrNull()
+                append("\nallocatedSize: ${metrics.allocatedSize()}")
+                append(" acquiredSize: ${metrics.acquiredSize()}")
+                append(" disposed: ${it.isDisposed}")
+            }
         }
-        closable?.close()
+        try {
+            closable?.close()
+        } catch (e: Exception) {
+            println("ERROR dropping database. pool metrics:${poolMetrics}")
+        }
     }
 
 }

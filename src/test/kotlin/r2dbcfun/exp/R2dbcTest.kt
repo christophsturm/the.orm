@@ -28,6 +28,7 @@ object R2dbcTest {
             val connection = createConnectionProvider()
             val conn =
                 ((connection as TransactionalConnectionProvider).connectionFactory.getConnection() as R2dbcConnection).connection
+            autoClose(conn) { it.close() }
             test("can insert values and select result") {
                 val firstId =
                     conn.createStatement("insert into users(name) values($1)")

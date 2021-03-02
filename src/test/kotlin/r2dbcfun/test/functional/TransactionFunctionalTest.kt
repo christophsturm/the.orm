@@ -39,9 +39,9 @@ object TransactionFunctionalTest {
                     user
                 )
             }
-            itWill("rolls back the transaction if the block fails") {
+            it("rolls back the transaction if the block fails") {
                 try {
-                    connectionProvider.transaction {
+                    connectionProvider.transaction { connectionProvider ->
                         repo.create(connectionProvider, User(name = "a user", email = "with email"))
                         throw RuntimeException("failed (oops)")
                     }
