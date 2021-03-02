@@ -24,7 +24,7 @@ import strikt.assertions.isEqualTo
  */
 object R2dbcTest {
     val context = describe("the r2dbc api") {
-        forAllDatabases(databases = DBS.databases.filterNot { it is DBTestUtil.VertxPSQLTestDatabase }) { createConnectionProvider ->
+        forAllDatabases(DBS.databases.filterNot { it is DBTestUtil.VertxPSQLTestDatabase }) { createConnectionProvider ->
             val connection = createConnectionProvider()
             val conn =
                 ((connection as TransactionalConnectionProvider).connectionFactory.getConnection() as R2dbcConnection).connection
