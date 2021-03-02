@@ -30,7 +30,7 @@ object RepositoryFunctionalTest {
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
     val context = describe("the repository class") {
 //        forAllDatabases(DBS) { createConnectionProvider ->
-        forAllDatabases(DBS, DBS.unstableDatabases) { createConnectionProvider ->
+        forAllDatabases(databases = DBS.databases) { createConnectionProvider ->
             val connection = createConnectionProvider()
             context("with a user class") {
                 val repo = Repository.create<User>()

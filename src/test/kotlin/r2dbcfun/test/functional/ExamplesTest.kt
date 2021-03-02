@@ -19,7 +19,7 @@ import r2dbcfun.test.forAllDatabases
 
 object ExamplesTest {
     val context = describe("examples") {
-        forAllDatabases(DBS, DBS.unstableDatabases) { createConnectionProvider ->
+        forAllDatabases(databases = DBS.databases) { createConnectionProvider ->
             val connectionProvider = createConnectionProvider()
             val user = User(
                 name = "a user",

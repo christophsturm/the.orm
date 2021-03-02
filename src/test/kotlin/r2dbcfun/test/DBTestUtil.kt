@@ -136,8 +136,12 @@ open class DBTestUtil(val databaseName: String) {
 
     val databases = if (TestConfig.H2_ONLY) {
         listOf(h2)
-    } else listOf(h2) + postgreSQLContainers.map { R2DBCPostgresFactory(it) }
-    val unstableDatabases = postgreSQLContainers.map { VertxPSQLTestDatabase(it) }
+    } else listOf(h2) + postgreSQLContainers.map { R2DBCPostgresFactory(it) } + postgreSQLContainers.map {
+        VertxPSQLTestDatabase(
+            it
+        )
+    }
+    val unstableDatabases: List<TestDatabase> = listOf()
 
     inner class VertxPSQLTestDatabase(val psql: PSQLContainer) : TestDatabase {
         override val name = "Vertx-${psql.dockerImage}"
@@ -220,11 +224,10 @@ interface ConnectionProviderFactory {
 }
 
 suspend fun ContextDSL.forAllDatabases(
-    dbs: DBTestUtil,
-    additionalDatabases: List<DBTestUtil.TestDatabase> = listOf(),
+    databases: List<DBTestUtil.TestDatabase>,
     tests: suspend ContextDSL.(suspend () -> ConnectionProvider) -> Unit
 ) {
-    (dbs.databases + additionalDatabases).map { db ->
+    databases.map { db ->
         context("on ${db.name}") {
             val createDB = autoClose(db.createDB()) { it.close() }
             val connectionFactory: suspend () -> ConnectionProvider =

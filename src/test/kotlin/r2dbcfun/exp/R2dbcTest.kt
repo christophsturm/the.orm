@@ -11,6 +11,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.dbio.TransactionalConnectionProvider
 import r2dbcfun.dbio.r2dbc.R2dbcConnection
 import r2dbcfun.test.DBS
+import r2dbcfun.test.DBTestUtil
 import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -23,8 +24,7 @@ import strikt.assertions.isEqualTo
  */
 object R2dbcTest {
     val context = describe("the r2dbc api") {
-        forAllDatabases(DBS)
-        { createConnectionProvider ->
+        forAllDatabases(databases = DBS.databases.filterNot { it is DBTestUtil.VertxPSQLTestDatabase }) { createConnectionProvider ->
             val connection = createConnectionProvider()
             val conn =
                 ((connection as TransactionalConnectionProvider).connectionFactory.getConnection() as R2dbcConnection).connection

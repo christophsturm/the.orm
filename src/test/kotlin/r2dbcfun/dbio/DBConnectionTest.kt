@@ -13,7 +13,7 @@ fun main() {
 
 object DBConnectionTest {
     val context = describe(DBConnection::class) {
-        forAllDatabases(DBS, DBS.unstableDatabases) { createConnectionProvider ->
+        forAllDatabases(databases = DBS.databases) { createConnectionProvider ->
             it("can insert with autoincrement") {
                 val result =
                     createConnectionProvider().withConnection { connection ->
