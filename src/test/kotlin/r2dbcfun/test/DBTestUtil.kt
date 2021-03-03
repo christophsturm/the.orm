@@ -14,8 +14,8 @@ import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.dbio.ConnectionProvider
 import r2dbcfun.dbio.TransactionalConnectionProvider
-import r2dbcfun.dbio.r2dbc.R2dbcConnectionFactory
-import r2dbcfun.dbio.vertx.VertxConnectionFactory
+import r2dbcfun.dbio.r2dbc.R2DbcDBConnectionFactory
+import r2dbcfun.dbio.vertx.VertxDBConnectionFactory
 import java.sql.DriverManager
 import java.time.Duration
 import java.util.*
@@ -166,7 +166,7 @@ class VertxConnectionProviderFactory(val poolOptions: PgConnectOptions, val db: 
     override suspend fun create(): ConnectionProvider {
         val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(5))
         clients.add(client)
-        return TransactionalConnectionProvider(VertxConnectionFactory(client))
+        return TransactionalConnectionProvider(VertxDBConnectionFactory(client))
     }
 
 
@@ -193,7 +193,7 @@ class R2dbcConnectionProviderFactory(
                 .build()
         )
         pools.add(pool)
-        return TransactionalConnectionProvider(R2dbcConnectionFactory(pool))
+        return TransactionalConnectionProvider(R2DbcDBConnectionFactory(pool))
     }
 
     override suspend fun close() {

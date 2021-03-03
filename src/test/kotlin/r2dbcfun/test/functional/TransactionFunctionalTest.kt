@@ -46,7 +46,7 @@ object TransactionFunctionalTest {
                 }
                 it("rolls back the transaction if the block fails") {
                     try {
-                        outerRepo.transaction { transactionRepo ->
+                        outerRepo.transaction<Nothing> { transactionRepo ->
                             transactionRepo.create(User(name = "a user", email = "with email"))
                             throw RuntimeException("failed (oops)")
                         }

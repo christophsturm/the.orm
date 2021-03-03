@@ -5,8 +5,8 @@ import failfast.describe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import r2dbcfun.dbio.ConnectionFactory
 import r2dbcfun.dbio.DBConnection
+import r2dbcfun.dbio.DBConnectionFactory
 import r2dbcfun.dbio.DBTransaction
 import r2dbcfun.dbio.TransactionalConnectionProvider
 import strikt.api.expectThat
@@ -20,7 +20,7 @@ fun main() {
 
 object ConnectionProviderTest {
     val context = describe("transaction handling") {
-        val connectionFactory = mockk<ConnectionFactory>()
+        val connectionFactory = mockk<DBConnectionFactory>()
         val r2dbcConnection = mockk<DBConnection>(relaxed = true)
         coEvery { connectionFactory.getConnection() }.returns(r2dbcConnection)
         val transaction = mockk<DBTransaction>(relaxed = true)

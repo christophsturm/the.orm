@@ -14,7 +14,7 @@ fun main() {
 }
 
 object VertxConnectionProviderTest {
-    val context = describe(VertxConnectionFactory::class) {
+    val context = describe(VertxDBConnectionFactory::class) {
         it("can create connections from a pool") {
             val (databaseName, host, port) = DBS.psql13.preparePostgresDB()
             val connectOptions = PgConnectOptions()
@@ -26,7 +26,7 @@ object VertxConnectionProviderTest {
 
             val pool = autoClose(PgPool.pool(connectOptions, PoolOptions().setMaxSize(5))) { it.rxClose().await() }
 
-            val connection: DBConnection = VertxConnectionFactory(pool).getConnection()
+            val connection: DBConnection = VertxDBConnectionFactory(pool).getConnection()
         }
 
     }

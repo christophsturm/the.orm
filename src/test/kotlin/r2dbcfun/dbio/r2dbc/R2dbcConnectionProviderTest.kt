@@ -9,7 +9,7 @@ import java.time.Duration
 
 
 object R2dbcConnectionProviderTest {
-    val context = describe(R2dbcConnectionFactory::class) {
+    val context = describe(R2DbcDBConnectionFactory::class) {
         test("creates connections from a connection Pool") {
             val connectionFactory = ConnectionFactories.get("r2dbc:h2:mem:///any")
             val pool = ConnectionPool(
@@ -19,7 +19,7 @@ object R2dbcConnectionProviderTest {
                     .build()
             )
 
-            val connection: DBConnection = R2dbcConnectionFactory(pool).getConnection()
+            val connection: DBConnection = R2DbcDBConnectionFactory(pool).getConnection()
         }
     }
 }

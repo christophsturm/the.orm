@@ -27,7 +27,7 @@ object R2dbcTest {
         forAllDatabases(DBS.databases.filterNot { it is DBTestUtil.VertxPSQLTestDatabase }) { createConnectionProvider ->
             val connection = createConnectionProvider()
             val conn =
-                ((connection as TransactionalConnectionProvider).connectionFactory.getConnection() as R2dbcConnection).connection
+                ((connection as TransactionalConnectionProvider).DBConnectionFactory.getConnection() as R2dbcConnection).connection
             autoClose(conn) { it.close() }
             test("can insert values and select result") {
                 val firstId =

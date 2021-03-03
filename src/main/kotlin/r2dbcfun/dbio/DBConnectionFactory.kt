@@ -1,5 +1,5 @@
 package r2dbcfun.dbio
 
-interface ConnectionFactory {
+interface DBConnectionFactory {
     suspend fun getConnection(): DBConnection
 }
