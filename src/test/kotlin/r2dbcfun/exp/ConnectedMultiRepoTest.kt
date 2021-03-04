@@ -19,7 +19,7 @@ data class Page(
     val author: String?
 )
 
-data class Recipe(val id: Long?, val name: String, val description: String?, val pageId: Long)
+data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
 data class RecipeIngredient(val id: Long?, val amount: String, val recipeId: Long, val ingredientId: Long)
 data class Ingredient(val id: Long?, val name: String)
 
@@ -28,7 +28,7 @@ fun main() {
 }
 
 object ConnectedMultiRepoTest {
-    val context = describe(ConnectedMultiRepo::class) {
+    val context = describe(ConnectedMultiRepo::class, disabled = true) {
         forAllDatabases(DBS.databases) {
             it("works") {
                 val connection = it()
@@ -44,7 +44,7 @@ object ConnectedMultiRepoTest {
                     // recipe hasMany Ingredients through RecipeIngredients
                     val page = repo.create(Page(null, "url", "pageTitle", "description", "{}", "author"))
                     val recipe =
-                        repo.create(Recipe(null, "Spaghetti Carbonara", "Wasser Salzen, Speck dazu, fertig", page.id!!))
+                        repo.create(Recipe(null, "Spaghetti Carbonara", "Wasser Salzen, Speck dazu, fertig", page))
                     val gurke = findIngredientByName.with(repo.connectionProvider, "gurke")
                         .findOrCreate { Ingredient(null, "Gurke") }
                     repo.create(RecipeIngredient(null, "100g", recipe.id!!, gurke.id!!))
