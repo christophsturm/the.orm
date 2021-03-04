@@ -12,7 +12,7 @@ import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
-import r2dbcfun.dbio.ConnectionProvider
+import r2dbcfun.dbio.TransactionProvider
 import r2dbcfun.dbio.TransactionalConnectionProvider
 import r2dbcfun.dbio.r2dbc.R2DbcDBConnectionFactory
 import r2dbcfun.dbio.vertx.VertxDBConnectionFactory
@@ -163,7 +163,7 @@ open class DBTestUtil(val databaseName: String) {
 class VertxConnectionProviderFactory(val poolOptions: PgConnectOptions, val db: AutoCloseable) :
     ConnectionProviderFactory {
     val clients = mutableListOf<SqlClient>()
-    override suspend fun create(): ConnectionProvider {
+    override suspend fun create(): TransactionProvider {
         val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(5))
         clients.add(client)
         return TransactionalConnectionProvider(VertxDBConnectionFactory(client))
@@ -185,7 +185,7 @@ class R2dbcConnectionProviderFactory(
     private val closable: AutoCloseable? = null
 ) : ConnectionProviderFactory {
     private val pools = mutableListOf<ConnectionPool>()
-    override suspend fun create(): ConnectionProvider {
+    override suspend fun create(): TransactionProvider {
         val pool = ConnectionPool(
             ConnectionPoolConfiguration.builder(connectionFactory)
                 .maxIdleTime(Duration.ofMillis(1000))
@@ -218,19 +218,19 @@ class R2dbcConnectionProviderFactory(
 }
 
 interface ConnectionProviderFactory {
-    suspend fun create(): ConnectionProvider
+    suspend fun create(): TransactionProvider
     suspend fun close()
 
 }
 
 suspend fun ContextDSL.forAllDatabases(
     databases: List<DBTestUtil.TestDatabase>,
-    tests: suspend ContextDSL.(suspend () -> ConnectionProvider) -> Unit
+    tests: suspend ContextDSL.(suspend () -> TransactionProvider) -> Unit
 ) {
     databases.map { db ->
         context("on ${db.name}") {
             val createDB = autoClose(db.createDB()) { it.close() }
-            val connectionFactory: suspend () -> ConnectionProvider =
+            val connectionFactory: suspend () -> TransactionProvider =
                 { createDB.create() }
             tests(connectionFactory)
         }

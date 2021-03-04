@@ -3,7 +3,7 @@ package r2dbcfun.dbio
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
 
-class TransactionalConnectionProvider(val DBConnectionFactory: DBConnectionFactory) : ConnectionProvider {
+class TransactionalConnectionProvider(val DBConnectionFactory: DBConnectionFactory) : TransactionProvider {
     override suspend fun <T> transaction(function: suspend (ConnectionProvider) -> T): T {
         val connection = DBConnectionFactory.getConnection()
         val transaction = connection.beginTransaction()
@@ -32,12 +32,14 @@ class TransactionalConnectionProvider(val DBConnectionFactory: DBConnectionFacto
 }
 
 class FixedConnectionProvider(val connection: DBConnection) : ConnectionProvider {
-    override suspend fun <T> transaction(function: suspend (ConnectionProvider) -> T): T = function(this)
     override suspend fun <T> withConnection(function: suspend (DBConnection) -> T): T = function(connection)
 }
 
-interface ConnectionProvider {
+interface TransactionProvider : ConnectionProvider {
     suspend fun <T> transaction(function: suspend (ConnectionProvider) -> T): T
+}
+
+interface ConnectionProvider {
 
     suspend fun <T> withConnection(function: suspend (DBConnection) -> T): T
 }

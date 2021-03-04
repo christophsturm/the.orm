@@ -4,8 +4,8 @@ import failfast.FailFast
 import failfast.describe
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.single
-import r2dbcfun.ConnectedRepository
 import r2dbcfun.Repository
+import r2dbcfun.TransactionalRepository
 import r2dbcfun.query.like
 import r2dbcfun.test.DBS
 import r2dbcfun.test.forAllDatabases
@@ -24,7 +24,7 @@ object TransactionFunctionalTest {
         forAllDatabases(DBS.databases) { createConnectionProvider ->
             val connectionProvider = createConnectionProvider()
             describe("a transaction started with the repository class") {
-                val outerRepo = ConnectedRepository(repo, connectionProvider)
+                val outerRepo = TransactionalRepository(repo, connectionProvider)
                 it("has transaction isolation") {
                     val user = outerRepo.transaction { transactionRepo ->
                         val user =

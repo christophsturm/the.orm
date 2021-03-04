@@ -4,6 +4,7 @@ import failfast.FailFast
 import failfast.describe
 import r2dbcfun.Repository
 import r2dbcfun.dbio.ConnectionProvider
+import r2dbcfun.dbio.TransactionProvider
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.test.DBS
 import r2dbcfun.test.forAllDatabases
@@ -34,15 +35,19 @@ object ConnectedMultiRepoTest {
                 val findIngredientByName =
                     Repository.create<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
 
-                ConnectedMultiRepo(
+                TransactionalMultiRepo(
                     connection,
                     listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
                 ).transaction { repo ->
+                    // Recipe belongsTo Page
+                    // recipe hasMany RecipeIngredient(s)
+                    // recipe hasMany Ingredients through RecipeIngredients
                     val page = repo.create(Page(null, "url", "pageTitle", "description", "{}", "author"))
                     val recipe =
                         repo.create(Recipe(null, "Spaghetti Carbonara", "Wasser Salzen, Speck dazu, fertig", page.id!!))
-                    val gurke = repo.create(Ingredient(null, "Gurke"))
-                    val ingredient = repo.create(RecipeIngredient(null, "100g", recipe.id!!, gurke.id!!))
+                    val gurke = findIngredientByName.with(repo.connectionProvider, "gurke")
+                        .findOrCreate { Ingredient(null, "Gurke") }
+                    repo.create(RecipeIngredient(null, "100g", recipe.id!!, gurke.id!!))
                 }
 
 
@@ -51,8 +56,8 @@ object ConnectedMultiRepoTest {
     }
 }
 
-class ConnectedMultiRepo private constructor(
-    val connectionProvider: ConnectionProvider,
+open class ConnectedMultiRepo internal constructor(
+    open val connectionProvider: ConnectionProvider,
     val repos: Map<KClass<out Any>, Repository<out Any>>
 ) {
     constructor(connectionProvider: ConnectionProvider, classes: List<KClass<out Any>>) : this(
@@ -60,15 +65,28 @@ class ConnectedMultiRepo private constructor(
         classes.associateBy({ it }, { Repository(it) })
     )
 
+    @Suppress("UNCHECKED_CAST")
     suspend inline fun <reified T : Any> create(entity: T): T {
-        val repository = repos.get(T::class) as Repository<T>
+        @Suppress("UNCHECKED_CAST")
+        val repository = repos[T::class] as Repository<T>
         return repository.create(connectionProvider, entity)
     }
+
+
+}
+
+class TransactionalMultiRepo(
+    override val connectionProvider: TransactionProvider,
+    repos: Map<KClass<out Any>, Repository<out Any>>
+) : ConnectedMultiRepo(connectionProvider, repos) {
+    constructor(connectionProvider: TransactionProvider, classes: List<KClass<out Any>>) : this(
+        connectionProvider,
+        classes.associateBy({ it }, { Repository(it) })
+    )
 
     suspend fun <R> transaction(function: suspend (ConnectedMultiRepo) -> R): R =
         connectionProvider.transaction { transactionConnectionProvider ->
             function(ConnectedMultiRepo(transactionConnectionProvider, repos))
         }
-
 
 }
