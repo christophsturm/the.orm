@@ -1,5 +1,6 @@
 package r2dbcfun.internal
 
+import r2dbcfun.RepositoryException
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty1
@@ -7,12 +8,12 @@ import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
-import r2dbcfun.RepositoryException
 
 internal class IDHandler<T : Any>(kClass: KClass<out T>) {
     @Suppress("UNCHECKED_CAST")
     private val copyFunction: KFunction<T> =
-        kClass.memberFunctions.single { it.name == "copy" } as KFunction<T>
+        (kClass.memberFunctions.singleOrNull { it.name == "copy" }
+            ?: throw RepositoryException("no copy function found for ${kClass.simpleName}. Is it not data class?")) as KFunction<T>
     private val idParameter = copyFunction.parameters.single { it.name == "id" }
     private val instanceParameter = copyFunction.instanceParameter!!
     private val pkConstructor: KFunction<Any>?
