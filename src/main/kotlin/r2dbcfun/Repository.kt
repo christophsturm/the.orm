@@ -2,6 +2,7 @@ package r2dbcfun
 
 import kotlinx.coroutines.flow.single
 import r2dbcfun.dbio.ConnectionProvider
+import r2dbcfun.internal.ClassInfo
 import r2dbcfun.internal.ExceptionInspector
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.query.QueryFactory

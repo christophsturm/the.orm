@@ -1,7 +1,7 @@
-package r2dbcfun
+package r2dbcfun.internal
 
 import io.vertx.sqlclient.data.Numeric
-import r2dbcfun.internal.IDHandler
+import r2dbcfun.RepositoryException
 import r2dbcfun.util.toSnakeCase
 import java.math.BigDecimal
 import java.time.LocalDate
