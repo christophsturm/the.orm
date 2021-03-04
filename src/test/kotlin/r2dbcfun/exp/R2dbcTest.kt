@@ -12,6 +12,7 @@ import r2dbcfun.dbio.TransactionalConnectionProvider
 import r2dbcfun.dbio.r2dbc.R2dbcConnection
 import r2dbcfun.test.DBS
 import r2dbcfun.test.DBTestUtil
+import r2dbcfun.test.TestConfig
 import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -50,18 +51,18 @@ object R2dbcTest {
                 expectThat(names).containsExactly("belle", "sebastian")
             }
         }
-        test("can open and close pool") {
-            val (databaseName, host, port) = DBS.psql13.preparePostgresDB()
-            val factory =
-                ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
-            val connection1 = factory.create().awaitSingle()
-            val connection2 = factory.create().awaitSingle()
-            connection1.createStatement("select * from users").execute().awaitSingle()
-            connection2.createStatement("select * from users").execute().awaitSingle()
-            connection1.close().awaitFirstOrNull()
-            connection2.close().awaitFirstOrNull()
+        if (!TestConfig.H2_ONLY)
+            test("can open and close pool") {
+                val (databaseName, host, port) = DBS.psql13.preparePostgresDB()
+                val factory =
+                    ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
+                val connection1 = factory.create().awaitSingle()
+                val connection2 = factory.create().awaitSingle()
+                connection1.createStatement("select * from users").execute().awaitSingle()
+                connection2.createStatement("select * from users").execute().awaitSingle()
+                connection1.close().awaitFirstOrNull()
+                connection2.close().awaitFirstOrNull()
 
-        }
-
+            }
     }
 }
