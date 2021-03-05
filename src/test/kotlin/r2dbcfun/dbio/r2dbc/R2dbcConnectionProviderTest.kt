@@ -19,6 +19,7 @@ object R2dbcConnectionProviderTest {
                     .build()
             )
 
+            @Suppress("UNUSED_VARIABLE")
             val connection: DBConnection = R2DbcDBConnectionFactory(pool).getConnection()
         }
     }

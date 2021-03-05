@@ -37,7 +37,7 @@ repositories {
 
 dependencies {
     implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
-//    implementation(enforcedPlatform("io.r2dbc:r2dbc-bom:Arabba-SR8"))
+    implementation(enforcedPlatform("io.r2dbc:r2dbc-bom:Arabba-SR9"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
