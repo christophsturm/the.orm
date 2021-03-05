@@ -1,20 +1,21 @@
 [![Download](https://api.bintray.com/packages/christophsturm/maven/r2dbcfun/images/download.svg)](https://bintray.com/christophsturm/maven/r2dbcfun/_latestVersion)
 [![Github CI](https://github.com/christophsturm/r2dbcfun/workflows/CI/badge.svg)](https://github.com/christophsturm/r2dbcfun/actions)
 
-# r2dbcfun (name tbd)
-a simple ORM for kotlin and r2dbc
+# r2dbcfun
 
-`./gradlew check` 
+a simple non-blocking ORM for kotlin and r2dbc. Supports R2DBC and Vertx SQL Client.
 
 features:
+
 * automatically map data classes to database tables
 * coroutines based api
 * no annotations
 
 status:
-It can map a data class to a database table, and it has a type safe query language. 
+It can map a data class to a database table, and it has a type safe query language.
 
-planned: 
+planned:
+
 * relations (1:n, n:m)
 
 # Usage
@@ -68,5 +69,3 @@ Database Structure:
 ```
 
 for more examples look at the [unit tests](src/test/kotlin/r2dbcfun/test/functional)
-
-Supported databases: H2 and PostgreSQL
