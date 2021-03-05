@@ -55,38 +55,38 @@ object ConnectedMultiRepoTest {
         }
     }
 }
-
-open class ConnectedMultiRepo internal constructor(
-    open val connectionProvider: ConnectionProvider,
-    val repos: Map<KClass<out Any>, Repository<out Any>>
-) {
-    constructor(connectionProvider: ConnectionProvider, classes: List<KClass<out Any>>) : this(
-        connectionProvider,
-        classes.associateBy({ it }, { Repository(it) })
-    )
+class MultiRepo(classes: List<KClass<out Any>>) {
+    val repos: Map<KClass<out Any>, Repository<out Any>> = classes.associateBy({ it }, { Repository(it) })
 
     @Suppress("UNCHECKED_CAST")
-    suspend inline fun <reified T : Any> create(entity: T): T {
+    suspend inline fun <reified T : Any> create(connectionProvider: ConnectionProvider, entity: T): T {
         @Suppress("UNCHECKED_CAST")
         val repository = repos[T::class] as Repository<T>
         return repository.create(connectionProvider, entity)
     }
 
+}
 
+open class ConnectedMultiRepo internal constructor(
+    open val connectionProvider: ConnectionProvider,
+    val repo: MultiRepo
+) {
+    @Suppress("UNCHECKED_CAST")
+    suspend inline fun <reified T : Any> create(entity: T): T = repo.create(connectionProvider, entity)
 }
 
 class TransactionalMultiRepo(
     override val connectionProvider: TransactionProvider,
-    repos: Map<KClass<out Any>, Repository<out Any>>
-) : ConnectedMultiRepo(connectionProvider, repos) {
+    repo: MultiRepo
+) : ConnectedMultiRepo(connectionProvider, repo) {
     constructor(connectionProvider: TransactionProvider, classes: List<KClass<out Any>>) : this(
         connectionProvider,
-        classes.associateBy({ it }, { Repository(it) })
+        MultiRepo(classes)
     )
 
     suspend fun <R> transaction(function: suspend (ConnectedMultiRepo) -> R): R =
         connectionProvider.transaction { transactionConnectionProvider ->
-            function(ConnectedMultiRepo(transactionConnectionProvider, repos))
+            function(ConnectedMultiRepo(transactionConnectionProvider, repo))
         }
 
 }
