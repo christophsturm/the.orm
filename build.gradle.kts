@@ -32,7 +32,7 @@ plugins {
 repositories {
     jcenter()
     mavenCentral()
-
+//    maven("https://oss.sonatype.org/content/repositories/comchristophsturmfailfast-1002/")
 }
 
 dependencies {
