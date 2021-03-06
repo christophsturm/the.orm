@@ -9,10 +9,10 @@ import r2dbcfun.internal.ExceptionInspector
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.internal.Inserter
 import r2dbcfun.internal.PropertiesReader
+import r2dbcfun.internal.Table
 import r2dbcfun.internal.Updater
 import r2dbcfun.query.QueryFactory
 import r2dbcfun.query.QueryFactory.Companion.isEqualToCondition
-import r2dbcfun.util.toSnakeCase
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -31,7 +31,7 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
     private val propertiesReader =
         PropertiesReader(properties.filter { it.key != "id" }.values.map { PropertyReader(it) })
 
-    private val tableName = "${kClass.simpleName!!.toSnakeCase().toLowerCase()}s"
+    private val table = Table(kClass)
 
     @Suppress("UNCHECKED_CAST")
     private val idProperty =
@@ -41,16 +41,16 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
 
     private val idHandler = IDHandler(kClass)
 
-    private val exceptionInspector = ExceptionInspector(tableName, kClass)
+    private val exceptionInspector = ExceptionInspector(table, kClass)
 
-    private val inserter = Inserter(tableName, propertiesReader, idHandler)
+    private val inserter = Inserter(table, propertiesReader, idHandler)
 
-    private val updater = Updater(tableName, propertiesReader, idHandler, idProperty)
+    private val updater = Updater(table, propertiesReader, idHandler, idProperty)
 
     private val classInfo = ClassCreator(kClass, idHandler, otherClasses)
 
     val queryFactory: QueryFactory<T> =
-        QueryFactory(kClass, ResultMapper(tableName, classInfo), this, idHandler, idProperty)
+        QueryFactory(kClass, ResultMapper(table, classInfo), this, idHandler, idProperty)
 
     /**
      * creates a new record in the database.
@@ -91,7 +91,7 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
         return try {
             byIdQuery.with(connectionProvider, id.id).find().single()
         } catch (e: NoSuchElementException) {
-            throw NotFoundException("No $tableName found for id ${id.id}")
+            throw NotFoundException("No ${table.name} found for id ${id.id}")
         }
     }
 }

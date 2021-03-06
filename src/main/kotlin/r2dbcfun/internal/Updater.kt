@@ -6,7 +6,7 @@ import r2dbcfun.util.toSnakeCase
 import kotlin.reflect.KProperty1
 
 internal class Updater<T : Any>(
-    table: String,
+    table: Table<T>,
     private val updateProperties: PropertiesReader<T>,
     private val idHandler: IDHandler<T>,
     private val idProperty: KProperty1<T, Any>
@@ -20,7 +20,7 @@ internal class Updater<T : Any>(
                         "${indexedProperty.value.name.toSnakeCase()}=$${indexedProperty.index + 2}"
                     }
 
-            @Suppress("SqlResolve") "UPDATE $table set $propertiesString where id=$1"
+            @Suppress("SqlResolve") "UPDATE ${table.name} set $propertiesString where id=$1"
         }
 
     suspend fun update(connection: DBConnection, instance: T) {
