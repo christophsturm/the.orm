@@ -35,7 +35,7 @@ internal class ResultMapper<T : Any>(
                 classInfo.constructor.callBy(resolvedParameters)
             } catch (e: IllegalArgumentException) {
                 throw RepositoryException(
-                    "error invoking constructor for $table. parameters:$resolvedParameters",
+                    "error invoking constructor for ${classInfo.name}. parameters:$resolvedParameters",
                     e
                 )
             }

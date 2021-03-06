@@ -30,7 +30,7 @@ internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KCl
                 .substringBefore(")")
             // psql: duplicate key value violates unique constraint "users_email_key"
             lowerCasedMessage.startsWith("duplicate key value violates unique constraint") -> lowerCasedMessage.substringAfter(
-                "constraint \"${table}_"
+                "constraint \"${table.name}_"
             )
                 .substringBefore("_key\"")
             else -> null
