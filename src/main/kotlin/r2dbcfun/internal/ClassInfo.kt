@@ -41,20 +41,18 @@ internal class ClassInfo<T : Any>(
             ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
     val fieldInfo = constructor.parameters.map { parameter ->
-        FieldInfo(
-            parameter,
-            parameter.name!!.toSnakeCase(),
-            makeConverter(parameter)
-        )
+        makeFieldInfo(parameter)
     }
 
-    private fun makeConverter(parameter: KParameter): FieldConverter {
+    private fun makeFieldInfo(parameter: KParameter): FieldInfo {
         val type = parameter.type
         val javaClass = type.javaType as Class<*>
         val kotlinClass = type.classifier as KClass<*>
-        if (otherClasses.contains(kotlinClass))
-            return BelongsToConverter(kotlinClass)
-        return when {
+        val fieldName = parameter.name!!.toSnakeCase()
+        if (otherClasses.contains(kotlinClass)) {
+            return FieldInfo(parameter, fieldName + "_id", BelongsToConverter(kotlinClass))
+        }
+        val fieldConverter = when {
             javaClass.isEnum -> EnumConverter(javaClass)
             else -> {
                 val isPK = parameter.name == "id"
@@ -64,11 +62,12 @@ internal class ClassInfo<T : Any>(
                         ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
             }
         }
+        return (FieldInfo(parameter, fieldName, fieldConverter))
     }
 
     data class FieldInfo(
         val constructorParameter: KParameter,
-        val snakeCaseName: String,
+        val dbFieldName: String,
         val fieldConverter: FieldConverter
     )
 }
