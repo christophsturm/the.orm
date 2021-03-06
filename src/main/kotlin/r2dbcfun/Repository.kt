@@ -4,7 +4,7 @@ import io.r2dbc.spi.R2dbcDataIntegrityViolationException
 import io.vertx.pgclient.PgException
 import kotlinx.coroutines.flow.single
 import r2dbcfun.dbio.ConnectionProvider
-import r2dbcfun.internal.ClassInfo
+import r2dbcfun.internal.ClassCreator
 import r2dbcfun.internal.ExceptionInspector
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.internal.Inserter
@@ -46,7 +46,7 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
 
     private val updater = Updater(tableName, propertyReaders, idHandler, idProperty)
 
-    private val classInfo = ClassInfo(kClass, idHandler, otherClasses)
+    private val classInfo = ClassCreator(kClass, idHandler, otherClasses)
 
     val queryFactory: QueryFactory<T> =
         QueryFactory(kClass, ResultMapper(tableName, classInfo), this, idHandler, idProperty)

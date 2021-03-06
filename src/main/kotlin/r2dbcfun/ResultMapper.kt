@@ -4,20 +4,20 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import r2dbcfun.dbio.DBResult
 import r2dbcfun.dbio.LazyResult
-import r2dbcfun.internal.ClassInfo
+import r2dbcfun.internal.ClassCreator
 
 internal class ResultMapper<T : Any>(
     private val table: String,
-    private val classInfo: ClassInfo<T>
+    private val classCreator: ClassCreator<T>
 ) {
 
     internal suspend fun mapQueryResult(queryResult: DBResult): Flow<T> {
-        data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: LazyResult<Any?>)
+        data class ResultPair(val fieldInfo: ClassCreator.FieldInfo, val result: LazyResult<Any?>)
 
         val parameters: Flow<List<ResultPair>> =
             queryResult
                 .map { row ->
-                    classInfo.fieldInfo
+                    classCreator.fieldInfo
                         .map { entry ->
                             val result = row.getLazy(entry.snakeCaseName)
                             ResultPair(entry, result)
@@ -31,7 +31,7 @@ internal class ResultMapper<T : Any>(
                     Pair(fieldInfo.constructorParameter, value)
                 }
             try {
-                classInfo.constructor.callBy(resolvedParameters)
+                classCreator.constructor.callBy(resolvedParameters)
             } catch (e: IllegalArgumentException) {
                 throw RepositoryException(
                     "error invoking constructor for $table. parameters:$resolvedParameters",
