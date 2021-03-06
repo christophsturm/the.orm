@@ -4,12 +4,13 @@ import failfast.describe
 import io.mockk.mockk
 import r2dbcfun.ResultMapper
 import r2dbcfun.dbio.ConnectionProvider
+import r2dbcfun.internal.Table
 import r2dbcfun.test.TestObjects.Entity
 
 object QueryFactoryTest {
     val context = describe(QueryFactory::class) {
         val resultMapper = mockk<ResultMapper<Entity>>(relaxed = true)
-        val queryFactory = QueryFactory(Entity::class, resultMapper, mockk(), mockk(), mockk())
+        val queryFactory = QueryFactory(Table("table"), Entity::class, resultMapper, mockk(), mockk(), mockk())
         val connection = mockk<ConnectionProvider>()
         val condition = Entity::id.isEqualTo()
         test("can create query with one parameter") {

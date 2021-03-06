@@ -3,7 +3,7 @@ package r2dbcfun.internal
 import r2dbcfun.dbio.DBConnection
 
 internal class Inserter<T : Any>(
-    table: Table<T>,
+    table: Table,
     private val insertProperties: PropertiesReader<T>,
     private val idHandler: IDHandler<T>
 ) {

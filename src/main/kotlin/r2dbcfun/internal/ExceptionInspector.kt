@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
-internal class ExceptionInspector<T : Any>(private val table: Table<T>, kClass: KClass<T>) {
+internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KClass<T>) {
     private val fieldNamesProperties = kClass.memberProperties.associateBy { it.name.toLowerCase() }
     fun r2dbcDataIntegrityViolationException(
         e: R2dbcDataIntegrityViolationException,

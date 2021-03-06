@@ -7,6 +7,7 @@ import r2dbcfun.ResultMapper
 import r2dbcfun.dbio.ConnectionProvider
 import r2dbcfun.dbio.executeSelect
 import r2dbcfun.internal.IDHandler
+import r2dbcfun.internal.Table
 import r2dbcfun.util.toIndexedPlaceholders
 import r2dbcfun.util.toSnakeCase
 import kotlin.reflect.KClass
@@ -14,6 +15,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
 class QueryFactory<T : Any> internal constructor(
+    val table: Table,
     kClass: KClass<T>,
     private val resultMapper: ResultMapper<T>,
     private val repository: Repository<T>,
@@ -34,12 +36,10 @@ class QueryFactory<T : Any> internal constructor(
     private val snakeCaseForProperty =
         kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
-    @Suppress("SqlResolve")
-    private val tableName = "${kClass.simpleName!!.toSnakeCase().toLowerCase()}s"
 
     private val selectPrefix =
-        "select ${snakeCaseForProperty.values.joinToString { it }} from $tableName where "
-    private val deletePrefix = "delete from $tableName where "
+        "select ${snakeCaseForProperty.values.joinToString { it }} from ${table.name} where "
+    private val deletePrefix = "delete from ${table.name} where "
 
     fun <P1 : Any> createQuery(p1: Condition<P1>): OneParameterQuery<P1> =
         OneParameterQuery(p1)

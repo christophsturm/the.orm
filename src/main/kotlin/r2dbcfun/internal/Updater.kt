@@ -6,7 +6,7 @@ import r2dbcfun.util.toSnakeCase
 import kotlin.reflect.KProperty1
 
 internal class Updater<T : Any>(
-    table: Table<T>,
+    table: Table,
     private val updateProperties: PropertiesReader<T>,
     private val idHandler: IDHandler<T>,
     private val idProperty: KProperty1<T, Any>

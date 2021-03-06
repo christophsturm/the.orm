@@ -8,7 +8,7 @@ import r2dbcfun.internal.ClassCreator
 import r2dbcfun.internal.Table
 
 internal class ResultMapper<T : Any>(
-    private val table: Table<T>,
+    private val table: Table,
     private val classCreator: ClassCreator<T>
 ) {
 
