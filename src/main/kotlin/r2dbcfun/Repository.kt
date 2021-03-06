@@ -50,7 +50,7 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
     private val classInfo = ClassInfo(kClass, idHandler, otherClasses)
 
     val queryFactory: QueryFactory<T> =
-        QueryFactory(table, kClass, ResultMapper(table, classInfo), this, idHandler, idProperty)
+        QueryFactory(table, kClass, ResultMapper(classInfo), this, idHandler, idProperty)
 
     /**
      * creates a new record in the database.

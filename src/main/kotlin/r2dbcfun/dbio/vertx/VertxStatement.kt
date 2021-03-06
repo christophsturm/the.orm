@@ -8,7 +8,7 @@ import kotlinx.coroutines.rx2.await
 import r2dbcfun.dbio.DBResult
 import r2dbcfun.dbio.Statement
 
-class VertxStatement(val preparedQuery: PreparedQuery<RowSet<Row>>) :
+class VertxStatement(private val preparedQuery: PreparedQuery<RowSet<Row>>) :
     Statement {
     override suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult {
         val rowSet = preparedQuery.rxExecute(Tuple.from(values.toList())).await()

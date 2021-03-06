@@ -5,10 +5,8 @@ import kotlinx.coroutines.flow.map
 import r2dbcfun.dbio.DBResult
 import r2dbcfun.dbio.LazyResult
 import r2dbcfun.internal.ClassInfo
-import r2dbcfun.internal.Table
 
 internal class ResultMapper<T : Any>(
-    private val table: Table,
     private val classInfo: ClassInfo<T>
 ) {
 

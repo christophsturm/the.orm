@@ -4,7 +4,7 @@ import io.vertx.reactivex.sqlclient.Transaction
 import kotlinx.coroutines.rx2.await
 import r2dbcfun.dbio.DBTransaction
 
-class VertxTransaction(val transaction: Transaction) : DBTransaction {
+class VertxTransaction(private val transaction: Transaction) : DBTransaction {
     override suspend fun rollbackTransaction() {
         transaction.rxRollback().await()
     }
