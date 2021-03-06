@@ -17,14 +17,16 @@ object ClassInfoTest {
         it("knows the class name") {
             expectThat(classInfo.name).isEqualTo("Entity")
         }
-        it("knows the field names") {
-            expectThat(classInfo.fieldInfo.map { it.dbFieldName }).containsExactlyInAnyOrder("id", "name")
+        it("knows the field names and types") {
+            expectThat(classInfo.fieldInfo.map { Pair(it.dbFieldName, it.type) })
+                .containsExactlyInAnyOrder(Pair("name", String::class.java), Pair("id", Long::class.java))
         }
         it("knows field names for references") {
             data class BelongsToEntity(val entity: Entity, val id: Long?)
 
             val classInfo = ClassInfo(BelongsToEntity::class, IDHandler(BelongsToEntity::class), setOf(Entity::class))
-            expectThat(classInfo.fieldInfo.map { it.dbFieldName }).containsExactlyInAnyOrder("id", "entity_id")
+            expectThat(classInfo.fieldInfo.map { Pair(it.dbFieldName, it.type) })
+                .containsExactlyInAnyOrder(Pair("entity_id", Long::class.java), Pair("id", Long::class.java))
         }
 
     }

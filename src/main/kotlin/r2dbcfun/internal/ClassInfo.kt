@@ -50,25 +50,32 @@ internal class ClassInfo<T : Any>(
         val kotlinClass = type.classifier as KClass<*>
         val fieldName = parameter.name!!.toSnakeCase()
         if (otherClasses.contains(kotlinClass)) {
-            return FieldInfo(parameter, fieldName + "_id", BelongsToConverter(kotlinClass))
+            return FieldInfo(parameter, fieldName + "_id", BelongsToConverter(kotlinClass), Long::class.java)
         }
-        val fieldConverter = when {
-            javaClass.isEnum -> EnumConverter(javaClass)
+        return when {
+            javaClass.isEnum -> FieldInfo(parameter, fieldName, EnumConverter(javaClass), String::class.java)
             else -> {
                 val isPK = parameter.name == "id"
-                if (isPK) FieldConverter { idHandler.createId(it as Long) }
-                else
-                    fieldConverters[kotlinClass]
+                if (isPK) FieldInfo(
+                    parameter,
+                    fieldName,
+                    { idHandler.createId(it as Long) },
+                    Long::class.java
+                )
+                else {
+                    val fieldConverter = fieldConverters[kotlinClass]
                         ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
+                    FieldInfo(parameter, fieldName, fieldConverter, javaClass)
+                }
             }
         }
-        return (FieldInfo(parameter, fieldName, fieldConverter))
     }
 
     data class FieldInfo(
         val constructorParameter: KParameter,
         val dbFieldName: String,
-        val fieldConverter: FieldConverter
+        val fieldConverter: FieldConverter,
+        val type: Class<*>
     )
 }
 
