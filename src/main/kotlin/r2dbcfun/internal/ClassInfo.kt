@@ -30,7 +30,7 @@ private val fieldConverters =
     )
 
 
-internal class ClassCreator<T : Any>(
+internal class ClassInfo<T : Any>(
     kClass: KClass<T>,
     private val idHandler: IDHandler<T>,
     val otherClasses: Set<KClass<*>>
