@@ -1,7 +1,8 @@
-package r2dbcfun
+package r2dbcfun.internal
 
+import r2dbcfun.PropertyReader
+import r2dbcfun.RepositoryException
 import r2dbcfun.dbio.DBConnection
-import r2dbcfun.internal.IDHandler
 import r2dbcfun.util.toSnakeCase
 import kotlin.reflect.KProperty1
 

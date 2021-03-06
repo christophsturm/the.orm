@@ -5,6 +5,8 @@ import r2dbcfun.dbio.ConnectionProvider
 import r2dbcfun.internal.ClassInfo
 import r2dbcfun.internal.ExceptionInspector
 import r2dbcfun.internal.IDHandler
+import r2dbcfun.internal.Inserter
+import r2dbcfun.internal.Updater
 import r2dbcfun.query.QueryFactory
 import r2dbcfun.query.QueryFactory.Companion.isEqualToCondition
 import r2dbcfun.util.toSnakeCase

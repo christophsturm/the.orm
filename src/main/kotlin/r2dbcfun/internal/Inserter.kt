@@ -1,10 +1,9 @@
-package r2dbcfun
+package r2dbcfun.internal
 
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException
 import io.vertx.pgclient.PgException
+import r2dbcfun.PropertyReader
 import r2dbcfun.dbio.DBConnection
-import r2dbcfun.internal.ExceptionInspector
-import r2dbcfun.internal.IDHandler
 import r2dbcfun.util.toSnakeCase
 
 internal class Inserter<T : Any>(
