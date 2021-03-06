@@ -28,8 +28,7 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
     }
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
-    private val propertiesReader =
-        PropertiesReader(properties.filter { it.key != "id" }.values.map { PropertyReader(it) })
+    private val propertiesReader = PropertiesReader(properties)
 
     private val table = Table(kClass)
 

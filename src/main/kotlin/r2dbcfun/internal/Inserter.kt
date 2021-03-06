@@ -9,8 +9,8 @@ internal class Inserter<T : Any>(
 ) {
     private val insertStatementString =
         run {
-            val fieldPlaceHolders = (1..insertProperties.propertyReaders.size).joinToString { idx -> "$$idx" }
-            "INSERT INTO ${table.name}(${insertProperties.fieldNames}) values ($fieldPlaceHolders)"
+            val fieldPlaceHolders = (1..insertProperties.dbFieldNames.size).joinToString { idx -> "$$idx" }
+            "INSERT INTO ${table.name}(${insertProperties.dbFieldNames.joinToString()}) values ($fieldPlaceHolders)"
         }
 
     suspend fun create(connection: DBConnection, instance: T): T {
