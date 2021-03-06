@@ -16,7 +16,7 @@ interface PK {
     val id: Long
 }
 
-class Repository<T : Any>(kClass: KClass<T>) {
+class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptySet()) {
     companion object {
         /** creates a Repo for the entity <T> */
         inline fun <reified T : Any> create(): Repository<T> = Repository(T::class)
@@ -42,7 +42,7 @@ class Repository<T : Any>(kClass: KClass<T>) {
 
     private val updater = Updater(tableName, propertyReaders, idHandler, idProperty)
 
-    private val classInfo = ClassInfo(kClass, idHandler)
+    private val classInfo = ClassInfo(kClass, idHandler, otherClasses)
 
     val queryFactory: QueryFactory<T> =
         QueryFactory(kClass, ResultMapper(tableName, classInfo), this, idHandler, idProperty)

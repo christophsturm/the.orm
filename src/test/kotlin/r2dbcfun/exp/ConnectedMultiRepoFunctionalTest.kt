@@ -27,7 +27,7 @@ fun main() {
     FailFast.runTest()
 }
 
-object ConnectedMultiRepoTest {
+object ConnectedMultiRepoFunctionalTest {
     val context = describe(ConnectedMultiRepo::class, disabled = true) {
         forAllDatabases(DBS.databases) {
             it("works") {
@@ -56,7 +56,8 @@ object ConnectedMultiRepoTest {
     }
 }
 class MultiRepo(classes: List<KClass<out Any>>) {
-    val repos: Map<KClass<out Any>, Repository<out Any>> = classes.associateBy({ it }, { Repository(it) })
+    val repos: Map<KClass<out Any>, Repository<out Any>> =
+        classes.associateBy({ it }, { Repository(it, classes.toSet()) })
 
     @Suppress("UNCHECKED_CAST")
     suspend inline fun <reified T : Any> create(connectionProvider: ConnectionProvider, entity: T): T {

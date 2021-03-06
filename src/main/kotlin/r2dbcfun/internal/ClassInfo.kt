@@ -30,7 +30,11 @@ private val fieldConverters =
     )
 
 
-internal class ClassInfo<T : Any>(kClass: KClass<T>, private val idHandler: IDHandler<T>) {
+internal class ClassInfo<T : Any>(
+    kClass: KClass<T>,
+    private val idHandler: IDHandler<T>,
+    val otherClasses: Set<KClass<*>>
+) {
     val constructor: KFunction<T> =
         kClass.primaryConstructor
             ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
@@ -47,6 +51,8 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>, private val idHandler: IDHa
         val type = parameter.type
         val javaClass = type.javaType as Class<*>
         val kotlinClass = type.classifier as KClass<*>
+        if (otherClasses.contains(kotlinClass))
+            return BelongsToConverter(kotlinClass)
         return when {
             javaClass.isEnum -> EnumConverter(javaClass)
             else -> {
@@ -64,6 +70,13 @@ internal class ClassInfo<T : Any>(kClass: KClass<T>, private val idHandler: IDHa
         val snakeCaseName: String,
         val fieldConverter: FieldConverter
     )
+}
+
+class BelongsToConverter(kotlinClass: KClass<*>) : FieldConverter {
+    override fun valueToConstructorParameter(value: Any?): Any? {
+        TODO("Not yet implemented")
+    }
+
 }
 
 

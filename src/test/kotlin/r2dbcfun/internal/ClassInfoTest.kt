@@ -7,7 +7,7 @@ object ClassInfoTest {
         it("collects class info for entities") {
             data class Entity(val name: String, val id: Long? = null)
 
-            ClassInfo(Entity::class, IDHandler(Entity::class))
+            ClassInfo(Entity::class, IDHandler(Entity::class), setOf())
         }
 
     }
