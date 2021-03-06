@@ -1,7 +1,5 @@
 package r2dbcfun.internal
 
-import io.r2dbc.spi.R2dbcDataIntegrityViolationException
-import io.vertx.pgclient.PgException
 import r2dbcfun.PropertyReader
 import r2dbcfun.dbio.DBConnection
 import r2dbcfun.util.toSnakeCase
@@ -9,8 +7,7 @@ import r2dbcfun.util.toSnakeCase
 internal class Inserter<T : Any>(
     table: String,
     private val insertProperties: List<PropertyReader<T>>,
-    private val idHandler: IDHandler<T>,
-    private val exceptionInspector: ExceptionInspector<T>
+    private val idHandler: IDHandler<T>
 ) {
     private val types: List<Class<*>> = insertProperties.map { it.dbClass }
     private val insertStatementString =
@@ -25,13 +22,7 @@ internal class Inserter<T : Any>(
         val statement = connection.createInsertStatement(insertStatementString)
 
         val id =
-            try {
                 statement.execute(types, values).getId()
-            } catch (e: R2dbcDataIntegrityViolationException) {
-                throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
-            } catch (e: PgException) {
-                throw exceptionInspector.pgException(e, instance)
-            }
 
         return idHandler.assignId(instance, id)
     }

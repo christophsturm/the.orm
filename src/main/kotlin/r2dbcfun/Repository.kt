@@ -1,5 +1,7 @@
 package r2dbcfun
 
+import io.r2dbc.spi.R2dbcDataIntegrityViolationException
+import io.vertx.pgclient.PgException
 import kotlinx.coroutines.flow.single
 import r2dbcfun.dbio.ConnectionProvider
 import r2dbcfun.internal.ClassInfo
@@ -40,7 +42,7 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
 
     private val exceptionInspector = ExceptionInspector(tableName, kClass)
 
-    private val inserter = Inserter(tableName, propertyReaders, idHandler, exceptionInspector)
+    private val inserter = Inserter(tableName, propertyReaders, idHandler)
 
     private val updater = Updater(tableName, propertyReaders, idHandler, idProperty)
 
@@ -57,7 +59,13 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
      */
     suspend fun create(connectionProvider: ConnectionProvider, instance: T): T =
         connectionProvider.withConnection { connection ->
-            inserter.create(connection, instance)
+            try {
+                inserter.create(connection, instance)
+            } catch (e: R2dbcDataIntegrityViolationException) {
+                throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
+            } catch (e: PgException) {
+                throw exceptionInspector.pgException(e, instance)
+            }
         }
 
     /**
