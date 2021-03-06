@@ -1,6 +1,5 @@
 package r2dbcfun.internal
 
-import r2dbcfun.PropertyReader
 import r2dbcfun.RepositoryException
 import r2dbcfun.dbio.DBConnection
 import r2dbcfun.util.toSnakeCase
@@ -8,15 +7,15 @@ import kotlin.reflect.KProperty1
 
 internal class Updater<T : Any>(
     table: String,
-    private val updateProperties: List<PropertyReader<T>>,
+    private val updateProperties: PropertiesReader<T>,
     private val idHandler: IDHandler<T>,
     private val idProperty: KProperty1<T, Any>
 ) {
-    private val types: List<Class<*>> = listOf(Long::class.java)/*PK*/ + updateProperties.map { it.dbClass }
+    private val types: List<Class<*>> = listOf(Long::class.java)/*PK*/ + updateProperties.types
     private val updateStatementString =
         run {
             val propertiesString =
-                updateProperties.withIndex()
+                updateProperties.propertyReaders.withIndex()
                     .joinToString { indexedProperty ->
                         "${indexedProperty.value.name.toSnakeCase()}=$${indexedProperty.index + 2}"
                     }
@@ -25,7 +24,7 @@ internal class Updater<T : Any>(
         }
 
     suspend fun update(connection: DBConnection, instance: T) {
-        val values = updateProperties.asSequence().map { it.value(instance) }
+        val values = updateProperties.values(instance)
 
         val id = idHandler.getId(idProperty.call(instance))
         val statement =
