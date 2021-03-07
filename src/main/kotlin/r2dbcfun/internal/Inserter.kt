@@ -7,10 +7,8 @@ internal class Inserter<T : Any>(
     private val idHandler: IDHandler<T>,
     classInfo: ClassInfo<T>
 ) {
-    val fieldsWithoutId = classInfo.fieldInfo.filter { it.dbFieldName != "id" }
-    val types = fieldsWithoutId.map {
-        it.type
-    }
+    private val fieldsWithoutId = classInfo.fieldInfo.filter { it.dbFieldName != "id" }
+    private val types = fieldsWithoutId.map { it.type }
 
     private val insertStatementString =
         run {

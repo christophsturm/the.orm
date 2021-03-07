@@ -8,7 +8,6 @@ import r2dbcfun.internal.ClassInfo
 import r2dbcfun.internal.ExceptionInspector
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.internal.Inserter
-import r2dbcfun.internal.PropertiesReader
 import r2dbcfun.internal.Table
 import r2dbcfun.internal.Updater
 import r2dbcfun.query.QueryFactory
@@ -28,7 +27,6 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
     }
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
-    private val propertiesReader = PropertiesReader(properties)
 
     private val table = Table(kClass)
 
@@ -39,13 +37,13 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
                 KProperty1<T, Any>
 
     private val idHandler = IDHandler(kClass)
+    private val classInfo = ClassInfo(kClass, idHandler, otherClasses)
 
     private val exceptionInspector = ExceptionInspector(table, kClass)
-    private val classInfo = ClassInfo(kClass, idHandler, otherClasses)
 
     private val inserter = Inserter(table, idHandler, classInfo)
 
-    private val updater = Updater(table, propertiesReader, idHandler, idProperty)
+    private val updater = Updater(table, idHandler, idProperty, classInfo)
 
 
     val queryFactory: QueryFactory<T> =
