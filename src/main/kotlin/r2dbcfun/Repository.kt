@@ -43,7 +43,7 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
     private val exceptionInspector = ExceptionInspector(table, kClass)
     private val classInfo = ClassInfo(kClass, idHandler, otherClasses)
 
-    private val inserter = Inserter(table, propertiesReader, idHandler)
+    private val inserter = Inserter(table, idHandler, classInfo)
 
     private val updater = Updater(table, propertiesReader, idHandler, idProperty)
 

@@ -53,9 +53,16 @@ internal class ClassInfo<T : Any>(
         val property = properties[parameter.name]!!
 
         if (otherClasses.contains(kotlinClass)) {
-            FieldInfo(parameter, property, fieldName + "_id", BelongsToConverter(kotlinClass), Long::class.java)
+            FieldInfo(parameter, property, fieldName + "_id", BelongsToConverter(kotlinClass), Long::class.java, false)
         } else when {
-            javaClass.isEnum -> FieldInfo(parameter, property, fieldName, EnumConverter(javaClass), String::class.java)
+            javaClass.isEnum -> FieldInfo(
+                parameter,
+                property,
+                fieldName,
+                EnumConverter(javaClass),
+                String::class.java,
+                true
+            )
             else -> {
                 val isPK = parameter.name == "id"
                 if (isPK) FieldInfo(
@@ -63,12 +70,13 @@ internal class ClassInfo<T : Any>(
                     property,
                     fieldName,
                     { idHandler.createId(it as Long) },
-                    Long::class.java
+                    Long::class.java,
+                    false
                 )
                 else {
                     val fieldConverter = fieldConverters[kotlinClass]
                         ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
-                    FieldInfo(parameter, property, fieldName, fieldConverter, javaClass)
+                    FieldInfo(parameter, property, fieldName, fieldConverter, javaClass, false)
                 }
             }
         }
@@ -83,9 +91,13 @@ internal class ClassInfo<T : Any>(
         val property: KProperty1<*, *>,
         val dbFieldName: String,
         val fieldConverter: FieldConverter,
-        val type: Class<*>
+        val type: Class<*>,
+        val isEnum: Boolean
     ) {
-        fun value(instance: Any): Any? = property.call(instance)
+        fun value(instance: Any): Any? {
+            val value = property.call(instance)
+            return if (value != null && isEnum) value.toString() else value
+        }
     }
 
 }
