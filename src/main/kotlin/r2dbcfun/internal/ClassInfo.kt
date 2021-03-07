@@ -8,6 +8,8 @@ import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaType
 
@@ -32,32 +34,33 @@ private val fieldConverters =
 
 internal class ClassInfo<T : Any>(
     kClass: KClass<T>,
-    private val idHandler: IDHandler<T>,
-    private val otherClasses: Set<KClass<*>>
+    idHandler: IDHandler<T>,
+    otherClasses: Set<KClass<*>>
 ) {
+    private val properties: Map<String, KProperty1<T, *>> =
+        kClass.declaredMemberProperties.associateBy({ it.name }, { it })
+
     val name = kClass.simpleName
     val constructor: KFunction<T> =
         kClass.primaryConstructor
             ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
     val fieldInfo = constructor.parameters.map { parameter ->
-        makeFieldInfo(parameter)
-    }
-
-    private fun makeFieldInfo(parameter: KParameter): FieldInfo {
         val type = parameter.type
         val javaClass = type.javaType as Class<*>
         val kotlinClass = type.classifier as KClass<*>
         val fieldName = parameter.name!!.toSnakeCase()
+        val property = properties[parameter.name]!!
+
         if (otherClasses.contains(kotlinClass)) {
-            return FieldInfo(parameter, fieldName + "_id", BelongsToConverter(kotlinClass), Long::class.java)
-        }
-        return when {
-            javaClass.isEnum -> FieldInfo(parameter, fieldName, EnumConverter(javaClass), String::class.java)
+            FieldInfo(parameter, property, fieldName + "_id", BelongsToConverter(kotlinClass), Long::class.java)
+        } else when {
+            javaClass.isEnum -> FieldInfo(parameter, property, fieldName, EnumConverter(javaClass), String::class.java)
             else -> {
                 val isPK = parameter.name == "id"
                 if (isPK) FieldInfo(
                     parameter,
+                    property,
                     fieldName,
                     { idHandler.createId(it as Long) },
                     Long::class.java
@@ -65,18 +68,26 @@ internal class ClassInfo<T : Any>(
                 else {
                     val fieldConverter = fieldConverters[kotlinClass]
                         ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
-                    FieldInfo(parameter, fieldName, fieldConverter, javaClass)
+                    FieldInfo(parameter, property, fieldName, fieldConverter, javaClass)
                 }
             }
         }
     }
 
+    fun values(instance: T): Sequence<Any?> {
+        return fieldInfo.asSequence().map { it.value(instance) }
+    }
+
     data class FieldInfo(
         val constructorParameter: KParameter,
+        val property: KProperty1<*, *>,
         val dbFieldName: String,
         val fieldConverter: FieldConverter,
         val type: Class<*>
-    )
+    ) {
+        fun value(instance: Any): Any? = property.call(instance)
+    }
+
 }
 
 class BelongsToConverter(kotlinClass: KClass<*>) : FieldConverter {

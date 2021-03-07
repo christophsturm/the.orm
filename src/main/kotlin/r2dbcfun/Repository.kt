@@ -41,12 +41,12 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
     private val idHandler = IDHandler(kClass)
 
     private val exceptionInspector = ExceptionInspector(table, kClass)
+    private val classInfo = ClassInfo(kClass, idHandler, otherClasses)
 
     private val inserter = Inserter(table, propertiesReader, idHandler)
 
     private val updater = Updater(table, propertiesReader, idHandler, idProperty)
 
-    private val classInfo = ClassInfo(kClass, idHandler, otherClasses)
 
     val queryFactory: QueryFactory<T> =
         QueryFactory(table, kClass, ResultMapper(classInfo), this, idHandler, idProperty)
