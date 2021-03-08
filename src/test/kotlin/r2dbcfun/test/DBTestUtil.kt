@@ -16,6 +16,7 @@ import r2dbcfun.dbio.TransactionProvider
 import r2dbcfun.dbio.TransactionalConnectionProvider
 import r2dbcfun.dbio.r2dbc.R2DbcDBConnectionFactory
 import r2dbcfun.dbio.vertx.VertxDBConnectionFactory
+import r2dbcfun.test.TestConfig.TEST_POOL_SIZE
 import java.sql.DriverManager
 import java.time.Duration
 import java.util.*
@@ -23,6 +24,7 @@ import java.util.*
 object TestConfig {
     val ALL_PSQL = System.getenv("ALL_PSQL") != null
     val H2_ONLY = System.getenv("H2_ONLY") != null
+    val TEST_POOL_SIZE = 2
 }
 
 open class DBTestUtil(val databaseName: String) {
@@ -164,7 +166,7 @@ class VertxConnectionProviderFactory(val poolOptions: PgConnectOptions, val db: 
     ConnectionProviderFactory {
     val clients = mutableListOf<SqlClient>()
     override suspend fun create(): TransactionProvider {
-        val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(5))
+        val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(TEST_POOL_SIZE))
         clients.add(client)
         return TransactionalConnectionProvider(VertxDBConnectionFactory(client))
     }
@@ -189,7 +191,7 @@ class R2dbcConnectionProviderFactory(
         val pool = ConnectionPool(
             ConnectionPoolConfiguration.builder(connectionFactory)
                 .maxIdleTime(Duration.ofMillis(1000))
-                .maxSize(5)
+                .maxSize(TEST_POOL_SIZE)
                 .build()
         )
         pools.add(pool)
