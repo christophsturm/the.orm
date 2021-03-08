@@ -9,7 +9,7 @@ import r2dbcfun.BuildConfig.failfastVersion
 group = "r2dbcfun"
 version = "0.2.2"
 
-val coroutinesVersion = "1.4.2"
+val coroutinesVersion = "1.4.3"
 val kotlinVersion = BuildConfig.kotlinVersion
 val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.2"
@@ -21,7 +21,7 @@ plugins {
     java
     @Suppress("RemoveRedundantQualifierName")
     kotlin("jvm").version(r2dbcfun.BuildConfig.kotlinVersion)
-    id("com.github.ben-manes.versions") version "0.36.0"
+    id("com.github.ben-manes.versions") version "0.38.0"
     id("info.solidsoft.pitest") version "1.5.2"
     `maven-publish`
     @Suppress("RemoveRedundantQualifierName")
