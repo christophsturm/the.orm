@@ -1,9 +1,12 @@
 package r2dbcfun.internal
 
+import io.r2dbc.spi.Blob
+import io.r2dbc.spi.Clob
 import io.vertx.sqlclient.data.Numeric
 import r2dbcfun.RepositoryException
 import r2dbcfun.util.toSnakeCase
 import java.math.BigDecimal
+import java.nio.ByteBuffer
 import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -13,23 +16,45 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaType
 
+private val passThroughFieldConverter = PassThroughConverter
+
+object PassThroughConverter : FieldConverter {
+    override fun dbValueToParameter(value: Any?): Any? = value
+    override fun propertyToDBValue(value: Any?): Any? = value
+}
+
 // from the r2dbc spec: https://r2dbc.io/spec/0.8.1.RELEASE/spec/html/#datatypes
-private val passThroughFieldConverter = FieldConverter { it }
 private val fieldConverters =
     mapOf<KClass<*>, FieldConverter>(
         String::class to passThroughFieldConverter,
-        io.r2dbc.spi.Clob::class to passThroughFieldConverter,
+        Clob::class to passThroughFieldConverter,
         Boolean::class to passThroughFieldConverter,
-        java.nio.ByteBuffer::class to passThroughFieldConverter,
-        io.r2dbc.spi.Blob::class to passThroughFieldConverter,
+        ByteBuffer::class to passThroughFieldConverter,
+        Blob::class to passThroughFieldConverter,
         Int::class to passThroughFieldConverter,
         Byte::class to passThroughFieldConverter,
         Short::class to passThroughFieldConverter,
         Long::class to passThroughFieldConverter,
-        Double::class to FieldConverter { (it as Number?)?.toDouble() },
-        BigDecimal::class to FieldConverter { if (it is Numeric) it.bigDecimalValue() else it },
+        Double::class to DoubleConverter,
+        BigDecimal::class to BigDecimalConverter,
         LocalDate::class to passThroughFieldConverter
     )
+
+object BigDecimalConverter : FieldConverter {
+    override fun dbValueToParameter(value: Any?): Any? {
+        return if (value is Numeric) value.bigDecimalValue() else value
+    }
+
+    override fun propertyToDBValue(value: Any?): Any? = value
+}
+
+object DoubleConverter : FieldConverter {
+    override fun dbValueToParameter(value: Any?): Any? {
+        return (value as Number?)?.toDouble()
+    }
+
+    override fun propertyToDBValue(value: Any?): Any? = value
+}
 
 
 internal class ClassInfo<T : Any>(
@@ -53,15 +78,14 @@ internal class ClassInfo<T : Any>(
         val property = properties[parameter.name]!!
 
         if (otherClasses.contains(kotlinClass)) {
-            FieldInfo(parameter, property, fieldName + "_id", BelongsToConverter(kotlinClass), Long::class.java, false)
+            FieldInfo(parameter, property, fieldName + "_id", BelongsToConverter(kotlinClass), Long::class.java)
         } else when {
             javaClass.isEnum -> FieldInfo(
                 parameter,
                 property,
                 fieldName,
                 EnumConverter(javaClass),
-                String::class.java,
-                true
+                String::class.java
             )
             else -> {
                 val isPK = parameter.name == "id"
@@ -69,14 +93,13 @@ internal class ClassInfo<T : Any>(
                     parameter,
                     property,
                     fieldName,
-                    { idHandler.createId(it as Long) },
-                    Long::class.java,
-                    false
+                    PKFieldConverter(idHandler),
+                    Long::class.java
                 )
                 else {
                     val fieldConverter = fieldConverters[kotlinClass]
                         ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
-                    FieldInfo(parameter, property, fieldName, fieldConverter, javaClass, false)
+                    FieldInfo(parameter, property, fieldName, fieldConverter, javaClass)
                 }
             }
         }
@@ -91,19 +114,25 @@ internal class ClassInfo<T : Any>(
         val property: KProperty1<*, *>,
         val dbFieldName: String,
         val fieldConverter: FieldConverter,
-        val type: Class<*>,
-        val isEnum: Boolean
+        val type: Class<*>
     ) {
-        fun value(instance: Any): Any? {
-            val value = property.call(instance)
-            return if (value != null && isEnum) value.toString() else value
-        }
+        fun value(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
     }
 
 }
 
+private class PKFieldConverter(val idHandler: IDHandler<*>) : FieldConverter {
+    override fun dbValueToParameter(value: Any?) = idHandler.createId(value as Long)
+
+    override fun propertyToDBValue(value: Any?): Any? = value
+}
+
 class BelongsToConverter(kotlinClass: KClass<*>) : FieldConverter {
-    override fun valueToConstructorParameter(value: Any?): Any? {
+    override fun dbValueToParameter(value: Any?): Any? {
+        TODO("Not yet implemented")
+    }
+
+    override fun propertyToDBValue(value: Any?): Any? {
         TODO("Not yet implemented")
     }
 
@@ -112,14 +141,19 @@ class BelongsToConverter(kotlinClass: KClass<*>) : FieldConverter {
 
 /** converts strings from the database to enums in the mapped class */
 private class EnumConverter(private val clazz: Class<*>) : FieldConverter {
-    override fun valueToConstructorParameter(value: Any?): Any? {
+    override fun dbValueToParameter(value: Any?): Any? {
         if (value == null) return null
 
         @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST", "RemoveExplicitTypeArguments")
         return (java.lang.Enum.valueOf<Any>(clazz as Class<Any>, value as String))
     }
+
+    override fun propertyToDBValue(value: Any?): Any? {
+        return value?.toString()
+    }
 }
 
-internal fun interface FieldConverter {
-    fun valueToConstructorParameter(value: Any?): Any?
+internal interface FieldConverter {
+    fun dbValueToParameter(value: Any?): Any?
+    fun propertyToDBValue(value: Any?): Any?
 }

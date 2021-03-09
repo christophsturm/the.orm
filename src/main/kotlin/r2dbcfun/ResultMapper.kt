@@ -26,7 +26,7 @@ internal class ResultMapper<T : Any>(
             val resolvedParameters =
                 values.associateTo(HashMap()) { (fieldInfo, result) ->
                     val resolvedValue = result.resolve()
-                    val value = fieldInfo.fieldConverter.valueToConstructorParameter(resolvedValue)
+                    val value = fieldInfo.fieldConverter.dbValueToParameter(resolvedValue)
                     Pair(fieldInfo.constructorParameter, value)
                 }
             try {
