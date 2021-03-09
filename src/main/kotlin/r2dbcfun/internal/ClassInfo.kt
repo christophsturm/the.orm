@@ -18,6 +18,11 @@ import kotlin.reflect.jvm.javaType
 
 private val passThroughFieldConverter = PassThroughConverter
 
+internal interface FieldConverter {
+    fun dbValueToParameter(value: Any?): Any?
+    fun propertyToDBValue(value: Any?): Any?
+}
+
 object PassThroughConverter : FieldConverter {
     override fun dbValueToParameter(value: Any?): Any? = value
     override fun propertyToDBValue(value: Any?): Any? = value
@@ -124,7 +129,7 @@ internal class ClassInfo<T : Any>(
 private class PKFieldConverter(val idHandler: IDHandler<*>) : FieldConverter {
     override fun dbValueToParameter(value: Any?) = idHandler.createId(value as Long)
 
-    override fun propertyToDBValue(value: Any?): Any? = value
+    override fun propertyToDBValue(value: Any?): Any? = value?.let { idHandler.getId(it) }
 }
 
 class BelongsToConverter(kotlinClass: KClass<*>) : FieldConverter {
@@ -153,7 +158,3 @@ private class EnumConverter(private val clazz: Class<*>) : FieldConverter {
     }
 }
 
-internal interface FieldConverter {
-    fun dbValueToParameter(value: Any?): Any?
-    fun propertyToDBValue(value: Any?): Any?
-}
