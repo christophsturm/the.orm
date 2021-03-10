@@ -2,9 +2,12 @@
 
 package r2dbcfun.exp
 
+import failfast.FailFast
 import failfast.describe
 import io.r2dbc.spi.ConnectionFactories
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toCollection
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -17,6 +20,10 @@ import r2dbcfun.test.forAllDatabases
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+
+fun main() {
+    FailFast.runTest()
+}
 
 /**
  * this is just the r2dbc playground that started this project.
@@ -31,16 +38,14 @@ object R2dbcTest {
                 ((connection as TransactionalConnectionProvider).DBConnectionFactory.getConnection() as R2dbcConnection).connection
             autoClose(conn) { it.close() }
             test("can insert values and select result") {
-                val firstId =
-                    conn.createStatement("insert into users(name) values($1)")
-                        .bind("$1", "belle")
-                        .returnGeneratedValues().execute().awaitSingle()
-                        .map { row, _ -> row.get(0, java.lang.Long::class.java)!!.toLong() }.awaitSingle()
-                val secondId =
-                    conn.createStatement("insert into users(name) values($1)")
-                        .bind("$1", "sebastian")
-                        .returnGeneratedValues().execute().awaitSingle()
-                        .map { row, _ -> row.get(0, java.lang.Long::class.java)!!.toLong() }.awaitSingle()
+                val asFlow = conn.createStatement("insert into users(name) values($1)")
+                    .bind("$1", "belle")
+                    .add()
+                    .bind("$1", "sebastian")
+                    .returnGeneratedValues().execute().asFlow().map {
+                        it.map { row, _ -> row.get(0, java.lang.Long::class.java)!!.toLong() }.awaitSingle()
+                    }
+                val (firstId, secondId) = asFlow.toList()
                 val selectResult =
                     conn.createStatement("select * from users").execute().awaitSingle()
                 val namesFlow =
