@@ -3,6 +3,7 @@ package r2dbcfun.internal
 import io.r2dbc.spi.Blob
 import io.r2dbc.spi.Clob
 import io.vertx.sqlclient.data.Numeric
+import r2dbcfun.Repository
 import r2dbcfun.RepositoryException
 import r2dbcfun.util.toSnakeCase
 import java.math.BigDecimal
@@ -19,14 +20,11 @@ import kotlin.reflect.jvm.javaType
 private val passThroughFieldConverter = PassThroughConverter
 
 internal interface FieldConverter {
-    fun dbValueToParameter(value: Any?): Any?
-    fun propertyToDBValue(value: Any?): Any?
+    fun dbValueToParameter(value: Any?): Any? = value
+    fun propertyToDBValue(value: Any?): Any? = value
 }
 
-object PassThroughConverter : FieldConverter {
-    override fun dbValueToParameter(value: Any?): Any? = value
-    override fun propertyToDBValue(value: Any?): Any? = value
-}
+object PassThroughConverter : FieldConverter
 
 // from the r2dbc spec: https://r2dbc.io/spec/0.8.1.RELEASE/spec/html/#datatypes
 private val fieldConverters =
@@ -49,16 +47,12 @@ object BigDecimalConverter : FieldConverter {
     override fun dbValueToParameter(value: Any?): Any? {
         return if (value is Numeric) value.bigDecimalValue() else value
     }
-
-    override fun propertyToDBValue(value: Any?): Any? = value
 }
 
 object DoubleConverter : FieldConverter {
     override fun dbValueToParameter(value: Any?): Any? {
         return (value as Number?)?.toDouble()
     }
-
-    override fun propertyToDBValue(value: Any?): Any? = value
 }
 
 
@@ -133,6 +127,8 @@ private class PKFieldConverter(val idHandler: IDHandler<*>) : FieldConverter {
 }
 
 class BelongsToConverter(kotlinClass: KClass<*>) : FieldConverter {
+    val repo = Repository(kotlinClass)
+
     override fun dbValueToParameter(value: Any?): Any? {
         TODO("Not yet implemented")
     }
