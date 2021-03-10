@@ -3,12 +3,9 @@ package r2dbcfun.exp
 import failfast.FailFast
 import failfast.describe
 import r2dbcfun.Repository
-import r2dbcfun.dbio.ConnectionProvider
-import r2dbcfun.dbio.TransactionProvider
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.test.DBS
 import r2dbcfun.test.forAllDatabases
-import kotlin.reflect.KClass
 
 data class Page(
     val id: Long?,
@@ -55,39 +52,4 @@ object ConnectedMultiRepoFunctionalTest {
         }
     }
 }
-class MultiRepo(classes: List<KClass<out Any>>) {
-    val repos: Map<KClass<out Any>, Repository<out Any>> =
-        classes.associateBy({ it }, { Repository(it, classes.toSet()) })
 
-    @Suppress("UNCHECKED_CAST")
-    suspend inline fun <reified T : Any> create(connectionProvider: ConnectionProvider, entity: T): T {
-        @Suppress("UNCHECKED_CAST")
-        val repository = repos[T::class] as Repository<T>
-        return repository.create(connectionProvider, entity)
-    }
-
-}
-
-open class ConnectedMultiRepo internal constructor(
-    open val connectionProvider: ConnectionProvider,
-    val repo: MultiRepo
-) {
-    @Suppress("UNCHECKED_CAST")
-    suspend inline fun <reified T : Any> create(entity: T): T = repo.create(connectionProvider, entity)
-}
-
-class TransactionalMultiRepo(
-    override val connectionProvider: TransactionProvider,
-    repo: MultiRepo
-) : ConnectedMultiRepo(connectionProvider, repo) {
-    constructor(connectionProvider: TransactionProvider, classes: List<KClass<out Any>>) : this(
-        connectionProvider,
-        MultiRepo(classes)
-    )
-
-    suspend fun <R> transaction(function: suspend (ConnectedMultiRepo) -> R): R =
-        connectionProvider.transaction { transactionConnectionProvider ->
-            function(ConnectedMultiRepo(transactionConnectionProvider, repo))
-        }
-
-}
