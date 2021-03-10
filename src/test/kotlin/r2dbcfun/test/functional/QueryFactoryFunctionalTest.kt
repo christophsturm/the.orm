@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toCollection
 import r2dbcfun.ConnectedRepository
 import r2dbcfun.NotFoundException
+import r2dbcfun.PK
 import r2dbcfun.Repository
+import r2dbcfun.query.QueryFactory
 import r2dbcfun.query.between
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.query.isNull
@@ -21,6 +23,7 @@ import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import java.time.LocalDate
+import kotlin.reflect.KProperty1
 
 fun main() {
     FailFast.runTest()
@@ -42,7 +45,7 @@ object QueryFactoryFunctionalTest {
                 email = "with email"
             )
             describe("query language") {
-                test("has a typesafe query api") {
+                describe("has a typesafe query api") {
                     val usersPerMonth = (1 until 12).map {
                         create(
                             user.copy(
@@ -52,17 +55,30 @@ object QueryFactoryFunctionalTest {
                             )
                         )
                     }
-                    val findByUserNameLikeAndBirthdayBetween =
-                        repo.queryFactory
-                            .createQuery(User::name.like(), User::birthday.between())
+                    it("can query by condition with on and two parameters") {
+                        val findByUserNameLikeAndBirthdayBetween =
+                            repo.queryFactory.createQuery(User::name.like(), User::birthday.between())
 
-                    expectThat(
-                        findByUserNameLikeAndBirthdayBetween.with(
-                            connectionProvider,
-                            "%",
-                            Pair(LocalDate.of(2000, 4, 2), LocalDate.of(2000, 6, 2))
-                        ).find().toCollection(mutableListOf())
-                    ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
+                        expectThat(
+                            findByUserNameLikeAndBirthdayBetween.with(
+                                connectionProvider, "%",
+                                Pair(LocalDate.of(2000, 4, 2), LocalDate.of(2000, 6, 2))
+                            ).find().toCollection(mutableListOf())
+                        ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
+                    }
+                    itWill("query by list parameters") {
+                        fun <T> KProperty1<T, PK?>.`in`(): QueryFactory.Condition<List<Long>> =
+                            QueryFactory.Condition("in (?)", this)
+
+                        val findIdIn = repo.queryFactory.createQuery(User::id.`in`())
+
+                        expectThat(
+                            findIdIn.with(
+                                connectionProvider,
+                                listOf(usersPerMonth[4].id!!.id, usersPerMonth[4].id!!.id)
+                            ).find().toCollection(mutableListOf())
+                        ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
+                    }
                 }
                 test("can query null values") {
                     val coolUser =
@@ -155,3 +171,4 @@ object QueryFactoryFunctionalTest {
 
     }
 }
+
