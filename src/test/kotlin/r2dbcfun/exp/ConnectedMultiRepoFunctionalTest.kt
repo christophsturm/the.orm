@@ -6,6 +6,7 @@ import r2dbcfun.Repository
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.test.DBS
 import r2dbcfun.test.forAllDatabases
+import kotlin.reflect.KProperty1
 
 data class Page(
     val id: Long?,
@@ -14,7 +15,19 @@ data class Page(
     val description: String?,
     val ldJson: String?,
     val author: String?
-)
+) {
+    companion object : ARecord() {
+        fun findPageByUrl(url: String) = findBy(Page::url, url)
+    }
+}
+
+open class ARecord {
+    fun <Entity, Field> findBy(kProperty1: KProperty1<Entity, Field>, url: Field): Entity {
+        throw NotImplementedError("stub")
+    }
+
+}
+
 
 data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
 data class RecipeIngredient(val id: Long?, val amount: String, val recipeId: Long, val ingredientId: Long)
@@ -32,6 +45,7 @@ object ConnectedMultiRepoFunctionalTest {
                 val findIngredientByName =
                     Repository.create<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
 
+//                val findPageByUrl = repo.repository.queryFactory.createQuery(Page::url.isEqualTo())
                 TransactionalMultiRepo(
                     connection,
                     listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
