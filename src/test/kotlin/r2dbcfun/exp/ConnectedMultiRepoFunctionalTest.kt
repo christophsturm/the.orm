@@ -1,11 +1,10 @@
 package r2dbcfun.exp
 
 import failfast.FailFast
-import failfast.describe
 import r2dbcfun.Repository
 import r2dbcfun.query.isEqualTo
 import r2dbcfun.test.DBS
-import r2dbcfun.test.forAllDatabases
+import r2dbcfun.test.describeOnAllDbs
 import kotlin.reflect.KProperty1
 
 data class Page(
@@ -22,6 +21,7 @@ data class Page(
 }
 
 open class ARecord {
+    @Suppress("UNUSED_PARAMETER")
     fun <Entity, Field> findBy(kProperty1: KProperty1<Entity, Field>, url: Field): Entity {
         throw NotImplementedError("stub")
     }
@@ -38,31 +38,29 @@ fun main() {
 }
 
 object ConnectedMultiRepoFunctionalTest {
-    val context = describe(ConnectedMultiRepo::class, disabled = true) {
-        forAllDatabases(DBS.databases) {
-            it("works") {
-                val connection = it()
-                val findIngredientByName =
-                    Repository.create<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
+    val context = describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, disabled = true) {
+        it("works") {
+            val connection = it()
+            val findIngredientByName =
+                Repository.create<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
 
 //                val findPageByUrl = repo.repository.queryFactory.createQuery(Page::url.isEqualTo())
-                TransactionalMultiRepo(
-                    connection,
-                    listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
-                ).transaction { repo ->
-                    // Recipe belongsTo Page
-                    // recipe hasMany RecipeIngredient(s)
-                    // recipe hasMany Ingredients through RecipeIngredients
-                    val page = repo.create(Page(null, "url", "pageTitle", "description", "{}", "author"))
-                    val recipe =
-                        repo.create(Recipe(null, "Spaghetti Carbonara", "Wasser Salzen, Speck dazu, fertig", page))
-                    val gurke = findIngredientByName.with(repo.connectionProvider, "gurke")
-                        .findOrCreate { Ingredient(null, "Gurke") }
-                    repo.create(RecipeIngredient(null, "100g", recipe.id!!, gurke.id!!))
-                }
-
-
+            TransactionalMultiRepo(
+                connection,
+                listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
+            ).transaction { repo ->
+                // Recipe belongsTo Page
+                // recipe hasMany RecipeIngredient(s)
+                // recipe hasMany Ingredients through RecipeIngredients
+                val page = repo.create(Page(null, "url", "pageTitle", "description", "{}", "author"))
+                val recipe =
+                    repo.create(Recipe(null, "Spaghetti Carbonara", "Wasser Salzen, Speck dazu, fertig", page))
+                val gurke = findIngredientByName.with(repo.connectionProvider, "gurke")
+                    .findOrCreate { Ingredient(null, "Gurke") }
+                repo.create(RecipeIngredient(null, "100g", recipe.id!!, gurke.id!!))
             }
+
+
         }
     }
 }

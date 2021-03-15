@@ -21,6 +21,7 @@ import r2dbcfun.test.TestConfig.TEST_POOL_SIZE
 import java.sql.DriverManager
 import java.time.Duration
 import java.util.*
+import kotlin.reflect.KClass
 
 object TestConfig {
     val ALL_PSQL = System.getenv("ALL_PSQL") != null
@@ -240,13 +241,22 @@ suspend fun ContextDSL.forAllDatabases(
     }
 }
 
+
+fun describeOnAllDbs(
+    subject: KClass<*>,
+    databases: List<DBTestUtil.TestDatabase>,
+    disabled: Boolean = false,
+    tests: suspend ContextDSL.(suspend () -> TransactionProvider) -> Unit
+) = describeOnAllDbs("the ${subject.simpleName!!}", databases, disabled, tests)
+
 fun describeOnAllDbs(
     contextName: String,
     databases: List<DBTestUtil.TestDatabase>,
+    disabled: Boolean = false,
     tests: suspend ContextDSL.(suspend () -> TransactionProvider) -> Unit
 ): List<RootContext> {
     return databases.map {
-        RootContext("$contextName on ${it.name}") {
+        RootContext("$contextName on ${it.name}", disabled) {
             val createDB = autoClose(it.createDB()) { it.close() }
             val connectionFactory: suspend () -> TransactionProvider =
                 { createDB.create() }
