@@ -26,7 +26,7 @@ internal interface FieldConverter {
 
 object PassThroughConverter : FieldConverter
 
-// from the r2dbc spec: https://r2dbc.io/spec/0.8.1.RELEASE/spec/html/#datatypes
+// from the r2dbc spec: https://r2dbc.io/spec/0.8.4.RELEASE/spec/html/#datatypes
 private val fieldConverters =
     mapOf<KClass<*>, FieldConverter>(
         String::class to passThroughFieldConverter,
