@@ -66,16 +66,16 @@ object QueryFactoryFunctionalTest {
                             ).find().toCollection(mutableListOf())
                         ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                     }
-                    itWill("query by list parameters") {
-                        fun <T> KProperty1<T, PK?>.`in`(): QueryFactory.Condition<List<Long>> =
-                            QueryFactory.Condition("in (?)", this)
+                    pending("can query by list parameters") {
+                        fun <T> KProperty1<T, PK?>.`in`(): QueryFactory.Condition<Array<Long>> =
+                            QueryFactory.Condition("in unnest(array(?))", this)
 
                         val findIdIn = repo.queryFactory.createQuery(User::id.`in`())
 
                         expectThat(
                             findIdIn.with(
                                 connectionProvider,
-                                listOf(usersPerMonth[4].id!!.id, usersPerMonth[4].id!!.id)
+                                arrayOf(usersPerMonth[4].id!!.id, usersPerMonth[4].id!!.id)
                             ).find().toCollection(mutableListOf())
                         ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                     }

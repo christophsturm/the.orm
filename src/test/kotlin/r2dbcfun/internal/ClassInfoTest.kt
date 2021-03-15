@@ -1,3 +1,5 @@
+@file:Suppress("NAME_SHADOWING")
+
 package r2dbcfun.internal
 
 import failfast.FailFast
@@ -36,8 +38,7 @@ object ClassInfoTest {
                 expectThat(classInfo.fieldInfo.map { Pair(it.dbFieldName, it.type) })
                     .containsExactlyInAnyOrder(Pair("entity_id", Long::class.java), Pair("id", Long::class.java))
             }
-            itWill("know values for references") {
-                val names = classInfo.fieldInfo.map { it.dbFieldName }
+            pending("know values for references") {
                 expectThat(names.zip(classInfo.values(BelongsToEntity(Entity("name", 10))).toList()))
                     .containsExactlyInAnyOrder(Pair("name", "name"), Pair("id", 10))
             }

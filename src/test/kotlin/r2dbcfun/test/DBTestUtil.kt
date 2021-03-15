@@ -1,6 +1,7 @@
 package r2dbcfun.test
 
 import failfast.ContextDSL
+import failfast.RootContext
 import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
 import io.r2dbc.spi.ConnectionFactories
@@ -232,6 +233,21 @@ suspend fun ContextDSL.forAllDatabases(
     databases.map { db ->
         context("on ${db.name}") {
             val createDB = autoClose(db.createDB()) { it.close() }
+            val connectionFactory: suspend () -> TransactionProvider =
+                { createDB.create() }
+            tests(connectionFactory)
+        }
+    }
+}
+
+fun describeOnAllDbs(
+    contextName: String,
+    databases: List<DBTestUtil.TestDatabase>,
+    tests: suspend ContextDSL.(suspend () -> TransactionProvider) -> Unit
+): List<RootContext> {
+    return databases.map {
+        RootContext("$contextName on ${it.name}") {
+            val createDB = autoClose(it.createDB()) { it.close() }
             val connectionFactory: suspend () -> TransactionProvider =
                 { createDB.create() }
             tests(connectionFactory)
