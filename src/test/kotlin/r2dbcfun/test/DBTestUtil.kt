@@ -10,7 +10,9 @@ import io.vertx.pgclient.PgConnectOptions
 import io.vertx.reactivex.pgclient.PgPool
 import io.vertx.reactivex.sqlclient.SqlClient
 import io.vertx.sqlclient.PoolOptions
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.withContext
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.dbio.TransactionProvider
@@ -86,7 +88,7 @@ open class DBTestUtil(val databaseName: String) {
 
     }
 
-    class R2DBCPostgresFactory(val psqlContainer: PSQLContainer) : TestDatabase {
+    class R2DBCPostgresFactory(private val psqlContainer: PSQLContainer) : TestDatabase {
         override val name = "R2DBC-${psqlContainer.dockerImage}"
 
         override fun createDB(): ConnectionProviderFactory {
@@ -255,9 +257,9 @@ fun describeOnAllDbs(
     disabled: Boolean = false,
     tests: suspend ContextDSL.(suspend () -> TransactionProvider) -> Unit
 ): List<RootContext> {
-    return databases.map {
-        RootContext("$contextName on ${it.name}", disabled) {
-            val createDB = autoClose(it.createDB()) { it.close() }
+    return databases.map { testDB ->
+        RootContext("$contextName on ${testDB.name}", disabled) {
+            val createDB = autoClose(withContext(Dispatchers.IO) { testDB.createDB() }) { it.close() }
             val connectionFactory: suspend () -> TransactionProvider =
                 { createDB.create() }
             tests(connectionFactory)
