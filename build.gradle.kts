@@ -13,16 +13,16 @@ val coroutinesVersion = "1.4.3"
 val kotlinVersion = BuildConfig.kotlinVersion
 val serializationVersion = "1.0.1"
 val testcontainersVersion = "1.15.2"
-val log4j2Version = "2.14.0"
-val vertxVersion = "4.0.2"
-val byteBuddyVersion = "1.10.21"
+val log4j2Version = "2.14.1"
+val vertxVersion = "4.0.3"
+val byteBuddyVersion = "1.10.22"
 
 plugins {
     java
     @Suppress("RemoveRedundantQualifierName")
     kotlin("jvm").version(r2dbcfun.BuildConfig.kotlinVersion)
     id("com.github.ben-manes.versions") version "0.38.0"
-    id("info.solidsoft.pitest") version "1.5.2"
+    id("info.solidsoft.pitest") version "1.6.0"
     `maven-publish`
     @Suppress("RemoveRedundantQualifierName")
     kotlin("plugin.serialization").version(r2dbcfun.BuildConfig.kotlinVersion)
@@ -119,7 +119,12 @@ plugins.withId("info.solidsoft.pitest") {
         testPlugin.set("failfast")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
         targetClasses.set(setOf("r2dbcfun.*")) //by default "${project.group}.*"
-        excludedClasses.set(setOf("""r2dbcfun.ResultMapper${'$'}findBy*"""))
+        excludedClasses.set(
+            setOf(
+                """r2dbcfun.ResultMapper${'$'}mapQueryResult*""",
+                """r2dbcfun.dbio.vertx.VertxResult${'$'}map*"""
+            )
+        )
         targetTests.set(setOf("r2dbcfun.*Test", "r2dbcfun.**.*Test"))
         pitestVersion.set("1.6.2")
         threads.set(
