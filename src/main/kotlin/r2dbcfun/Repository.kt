@@ -20,11 +20,38 @@ interface PK {
     val id: Long
 }
 
-class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptySet()) {
+interface Repository<T : Any> {
     companion object {
         /** creates a Repo for the entity <T> */
-        inline fun <reified T : Any> create(): Repository<T> = Repository(T::class)
+        inline fun <reified T : Any> create(): Repository<T> = RepositoryImpl(T::class)
     }
+
+    val queryFactory: QueryFactory<T>
+
+    /**
+     * creates a new record in the database.
+     *
+     * @param instance the instance that will be used to set the fields of the newly created record
+     * @return a copy of the instance with an assigned id field.
+     */
+    suspend fun create(connectionProvider: ConnectionProvider, instance: T): T
+
+    /**
+     * updates a record in the database.
+     *
+     * @param instance the instance that will be used to update the record
+     */
+    suspend fun update(connectionProvider: ConnectionProvider, instance: T)
+
+    /**
+     * loads an object from the database
+     *
+     * @param id the primary key of the object to load
+     */
+    suspend fun findById(connectionProvider: ConnectionProvider, id: PK): T
+}
+
+class RepositoryImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptySet()) : Repository<T> {
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
 
@@ -46,7 +73,7 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
     private val updater = Updater(table, idHandler, idProperty, classInfo)
 
 
-    val queryFactory: QueryFactory<T> =
+    override val queryFactory: QueryFactory<T> =
         QueryFactory(table, kClass, ResultMapper(classInfo), this, idHandler, idProperty)
 
     /**
@@ -55,7 +82,7 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
      * @param instance the instance that will be used to set the fields of the newly created record
      * @return a copy of the instance with an assigned id field.
      */
-    suspend fun create(connectionProvider: ConnectionProvider, instance: T): T =
+    override suspend fun create(connectionProvider: ConnectionProvider, instance: T): T =
         connectionProvider.withConnection { connection ->
             try {
                 inserter.create(connection, instance)
@@ -71,7 +98,7 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
      *
      * @param instance the instance that will be used to update the record
      */
-    suspend fun update(connectionProvider: ConnectionProvider, instance: T) {
+    override suspend fun update(connectionProvider: ConnectionProvider, instance: T) {
         connectionProvider.withConnection { connection ->
             updater.update(connection, instance)
         }
@@ -84,7 +111,7 @@ class Repository<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = empt
      *
      * @param id the primary key of the object to load
      */
-    suspend fun findById(connectionProvider: ConnectionProvider, id: PK): T {
+    override suspend fun findById(connectionProvider: ConnectionProvider, id: PK): T {
         return try {
             byIdQuery.with(connectionProvider, id.id).find().single()
         } catch (e: NoSuchElementException) {

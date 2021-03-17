@@ -1,13 +1,14 @@
 package r2dbcfun.exp
 
 import r2dbcfun.Repository
+import r2dbcfun.RepositoryImpl
 import r2dbcfun.dbio.ConnectionProvider
 import r2dbcfun.dbio.TransactionProvider
 import kotlin.reflect.KClass
 
 class MultiRepo(classes: List<KClass<out Any>>) {
     val repos: Map<KClass<out Any>, Repository<out Any>> =
-        classes.associateBy({ it }, { Repository(it, classes.toSet()) })
+        classes.associateBy({ it }, { RepositoryImpl(it, classes.toSet()) })
 
     suspend inline fun <reified T : Any> create(connectionProvider: ConnectionProvider, entity: T): T =
         getRepo(T::class).create(connectionProvider, entity)

@@ -3,8 +3,8 @@ package r2dbcfun.internal
 import io.r2dbc.spi.Blob
 import io.r2dbc.spi.Clob
 import io.vertx.sqlclient.data.Numeric
-import r2dbcfun.Repository
 import r2dbcfun.RepositoryException
+import r2dbcfun.RepositoryImpl
 import r2dbcfun.util.toSnakeCase
 import java.math.BigDecimal
 import java.nio.ByteBuffer
@@ -127,7 +127,7 @@ private class PKFieldConverter(val idHandler: IDHandler<*>) : FieldConverter {
 }
 
 class BelongsToConverter(kotlinClass: KClass<*>) : FieldConverter {
-    val repo = Repository(kotlinClass)
+    val repo = RepositoryImpl(kotlinClass)
 
     override fun dbValueToParameter(value: Any?): Any? {
         TODO("Not yet implemented")

@@ -2,7 +2,7 @@ package r2dbcfun.exp.ar
 
 import failfast.FailFast
 import failfast.describe
-import r2dbcfun.Repository
+import r2dbcfun.RepositoryImpl
 import r2dbcfun.dbio.ConnectionProvider
 import r2dbcfun.test.DBS
 import r2dbcfun.test.forAllDatabases
@@ -50,5 +50,5 @@ object ActiveRecordFunctionalTest {
 }
 
 suspend inline fun <reified T : ActiveRecord> T.create(connection: ConnectionProvider): T =
-    Repository(T::class).create(connection, this)
+    RepositoryImpl(T::class).create(connection, this)
 

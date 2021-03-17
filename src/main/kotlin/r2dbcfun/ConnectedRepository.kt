@@ -9,7 +9,7 @@ open class ConnectedRepository<T : Any>(
 ) {
     companion object {
         inline fun <reified T : Any> create(connection: ConnectionProvider): ConnectedRepository<T> =
-            ConnectedRepository(Repository(T::class), connection)
+            ConnectedRepository(RepositoryImpl(T::class), connection)
     }
 
     suspend fun create(entity: T): T = repository.create(connectionProvider, entity)
@@ -23,7 +23,7 @@ class TransactionalRepository<T : Any>(
 ) : ConnectedRepository<T>(repository, connectionProvider) {
     companion object {
         inline fun <reified T : Any> create(connection: TransactionProvider): TransactionalRepository<T> =
-            TransactionalRepository(Repository(T::class), connection)
+            TransactionalRepository(RepositoryImpl(T::class), connection)
     }
 
     suspend fun <R> transaction(function: suspend (ConnectedRepository<T>) -> R): R =
