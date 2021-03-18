@@ -2,9 +2,9 @@ package r2dbcfun.transaction
 
 import failfast.FailFast
 import failfast.describe
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
+import failfast.mock.mock
+import failfast.mock.verify
+import failfast.mock.whenever
 import r2dbcfun.dbio.DBConnection
 import r2dbcfun.dbio.DBConnectionFactory
 import r2dbcfun.dbio.DBTransaction
@@ -18,22 +18,22 @@ fun main() {
     FailFast.runTest()
 }
 
-object ConnectionProviderTest {
+object TransactionTest {
     val context = describe("transaction handling") {
-        val connectionFactory = mockk<DBConnectionFactory>()
-        val r2dbcConnection = mockk<DBConnection>(relaxed = true)
-        coEvery { connectionFactory.getConnection() }.returns(r2dbcConnection)
-        val transaction = mockk<DBTransaction>(relaxed = true)
-        coEvery { r2dbcConnection.beginTransaction() }.returns(transaction)
+        val connectionFactory = mock<DBConnectionFactory>()
+        val r2dbcConnection = mock<DBConnection>()
+        whenever(connectionFactory) { getConnection() }.thenReturn(r2dbcConnection)
+        val transaction = mock<DBTransaction>()
+        whenever(r2dbcConnection) { beginTransaction() }.thenReturn(transaction)
         val connectionProvider = TransactionalConnectionProvider(connectionFactory)
         it("calls block") {
             var called = false
             connectionProvider.transaction {
-                coVerify { r2dbcConnection.beginTransaction() }
+                verify(r2dbcConnection) { r2dbcConnection.beginTransaction() }
                 called = true
             }
             expectThat(called).isTrue()
-            coVerify { transaction.commitTransaction() }
+            verify(transaction) { commitTransaction() }
         }
         it("returns the result of the block") {
             expectThat(connectionProvider.transaction() { "RESULT" }).isEqualTo("RESULT")
@@ -45,7 +45,7 @@ object ConnectionProviderTest {
                     throw runtimeException
                 }
             }.isEqualTo(runtimeException)
-            coVerify { transaction.rollbackTransaction() }
+            verify(transaction) { rollbackTransaction() }
 
         }
     }
