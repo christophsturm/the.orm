@@ -1,7 +1,6 @@
 package r2dbcfun.test
 
 import failfast.FailFast.runAllTests
-import io.mockk.impl.JvmMockKGateway
 import io.netty.resolver.dns.UnixResolverDnsServerAddressStreamProvider
 import r2dbcfun.TestConfig.CI
 import r2dbcfun.TestConfig.H2_ONLY
@@ -11,9 +10,7 @@ import kotlin.concurrent.thread
 
 fun main() {
     // spin up dependencies in separate threads to speedup test
-    thread {
-        JvmMockKGateway()
-    }
+
     if (!H2_ONLY) {
         enableTestContainersReuse()
         // prepare all database containers async at startup

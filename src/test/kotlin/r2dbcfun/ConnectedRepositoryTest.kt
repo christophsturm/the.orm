@@ -1,42 +1,42 @@
 package r2dbcfun
 
 import failfast.describe
-import io.mockk.coVerify
-import io.mockk.mockk
+import failfast.mock.mock
+import failfast.mock.verify
 import r2dbcfun.dbio.ConnectionProvider
 import r2dbcfun.test.TestObjects.Entity
 import strikt.api.expectThat
 import strikt.assertions.isA
-import strikt.assertions.isEqualTo
+import strikt.assertions.isSameInstanceAs
 
 object ConnectedRepositoryTest {
     val context = describe(ConnectedRepository::class) {
-        val connection = mockk<ConnectionProvider>()
+        val connection = mock<ConnectionProvider>()
         test("exposes Repository and Connection") {
             expectThat(ConnectedRepository.create<Entity>(connection)) {
                 get { repository }.isA<Repository<Entity>>()
-                get { this.connectionProvider }.isEqualTo(connection)
+                get { this.connectionProvider }.isSameInstanceAs(connection)
             }
         }
 
         context("forwarding calls") {
-            val repo = mockk<Repository<Entity>>(relaxed = true)
+            val repo = mock<Repository<Entity>>()
             val subject = ConnectedRepository(repo, connection)
             val entity = Entity()
             test("create call") {
                 subject.create(entity)
-                coVerify { repo.create(connection, entity) }
+                verify(repo) { create(connection, entity) }
             }
             test("update call") {
                 subject.update(entity)
-                coVerify { repo.update(connection, entity) }
+                verify(repo) { update(connection, entity) }
             }
             test("findById call") {
                 data class MyPK(override val id: Long) : PK
 
                 val id = MyPK(1)
                 subject.findById(id)
-                coVerify { repo.findById(connection, id) }
+                verify(repo) { findById(connection, id) }
             }
         }
     }

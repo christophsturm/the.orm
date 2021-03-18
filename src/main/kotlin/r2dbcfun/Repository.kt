@@ -74,7 +74,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = 
 
 
     override val queryFactory: QueryFactory<T> =
-        QueryFactory(table, kClass, ResultMapper(classInfo), this, idHandler, idProperty)
+        QueryFactory(table, kClass, ResultMapperImpl(classInfo), this, idHandler, idProperty)
 
     /**
      * creates a new record in the database.

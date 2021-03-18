@@ -6,11 +6,15 @@ import r2dbcfun.dbio.DBResult
 import r2dbcfun.dbio.LazyResult
 import r2dbcfun.internal.ClassInfo
 
-internal class ResultMapper<T : Any>(
-    private val classInfo: ClassInfo<T>
-) {
+interface ResultMapper<T : Any> {
+    suspend fun mapQueryResult(queryResult: DBResult): Flow<T>
+}
 
-    internal suspend fun mapQueryResult(queryResult: DBResult): Flow<T> {
+internal class ResultMapperImpl<T : Any>(
+    private val classInfo: ClassInfo<T>
+) : ResultMapper<T> {
+
+    override suspend fun mapQueryResult(queryResult: DBResult): Flow<T> {
         data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: LazyResult<Any?>)
 
         val parameters: Flow<List<ResultPair>> =

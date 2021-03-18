@@ -73,10 +73,6 @@ dependencies {
     testImplementation("io.projectreactor.tools:blockhound:1.0.4.RELEASE")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-    testImplementation("io.mockk:mockk:1.10.6")
-    testRuntimeOnly("net.bytebuddy:byte-buddy:$byteBuddyVersion")
-    testRuntimeOnly("net.bytebuddy:byte-buddy-agent:$byteBuddyVersion")
-
     testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-jul:$log4j2Version")
