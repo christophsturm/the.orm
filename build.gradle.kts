@@ -50,6 +50,7 @@ dependencies {
     implementation("io.vertx:vertx-rx-java2:$vertxVersion")
 
     implementation("io.vertx:vertx-pg-client:$vertxVersion")
+    runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.60.Final:osx-x86_64")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
 
 
