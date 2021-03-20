@@ -58,6 +58,7 @@ suspend fun DBConnection.executeSelect(
 
 interface Statement {
     suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult
+    suspend fun executeBatch(types: List<Class<*>>, values: Sequence<Sequence<Any?>>): DBResult
 }
 
 interface DBResult {
@@ -65,7 +66,6 @@ interface DBResult {
     suspend fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T>
     suspend fun getId(): Long {
         return this.map { row -> row.get("id", java.lang.Long::class.java)!!.toLong() }.single()
-
     }
 }
 

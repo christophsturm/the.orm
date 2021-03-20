@@ -29,5 +29,18 @@ object DBConnectionTest {
                 }
             expectThat(result).isEqualTo(1)
         }
+        pending("can insert multiple rows with one command") {
+            val result =
+                createConnectionProvider().withConnection { connection ->
+                    connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
+                        .executeBatch(
+                            listOf(String::class.java, String::class.java),
+                            sequenceOf(sequenceOf("belle", null), sequenceOf("sebastian", null))
+                        )
+                        .getId()
+                }
+            expectThat(result).isEqualTo(1)
+        }
+
     }
 }

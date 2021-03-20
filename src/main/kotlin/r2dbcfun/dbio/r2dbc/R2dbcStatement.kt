@@ -15,4 +15,17 @@ class R2dbcStatement(private val statement: io.r2dbc.spi.Statement) : Statement 
         return R2dbcResult(statement.execute().awaitSingle())
     }
 
+    override suspend fun executeBatch(types: List<Class<*>>, valuesList: Sequence<Sequence<Any?>>): DBResult {
+        valuesList.forEach { values ->
+            values.forEachIndexed { index, o ->
+                if (o == null) {
+                    statement.bindNull(index, types[index])
+                } else
+                    statement.bind(index, o)
+            }
+            statement.add()
+        }
+        return R2dbcResult(statement.execute().awaitSingle())
+    }
+
 }
