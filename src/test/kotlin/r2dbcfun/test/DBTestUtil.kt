@@ -13,13 +13,13 @@ import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.withContext
-import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.dbio.TransactionProvider
 import r2dbcfun.dbio.TransactionalConnectionProvider
 import r2dbcfun.dbio.r2dbc.R2DbcDBConnectionFactory
 import r2dbcfun.dbio.vertx.VertxDBConnectionFactory
 import r2dbcfun.test.TestConfig.TEST_POOL_SIZE
+import java.io.BufferedReader
 import java.sql.DriverManager
 import java.time.Duration
 import java.util.*
@@ -31,24 +31,26 @@ object TestConfig {
     val TEST_POOL_SIZE = 2
 }
 
-open class DBTestUtil(val databaseName: String) {
+val schemaSql = DBTestUtil::class.java.getResourceAsStream("/db/migration/V1__create_test_tables.sql").bufferedReader()
+    .use(BufferedReader::readText)
+
+class DBTestUtil(val databaseName: String) {
+
     interface TestDatabase {
         val name: String
 
-        fun createDB(): ConnectionProviderFactory
+        suspend fun createDB(): ConnectionProviderFactory
         fun prepare() {}
     }
 
     inner class H2TestDatabase : TestDatabase {
         override val name = "H2"
 
-        override fun createDB(): ConnectionProviderFactory {
+        override suspend fun createDB(): ConnectionProviderFactory {
             val uuid = UUID.randomUUID()
             val databaseName = "$databaseName$uuid"
-            val jdbcUrl = "jdbc:h2:mem:$databaseName;DB_CLOSE_DELAY=-1"
-            val flyway = Flyway.configure().dataSource(jdbcUrl, "", "").load()
-            flyway.migrate()
-            return R2dbcConnectionProviderFactory(ConnectionFactories.get("r2dbc:h2:mem:///$databaseName;DB_CLOSE_DELAY=-1"))
+            val connectionFactory = ConnectionFactories.get("r2dbc:h2:mem:///$databaseName;DB_CLOSE_DELAY=-1")
+            return R2dbcConnectionProviderFactory(connectionFactory)
         }
     }
 
@@ -77,12 +79,6 @@ open class DBTestUtil(val databaseName: String) {
             val port = dockerContainer.getMappedPort(5432)
             val postgresDb = PostgresDb(databaseName, host, port)
             postgresDb.createDb()
-
-            val flyway =
-                Flyway.configure()
-                    .dataSource("jdbc:postgresql://$host:$port/$databaseName", "test", "test")
-                    .load()
-            flyway.migrate()
             return postgresDb
         }
 
@@ -91,7 +87,7 @@ open class DBTestUtil(val databaseName: String) {
     class R2DBCPostgresFactory(private val psqlContainer: PSQLContainer) : TestDatabase {
         override val name = "R2DBC-${psqlContainer.dockerImage}"
 
-        override fun createDB(): ConnectionProviderFactory {
+        override suspend fun createDB(): ConnectionProviderFactory {
             val db = psqlContainer.preparePostgresDB()
             return R2dbcConnectionProviderFactory(
                 ConnectionFactories.get("r2dbc:postgresql://test:test@${db.host}:${db.port}/${db.databaseName}"),
@@ -151,7 +147,7 @@ open class DBTestUtil(val databaseName: String) {
 
     inner class VertxPSQLTestDatabase(val psql: PSQLContainer) : TestDatabase {
         override val name = "Vertx-${psql.dockerImage}"
-        override fun createDB(): ConnectionProviderFactory {
+        override suspend fun createDB(): ConnectionProviderFactory {
             val database = psql.preparePostgresDB()
             val connectOptions = PgConnectOptions()
                 .setPort(database.port)
@@ -161,6 +157,10 @@ open class DBTestUtil(val databaseName: String) {
                 .setPassword("test")
 
             return VertxConnectionProviderFactory(connectOptions, database)
+        }
+
+        override fun prepare() {
+            psql.prepare()
         }
     }
 
@@ -172,7 +172,9 @@ class VertxConnectionProviderFactory(val poolOptions: PgConnectOptions, val db: 
     override suspend fun create(): TransactionProvider {
         val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(TEST_POOL_SIZE))
         clients.add(client)
-        return TransactionalConnectionProvider(VertxDBConnectionFactory(client))
+        val connectionProvider = TransactionalConnectionProvider(VertxDBConnectionFactory(client))
+        connectionProvider.withConnection { it.execute(schemaSql) }
+        return connectionProvider
     }
 
 
@@ -199,7 +201,10 @@ class R2dbcConnectionProviderFactory(
                 .build()
         )
         pools.add(pool)
-        return TransactionalConnectionProvider(R2DbcDBConnectionFactory(pool))
+        val dbConnectionFactory = R2DbcDBConnectionFactory(pool)
+        val connectionProvider = TransactionalConnectionProvider(dbConnectionFactory)
+        connectionProvider.withConnection { it.execute(schemaSql) }
+        return connectionProvider
     }
 
     override suspend fun close() {

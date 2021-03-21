@@ -2,6 +2,7 @@ package r2dbcfun.dbio.r2dbc
 
 import io.r2dbc.spi.Connection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitLast
 import r2dbcfun.dbio.DBConnection
 import r2dbcfun.dbio.DBTransaction
 import r2dbcfun.dbio.Statement
@@ -16,6 +17,10 @@ class R2dbcConnection(val connection: Connection) : DBConnection {
 
     override suspend fun close() {
         connection.close().awaitFirstOrNull()
+    }
+
+    override suspend fun execute(sql: String) {
+        connection.createStatement(sql).execute().awaitLast()
     }
 
     override fun createStatement(sql: String): Statement {

@@ -5,7 +5,8 @@ import kotlinx.coroutines.flow.singleOrNull
 import r2dbcfun.Repository
 import r2dbcfun.ResultMapper
 import r2dbcfun.dbio.ConnectionProvider
-import r2dbcfun.dbio.executeSelect
+import r2dbcfun.dbio.DBConnection
+import r2dbcfun.dbio.DBResult
 import r2dbcfun.internal.IDHandler
 import r2dbcfun.internal.Table
 import r2dbcfun.util.toIndexedPlaceholders
@@ -164,4 +165,9 @@ class QueryFactory<T : Any> internal constructor(
     }
 
 }
+
+private suspend fun DBConnection.executeSelect(
+    parameterValues: Sequence<Any>,
+    sql: String
+): DBResult = createStatement(sql).execute(listOf(), parameterValues)
 

@@ -24,4 +24,8 @@ class VertxConnection(private val client: SqlConnection) : DBConnection {
         client.rxClose().await()
     }
 
+    override suspend fun execute(sql: String) {
+        client.query(sql).rxExecute().await()
+    }
+
 }

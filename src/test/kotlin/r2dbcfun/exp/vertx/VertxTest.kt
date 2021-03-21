@@ -13,6 +13,7 @@ import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.rx2.await
 import r2dbcfun.TestConfig
 import r2dbcfun.test.DBS
+import r2dbcfun.test.schemaSql
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
@@ -24,16 +25,17 @@ fun main() {
 @Suppress("SqlNoDataSourceInspection", "SqlResolve")
 object VertxTest {
     val context = describe("vertx support", disabled = TestConfig.H2_ONLY) {
-        val (databaseName, host, port) = DBS.psql13.preparePostgresDB()
+        val db = autoClose(DBS.psql13.preparePostgresDB()) { it.close() }
         val connectOptions = PgConnectOptions()
-            .setPort(port)
-            .setHost(host)
-            .setDatabase(databaseName)
+            .setPort(db.port)
+            .setHost(db.host)
+            .setDatabase(db.databaseName)
             .setUser("test")
             .setPassword("test")
 
-        val client: SqlClient = autoClose(PgPool.pool(connectOptions, PoolOptions().setMaxSize(5))) { it.close() }
 
+        val client: SqlClient = autoClose(PgPool.pool(connectOptions, PoolOptions().setMaxSize(5))) { it.close() }
+        client.query(schemaSql).rxExecute().await()
         it("can run sql queries") {
             val result: RowSet<Row> = client.query("SELECT * FROM users WHERE id=1").rxExecute().await()
             expectThat(result.size()).isEqualTo(0)

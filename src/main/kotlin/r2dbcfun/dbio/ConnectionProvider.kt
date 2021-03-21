@@ -49,12 +49,9 @@ interface DBConnection {
     fun createInsertStatement(sql: String): Statement
     suspend fun beginTransaction(): DBTransaction
     suspend fun close()
+    suspend fun execute(sql: String)
 }
 
-suspend fun DBConnection.executeSelect(
-    parameterValues: Sequence<Any>,
-    sql: String
-): DBResult = createStatement(sql).execute(listOf(), parameterValues)
 
 interface Statement {
     suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult
