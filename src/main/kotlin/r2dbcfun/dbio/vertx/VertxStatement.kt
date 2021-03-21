@@ -15,8 +15,8 @@ class VertxStatement(private val preparedQuery: PreparedQuery<RowSet<Row>>) :
         return VertxResult(rowSet)
     }
 
-    override suspend fun executeBatch(types: List<Class<*>>, values: Sequence<Sequence<Any?>>): DBResult {
-        val rowSet = preparedQuery.rxExecuteBatch(values.map { Tuple.from(it.toList()) }.toList()).await()
+    override suspend fun executeBatch(types: List<Class<*>>, valuesList: Sequence<Sequence<Any?>>): DBResult {
+        val rowSet = preparedQuery.rxExecuteBatch(valuesList.map { Tuple.from(it.toList()) }.toList()).await()
         return VertxResult(rowSet)
     }
 }
