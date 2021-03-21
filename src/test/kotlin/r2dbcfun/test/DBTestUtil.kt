@@ -35,6 +35,24 @@ val schemaSql = DBTestUtil::class.java.getResourceAsStream("/db/migration/V1__cr
     .use(BufferedReader::readText)
 
 class DBTestUtil(val databaseName: String) {
+    private val h2 = H2TestDatabase()
+    val psql13 = PSQLContainer("postgres:13-alpine")
+    val postgreSQLContainers = if (TestConfig.ALL_PSQL) listOf(
+        psql13,
+        PSQLContainer("postgres:12-alpine"),
+        PSQLContainer("postgres:11-alpine"),
+        PSQLContainer("postgres:10-alpine"),
+        PSQLContainer("postgres:9-alpine")
+    )
+    else
+        listOf(psql13)
+
+    val databases = if (TestConfig.H2_ONLY) {
+        listOf(h2)
+    } else listOf(h2) +
+            postgreSQLContainers.map { R2DBCPostgresFactory(it) } +
+            postgreSQLContainers.map { VertxPSQLTestDatabase(it) }
+    val unstableDatabases: List<TestDatabase> = listOf()
 
     interface TestDatabase {
         val name: String
@@ -124,26 +142,6 @@ class DBTestUtil(val databaseName: String) {
 
     }
 
-    private val h2 = H2TestDatabase()
-    val psql13 = PSQLContainer("postgres:13-alpine")
-    val postgreSQLContainers = if (TestConfig.ALL_PSQL) listOf(
-        psql13,
-        PSQLContainer("postgres:12-alpine"),
-        PSQLContainer("postgres:11-alpine"),
-        PSQLContainer("postgres:10-alpine"),
-        PSQLContainer("postgres:9-alpine")
-    )
-    else
-        listOf(psql13)
-
-    val databases = if (TestConfig.H2_ONLY) {
-        listOf(h2)
-    } else listOf(h2) + postgreSQLContainers.map { R2DBCPostgresFactory(it) } + postgreSQLContainers.map {
-        VertxPSQLTestDatabase(
-            it
-        )
-    }
-    val unstableDatabases: List<TestDatabase> = listOf()
 
     inner class VertxPSQLTestDatabase(val psql: PSQLContainer) : TestDatabase {
         override val name = "Vertx-${psql.dockerImage}"
