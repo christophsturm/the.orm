@@ -1,6 +1,8 @@
 package r2dbcfun.dbio
 
 import failfast.FailFast
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import r2dbcfun.test.DBS
 import r2dbcfun.test.describeOnAllDbs
 import strikt.api.expectThat
@@ -29,7 +31,7 @@ object DBConnectionTest {
                 }
             expectThat(result).isEqualTo(1)
         }
-        pending("can insert multiple rows with one command") {
+        it("can insert multiple rows with one command") {
             val result =
                 createConnectionProvider().withConnection { connection ->
                     connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
@@ -37,9 +39,9 @@ object DBConnectionTest {
                             listOf(String::class.java, String::class.java),
                             sequenceOf(sequenceOf("belle", null), sequenceOf("sebastian", null))
                         )
-                        .getId()
+                        .map { it.getId() }.toList()
                 }
-            expectThat(result).isEqualTo(1)
+            expectThat(result).isEqualTo(listOf(1, 2))
         }
 
     }

@@ -1,5 +1,8 @@
 package r2dbcfun.dbio.r2dbc
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import r2dbcfun.dbio.DBResult
 import r2dbcfun.dbio.Statement
@@ -15,7 +18,7 @@ class R2dbcStatement(private val statement: io.r2dbc.spi.Statement) : Statement 
         return R2dbcResult(statement.execute().awaitSingle())
     }
 
-    override suspend fun executeBatch(types: List<Class<*>>, valuesList: Sequence<Sequence<Any?>>): DBResult {
+    override suspend fun executeBatch(types: List<Class<*>>, valuesList: Sequence<Sequence<Any?>>): Flow<DBResult> {
         valuesList.forEach { values ->
             values.forEachIndexed { index, o ->
                 if (o == null) {
@@ -25,7 +28,7 @@ class R2dbcStatement(private val statement: io.r2dbc.spi.Statement) : Statement 
             }
             statement.add()
         }
-        return R2dbcResult(statement.execute().awaitSingle())
+        return statement.execute().asFlow().map { R2dbcResult(it) }
     }
 
 }

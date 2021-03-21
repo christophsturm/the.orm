@@ -55,7 +55,7 @@ interface DBConnection {
 
 interface Statement {
     suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult
-    suspend fun executeBatch(types: List<Class<*>>, valuesList: Sequence<Sequence<Any?>>): DBResult
+    suspend fun executeBatch(types: List<Class<*>>, valuesList: Sequence<Sequence<Any?>>): Flow<DBResult>
 }
 
 interface DBResult {
