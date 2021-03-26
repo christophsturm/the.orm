@@ -36,13 +36,13 @@ val schemaSql = DBTestUtil::class.java.getResourceAsStream("/db/migration/V1__cr
 
 class DBTestUtil(val databaseName: String) {
     private val h2 = H2TestDatabase()
-    val psql13 = PSQLContainer("postgres:13-alpine")
+    val psql13 = PSQLContainer("postgres:13-alpine", databaseName)
     val postgreSQLContainers = if (TestConfig.ALL_PSQL) listOf(
         psql13,
-        PSQLContainer("postgres:12-alpine"),
-        PSQLContainer("postgres:11-alpine"),
-        PSQLContainer("postgres:10-alpine"),
-        PSQLContainer("postgres:9-alpine")
+        PSQLContainer("postgres:12-alpine", databaseName),
+        PSQLContainer("postgres:11-alpine", databaseName),
+        PSQLContainer("postgres:10-alpine", databaseName),
+        PSQLContainer("postgres:9-alpine", databaseName)
     )
     else
         listOf(psql13)
@@ -73,7 +73,7 @@ class DBTestUtil(val databaseName: String) {
     }
 
 
-    inner class PSQLContainer(val dockerImage: String) {
+    class PSQLContainer(val dockerImage: String, val databasePrefix: String) {
         fun prepare() {
             dockerContainer
         }
@@ -91,7 +91,7 @@ class DBTestUtil(val databaseName: String) {
         fun preparePostgresDB(): PostgresDb {
             Class.forName("org.postgresql.Driver")
             val uuid = UUID.randomUUID()
-            val databaseName = "$databaseName$uuid".replace("-", "_")
+            val databaseName = "$databasePrefix$uuid".replace("-", "_")
             // testcontainers says that it returns an ip address but it returns a host name.
             val host = dockerContainer.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
             val port = dockerContainer.getMappedPort(5432)
