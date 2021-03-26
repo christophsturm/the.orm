@@ -13,14 +13,12 @@ import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.withContext
-import org.testcontainers.containers.PostgreSQLContainer
 import r2dbcfun.dbio.TransactionProvider
 import r2dbcfun.dbio.TransactionalConnectionProvider
 import r2dbcfun.dbio.r2dbc.R2DbcDBConnectionFactory
 import r2dbcfun.dbio.vertx.VertxDBConnectionFactory
 import r2dbcfun.test.TestConfig.TEST_POOL_SIZE
 import java.io.BufferedReader
-import java.sql.DriverManager
 import java.time.Duration
 import java.util.*
 import kotlin.reflect.KClass
@@ -73,35 +71,6 @@ class DBTestUtil(val databaseName: String) {
     }
 
 
-    class PSQLContainer(val dockerImage: String, val databasePrefix: String) {
-        fun prepare() {
-            dockerContainer
-        }
-
-        private val dockerContainer: PostgreSQLContainer<Nothing> by
-        lazy {
-            PostgreSQLContainer<Nothing>(dockerImage).apply {
-// WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
-                withReuse(true)
-                start()
-            }
-        }
-
-
-        fun preparePostgresDB(): PostgresDb {
-            Class.forName("org.postgresql.Driver")
-            val uuid = UUID.randomUUID()
-            val databaseName = "$databasePrefix$uuid".replace("-", "_")
-            // testcontainers says that it returns an ip address but it returns a host name.
-            val host = dockerContainer.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
-            val port = dockerContainer.getMappedPort(5432)
-            val postgresDb = PostgresDb(databaseName, host, port)
-            postgresDb.createDb()
-            return postgresDb
-        }
-
-    }
-
     class R2DBCPostgresFactory(private val psqlContainer: PSQLContainer) : TestDatabase {
         override val name = "R2DBC-${psqlContainer.dockerImage}"
 
@@ -115,32 +84,6 @@ class DBTestUtil(val databaseName: String) {
 
     }
 
-    data class PostgresDb(val databaseName: String, val host: String, val port: Int) : AutoCloseable {
-        fun createDb() {
-            executeSql("create database $databaseName")
-        }
-
-        private fun dropDb() {
-            executeSql("drop database $databaseName")
-        }
-
-        private fun executeSql(command: String) {
-            val db =
-                DriverManager.getConnection(
-                    "jdbc:postgresql://$host:$port/postgres",
-                    "test",
-                    "test"
-                )
-            @Suppress("SqlNoDataSourceInspection")
-            db.createStatement().executeUpdate(command)
-            db.close()
-        }
-
-        override fun close() {
-            dropDb()
-        }
-
-    }
 
 
     inner class VertxPSQLTestDatabase(val psql: PSQLContainer) : TestDatabase {
