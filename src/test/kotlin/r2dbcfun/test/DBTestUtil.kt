@@ -10,9 +10,7 @@ import io.vertx.pgclient.PgConnectOptions
 import io.vertx.reactivex.pgclient.PgPool
 import io.vertx.reactivex.sqlclient.SqlClient
 import io.vertx.sqlclient.PoolOptions
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.withContext
 import r2dbcfun.dbio.TransactionProvider
 import r2dbcfun.dbio.TransactionalConnectionProvider
 import r2dbcfun.dbio.r2dbc.R2DbcDBConnectionFactory
@@ -181,7 +179,7 @@ suspend fun ContextDSL.forAllDatabases(
 ) {
     databases.map { db ->
         context("on ${db.name}") {
-            val createDB = autoClose(db.createDB()) { it.close() }
+            val createDB by dependency({ db.createDB() }) { it.close() }
             val connectionFactory: suspend () -> TransactionProvider =
                 { createDB.create() }
             tests(connectionFactory)
@@ -205,7 +203,7 @@ fun describeOnAllDbs(
 ): List<RootContext> {
     return databases.map { testDB ->
         RootContext("$contextName on ${testDB.name}", disabled) {
-            val createDB = autoClose(withContext(Dispatchers.IO) { testDB.createDB() }) { it.close() }
+            val createDB by dependency({ testDB.createDB() }) { it.close() }
             val connectionFactory: suspend () -> TransactionProvider =
                 { createDB.create() }
             tests(connectionFactory)
