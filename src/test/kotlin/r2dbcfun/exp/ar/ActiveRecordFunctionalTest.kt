@@ -1,11 +1,10 @@
 package r2dbcfun.exp.ar
 
 import failfast.FailFast
-import failfast.describe
 import r2dbcfun.RepositoryImpl
 import r2dbcfun.dbio.ConnectionProvider
 import r2dbcfun.test.DBS
-import r2dbcfun.test.forAllDatabases
+import r2dbcfun.test.describeOnAllDbs
 import r2dbcfun.test.functional.Color
 import r2dbcfun.test.functional.UserPK
 import java.math.BigDecimal
@@ -34,17 +33,15 @@ fun main() {
 
 object ActiveRecordFunctionalTest {
 
-    val context = describe("Active Record API") {
-        forAllDatabases(DBS.databases) { connectionProvider ->
-            val connection = connectionProvider()
-            it("just works") {
-                val user = User(
-                    name = "chris",
-                    email = "email",
-                    birthday = LocalDate.parse("2020-06-20")
-                )
-                user.create(connection)
-            }
+    val context = describeOnAllDbs("Active Record API", DBS.databases) { connectionProvider ->
+        val connection = connectionProvider()
+        it("just works") {
+            val user = User(
+                name = "chris",
+                email = "email",
+                birthday = LocalDate.parse("2020-06-20")
+            )
+            user.create(connection)
         }
     }
 }
