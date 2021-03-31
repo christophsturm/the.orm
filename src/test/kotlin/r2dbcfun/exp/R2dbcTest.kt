@@ -33,11 +33,11 @@ object R2dbcTest {
     val context = describeOnAllDbs(
         "the r2dbc api",
         DBS.databases.filterNot { it is DBTestUtil.VertxPSQLTestDatabase }) { createConnectionProvider ->
-        val connection = createConnectionProvider()
-        val conn =
-            ((connection as TransactionalConnectionProvider).DBConnectionFactory.getConnection() as R2dbcConnection).connection
-        autoClose(conn) { it.close() }
         test("can insert values and select result") {
+            val connection = createConnectionProvider()
+            val conn =
+                ((connection as TransactionalConnectionProvider).DBConnectionFactory.getConnection() as R2dbcConnection).connection
+            autoClose(conn) { it.close() }
             val asFlow = conn.createStatement("insert into users(name) values($1)")
                 .bind("$1", "belle")
                 .add()

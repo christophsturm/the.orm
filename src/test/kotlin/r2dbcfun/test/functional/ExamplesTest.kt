@@ -18,14 +18,15 @@ import r2dbcfun.test.describeOnAllDbs
 
 object ExamplesTest {
     val context = describeOnAllDbs("examples", DBS.databases) { createConnectionProvider ->
-        val connectionProvider = createConnectionProvider()
-        val user = User(
-            name = "a user",
-            email = "with email"
-        )
-        val repo = ConnectedRepository.create<User>(connectionProvider)
 
         test("throttled bulk inserts") {
+            val connectionProvider = createConnectionProvider()
+            val user = User(
+                name = "a user",
+                email = "with email"
+            )
+            val repo = ConnectedRepository.create<User>(connectionProvider)
+
             val channel = Channel<Deferred<User>>(capacity = 40)
             val entries = 1000
             coroutineScope {

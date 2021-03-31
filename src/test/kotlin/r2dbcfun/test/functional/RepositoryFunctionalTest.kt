@@ -29,7 +29,7 @@ object RepositoryFunctionalTest {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
     val context = describeOnAllDbs("the repository class", DBS.databases) { createConnectionProvider ->
-        val connection = createConnectionProvider()
+        val connection by dependency({ createConnectionProvider() })
         context("with a user class") {
             val repo = Repository.create<User>()
             context("Creating Rows") {
