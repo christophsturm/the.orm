@@ -32,7 +32,7 @@ data class Vegetable(val id: Long? = null, val name: String, val weight: Double?
 
 object QueryFactoryFunctionalTest {
     val context = describeOnAllDbs("support for querying data", DBS.databases) { createConnectionProvider ->
-        val connectionProvider = createConnectionProvider()
+        val connectionProvider by dependency({ createConnectionProvider() })
 
         val repo = Repository.create<User>()
         suspend fun create(instance: User) = repo.create(connectionProvider, instance)

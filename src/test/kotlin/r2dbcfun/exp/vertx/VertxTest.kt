@@ -25,17 +25,19 @@ fun main() {
 @Suppress("SqlNoDataSourceInspection", "SqlResolve")
 object VertxTest {
     val context = describe("vertx support", disabled = TestConfig.H2_ONLY) {
-        val db = autoClose(DBS.psql13.preparePostgresDB()) { it.close() }
-        val connectOptions = PgConnectOptions()
-            .setPort(db.port)
-            .setHost(db.host)
-            .setDatabase(db.databaseName)
-            .setUser("test")
-            .setPassword("test")
+        val db by dependency({ DBS.psql13.preparePostgresDB() }) { it.close() }
 
 
-        val client: SqlClient = autoClose(PgPool.pool(connectOptions, PoolOptions().setMaxSize(5))) { it.close() }
-        client.query(schemaSql).rxExecute().await()
+        val client: SqlClient by dependency({
+            PgPool.pool(
+                PgConnectOptions()
+                    .setPort(db.port)
+                    .setHost(db.host)
+                    .setDatabase(db.databaseName)
+                    .setUser("test")
+                    .setPassword("test"), PoolOptions().setMaxSize(5)
+            ).also { it.query(schemaSql).rxExecute().await() }
+        }) { it.close() }
         it("can run sql queries") {
             val result: RowSet<Row> = client.query("SELECT * FROM users WHERE id=1").rxExecute().await()
             expectThat(result.size()).isEqualTo(0)

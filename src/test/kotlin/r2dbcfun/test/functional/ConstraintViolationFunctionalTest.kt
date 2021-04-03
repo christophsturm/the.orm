@@ -12,7 +12,7 @@ import java.time.LocalDate
 
 object ConstraintViolationFunctionalTest {
     val context = describeOnAllDbs("constraint error handling", DBS.databases) { createConnectionProvider ->
-        val repo = ConnectedRepository.create<User>(createConnectionProvider())
+        val repo by dependency({ ConnectedRepository.create<User>(createConnectionProvider()) })
 
         it("throws DataIntegrityViolationException exception on constraint violation") {
             val user = User(

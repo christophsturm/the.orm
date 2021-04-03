@@ -20,7 +20,7 @@ object TransactionFunctionalTest {
         val repo = Repository.create<User>()
         val userNameLike = repo.queryFactory.createQuery(User::name.like())
 
-        val connectionProvider = createConnectionProvider()
+        val connectionProvider by dependency({ createConnectionProvider() })
         describe("a transaction started with the repository class") {
             val outerRepo = TransactionalRepository(repo, connectionProvider)
             it("has transaction isolation") {

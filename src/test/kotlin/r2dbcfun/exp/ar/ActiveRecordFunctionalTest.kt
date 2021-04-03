@@ -34,8 +34,8 @@ fun main() {
 object ActiveRecordFunctionalTest {
 
     val context = describeOnAllDbs("Active Record API", DBS.databases) { connectionProvider ->
-        val connection = connectionProvider()
         it("just works") {
+            val connection = connectionProvider()
             val user = User(
                 name = "chris",
                 email = "email",
