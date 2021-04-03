@@ -25,6 +25,16 @@ fun main() {
     FailFast.runTest()
 }
 
+@Serializable
+data class SerializableUserPK(override val id: Long) : PK
+
+@Serializable
+data class SerializableUser(
+    val id: SerializableUserPK? = null,
+    val name: String,
+    val email: String?
+)
+
 object RepositoryFunctionalTest {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
@@ -176,16 +186,6 @@ object RepositoryFunctionalTest {
             }
         }
         context("interop with kotlinx.serializable") {
-            @Serializable
-            data class SerializableUserPK(override val id: Long) : PK
-
-            @Serializable
-            data class SerializableUser(
-                val id: SerializableUserPK? = null,
-                val name: String,
-                val email: String?
-            )
-
             val repo = Repository.create<SerializableUser>()
 
             test("can insert data class and return primary key") {
