@@ -1,13 +1,11 @@
 @file:Suppress("ConstantConditionIf")
 
-import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import io.the.orm.BuildConfig
 import io.the.orm.BuildConfig.failfastVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "io.the.orm"
-version = "0.2.2"
 
 val coroutinesVersion = "1.4.3"
 val kotlinVersion = BuildConfig.kotlinVersion
@@ -20,12 +18,10 @@ val nettyVersion = "4.1.63.Final"
 plugins {
     java
     @Suppress("RemoveRedundantQualifierName")
-    kotlin("jvm").version(io.the.orm.BuildConfig.kotlinVersion)
-    id("com.github.ben-manes.versions") version "0.38.0"
-    id("info.solidsoft.pitest") version "1.6.0"
+    kotlin("jvm")
+    id("info.solidsoft.pitest")
     `maven-publish`
-    @Suppress("RemoveRedundantQualifierName")
-    kotlin("plugin.serialization").version(io.the.orm.BuildConfig.kotlinVersion)
+    kotlin("plugin.serialization")
 }
 
 
@@ -134,28 +130,6 @@ plugins.withId("info.solidsoft.pitest") {
         outputFormats.set(setOf("XML", "HTML"))
     }
 }
-
-tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
-    val filtered =
-        listOf("alpha", "beta", "rc", "cr", "m", "preview", "dev", "eap")
-            .map { qualifier -> Regex("(?i).*[.-]$qualifier[.\\d-]*.*") }
-    if (!BuildConfig.eap)
-        resolutionStrategy {
-            componentSelection {
-                all {
-                    if (filtered.any { it.matches(candidate.version) }) {
-                        reject("Release candidate")
-                    }
-                }
-            }
-        }
-    // optional parameters
-    checkForGradleUpdate = true
-    outputFormatter = "json"
-    outputDir = "build/dependencyUpdates"
-    reportfileName = "report"
-}
-tasks.wrapper { distributionType = Wrapper.DistributionType.ALL }
 
 val testMain = tasks.register("testMain", JavaExec::class) {
     main = "io.the.orm.test.AllTestsKt"

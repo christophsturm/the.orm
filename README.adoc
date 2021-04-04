@@ -2,7 +2,7 @@ image:https://github.com/christophsturm/the.orm/workflows/CI/badge.svg[link="htt
 
 == the.orm
 
-a simple non-blocking ORM for kotlin. Supports H2 and postgres via R2DBC and Postgres via Vertx SQL Client.
+a simple non-blocking ORM for kotlin.Supports H2 and postgres.
 
 features:
 
@@ -16,6 +16,8 @@ It can map a data class to a database table, and it has a type safe query langua
 planned:
 
 * relations (1:n, n:m)
+
+toc::[]
 
 == Usage
 
