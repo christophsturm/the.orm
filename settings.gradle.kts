@@ -6,4 +6,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "r2dbcfun"
+rootProject.name = "the.orm"
