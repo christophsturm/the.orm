@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 rootProject.name = "the.orm.root"
-include("the.orm")
+include("the.orm", "the.orm.itest", "the.orm.testutil")
