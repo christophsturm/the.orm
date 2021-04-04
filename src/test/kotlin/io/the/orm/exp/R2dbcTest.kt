@@ -27,7 +27,7 @@ fun main() {
 /**
  * this is just the r2dbc playground that started this project.
  *
- * @see r2dbcfun.test.functional.RepositoryFunctionalTest for api usage.
+ * @see io.the.orm.test.functional.RepositoryFunctionalTest for api usage.
  */
 object R2dbcTest {
     val context = describeOnAllDbs(
