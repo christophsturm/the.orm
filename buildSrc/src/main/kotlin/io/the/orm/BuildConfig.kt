@@ -1,4 +1,4 @@
-package r2dbcfun
+package io.the.orm
 
 object BuildConfig {
     const val eap = false

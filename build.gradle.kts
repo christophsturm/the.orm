@@ -2,9 +2,9 @@
 
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import info.solidsoft.gradle.pitest.PitestPluginExtension
+import io.the.orm.BuildConfig
+import io.the.orm.BuildConfig.failfastVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import r2dbcfun.BuildConfig
-import r2dbcfun.BuildConfig.failfastVersion
 
 group = "io.the.orm"
 version = "0.2.2"
@@ -20,12 +20,12 @@ val nettyVersion = "4.1.63.Final"
 plugins {
     java
     @Suppress("RemoveRedundantQualifierName")
-    kotlin("jvm").version(r2dbcfun.BuildConfig.kotlinVersion)
+    kotlin("jvm").version(io.the.orm.BuildConfig.kotlinVersion)
     id("com.github.ben-manes.versions") version "0.38.0"
     id("info.solidsoft.pitest") version "1.6.0"
     `maven-publish`
     @Suppress("RemoveRedundantQualifierName")
-    kotlin("plugin.serialization").version(r2dbcfun.BuildConfig.kotlinVersion)
+    kotlin("plugin.serialization").version(io.the.orm.BuildConfig.kotlinVersion)
 }
 
 
@@ -118,15 +118,15 @@ plugins.withId("info.solidsoft.pitest") {
         //        testPlugin.set("junit5")
         testPlugin.set("failfast")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
-        targetClasses.set(setOf("r2dbcfun.*")) //by default "${project.group}.*"
+        targetClasses.set(setOf("io.the.orm.*")) //by default "${project.group}.*"
         excludedClasses.set(
             setOf(
-                """r2dbcfun.ResultMapperImpl${'$'}mapQueryResult*""",
-                """r2dbcfun.dbio.r2dbc.R2dbcStatement${'$'}executeBatch*""",
-                """r2dbcfun.dbio.vertx.VertxResult${'$'}map*"""
+                """io.the.orm.ResultMapperImpl${'$'}mapQueryResult*""",
+                """io.the.orm.dbio.r2dbc.R2dbcStatement${'$'}executeBatch*""",
+                """io.the.orm.dbio.vertx.VertxResult${'$'}map*"""
             )
         )
-        targetTests.set(setOf("r2dbcfun.*Test", "r2dbcfun.**.*Test"))
+        targetTests.set(setOf("io.the.orm.*Test", "io.the.orm.**.*Test"))
         pitestVersion.set("1.6.2")
         threads.set(
             System.getenv("PITEST_THREADS")?.toInt() ?: Runtime.getRuntime().availableProcessors()
@@ -158,13 +158,13 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
 tasks.wrapper { distributionType = Wrapper.DistributionType.ALL }
 
 val testMain = tasks.register("testMain", JavaExec::class) {
-    main = "r2dbcfun.test.AllTestsKt"
+    main = "io.the.orm.test.AllTestsKt"
     classpath = sourceSets["test"].runtimeClasspath
     if (needsRedefinition)
         jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
 }
 tasks.register("autoTest", JavaExec::class) {
-    main = "r2dbcfun.test.AutoTestKt"
+    main = "io.the.orm.test.AutoTestKt"
     classpath = sourceSets["test"].runtimeClasspath
     if (needsRedefinition)
         jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
