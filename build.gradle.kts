@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import r2dbcfun.BuildConfig
 import r2dbcfun.BuildConfig.failfastVersion
 
-group = "r2dbcfun"
+group = "io.the.orm"
 version = "0.2.2"
 
 val coroutinesVersion = "1.4.3"
