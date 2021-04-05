@@ -25,9 +25,8 @@ plugins {
 
 
 repositories {
-    jcenter()
+    jcenter()   // randolf is still on jcenter
     mavenCentral()
-//    maven("https://oss.sonatype.org/content/repositories/comchristophsturmfailfast-1002/")
 }
 
 dependencies {
