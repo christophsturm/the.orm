@@ -3,7 +3,6 @@ package io.the.orm.test.functional
 import failfast.FailFast
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
-import io.the.orm.util.toSnakeCase
 import kotlinx.coroutines.flow.single
 import kotlinx.serialization.Serializable
 import strikt.api.expectCatching
@@ -172,7 +171,7 @@ object RepositoryFunctionalTest {
                                 .execute(listOf(Long::class.java), sequenceOf(id.id))
                                 .map { row ->
                                     row.get(
-                                        User::favoriteColor.name.toSnakeCase(),
+                                        "favorite_color",
                                         String::class.java
                                     )!!
                                 }.single()
