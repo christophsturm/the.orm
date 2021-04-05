@@ -94,13 +94,7 @@ artifacts {
 }
 
 val testMain = tasks.register("testMain", JavaExec::class) {
-    main = "io.the.orm.test.AllTestsKt"
-    classpath = sourceSets["test"].runtimeClasspath
-    if (needsRedefinition)
-        jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
-}
-tasks.register("autoTest", JavaExec::class) {
-    main = "io.the.orm.test.AutoTestKt"
+    main = "io.the.orm.test.functional.AllTestsKt"
     classpath = sourceSets["test"].runtimeClasspath
     if (needsRedefinition)
         jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")

@@ -94,14 +94,8 @@ val testMain = tasks.register("testMain", JavaExec::class) {
     if (needsRedefinition)
         jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
 }
-tasks.register("autoTest", JavaExec::class) {
-    main = "io.the.orm.test.AutoTestKt"
-    classpath = sourceSets["test"].runtimeClasspath
-    if (needsRedefinition)
-        jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
-}
-
+/* testutil is tested by itest
 tasks.check {
     dependsOn(testMain)
 }
-
+*/

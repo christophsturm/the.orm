@@ -1,10 +1,11 @@
-package io.the.orm.dbio.vertx
+package io.the.orm.test.vertx
 
 import failfast.FailFast
 import failfast.describe
 import io.the.orm.dbio.DBConnection
+import io.the.orm.dbio.vertx.VertxDBConnectionFactory
 import io.the.orm.test.DBS
-import io.the.orm.test.TestConfig
+import io.the.orm.test.TestUtilConfig
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.reactivex.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
@@ -15,7 +16,7 @@ fun main() {
 }
 
 object VertxDBConnectionProviderTest {
-    val context = describe(VertxDBConnectionFactory::class, disabled = TestConfig.H2_ONLY) {
+    val context = describe(VertxDBConnectionFactory::class, disabled = TestUtilConfig.H2_ONLY) {
         it("can create connections from a pool") {
             val (databaseName, host, port) = DBS.psql13.preparePostgresDB()
             val connectOptions = PgConnectOptions()

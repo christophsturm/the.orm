@@ -10,7 +10,7 @@ import io.the.orm.dbio.TransactionProvider
 import io.the.orm.dbio.TransactionalConnectionProvider
 import io.the.orm.dbio.r2dbc.R2DbcDBConnectionFactory
 import io.the.orm.dbio.vertx.VertxDBConnectionFactory
-import io.the.orm.test.TestConfig.TEST_POOL_SIZE
+import io.the.orm.test.TestUtilConfig.TEST_POOL_SIZE
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.reactivex.pgclient.PgPool
 import io.vertx.reactivex.sqlclient.SqlClient
@@ -21,19 +21,20 @@ import java.time.Duration
 import java.util.*
 import kotlin.reflect.KClass
 
-object TestConfig {
+object TestUtilConfig {
     val ALL_PSQL = System.getenv("ALL_PSQL") != null
     val H2_ONLY = System.getenv("H2_ONLY") != null
     val TEST_POOL_SIZE = 2
 }
 
-val schemaSql = DBTestUtil::class.java.getResourceAsStream("/db/migration/V1__create_test_tables.sql").bufferedReader()
-    .use(BufferedReader::readText)
+val schemaSql =
+    DBTestUtil::class.java.getResourceAsStream("/db/migration/V1__create_test_tables.sql")!!.bufferedReader()
+        .use(BufferedReader::readText)
 
 class DBTestUtil(val databaseName: String) {
     private val h2 = H2TestDatabase()
     val psql13 = PSQLContainer("postgres:13-alpine", databaseName)
-    val postgreSQLContainers = if (TestConfig.ALL_PSQL) listOf(
+    val postgreSQLContainers = if (TestUtilConfig.ALL_PSQL) listOf(
         psql13,
         PSQLContainer("postgres:12-alpine", databaseName),
         PSQLContainer("postgres:11-alpine", databaseName),
@@ -43,7 +44,7 @@ class DBTestUtil(val databaseName: String) {
     else
         listOf(psql13)
 
-    val databases = if (TestConfig.H2_ONLY) {
+    val databases = if (TestUtilConfig.H2_ONLY) {
         listOf(h2)
     } else listOf(h2) +
             postgreSQLContainers.map { R2DBCPostgresFactory(it) } +

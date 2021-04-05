@@ -1,4 +1,4 @@
-package io.the.orm.exp.ar
+package io.the.orm.test.functional.exp.ar
 
 import failfast.describe
 import io.the.orm.test.DBS

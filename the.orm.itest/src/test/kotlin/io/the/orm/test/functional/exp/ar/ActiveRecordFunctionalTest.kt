@@ -1,4 +1,4 @@
-package io.the.orm.exp.ar
+package io.the.orm.test.functional.exp.ar
 
 import failfast.FailFast
 import io.the.orm.dbio.ConnectionProvider

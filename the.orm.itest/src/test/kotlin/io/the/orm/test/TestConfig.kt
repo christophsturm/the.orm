@@ -1,4 +1,4 @@
-package io.the.orm
+package io.the.orm.test
 
 object TestConfig {
     val ALL_PSQL = System.getenv("ALL_PSQL") != null
