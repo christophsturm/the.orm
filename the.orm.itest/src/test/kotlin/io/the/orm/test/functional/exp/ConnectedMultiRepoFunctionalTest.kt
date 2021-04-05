@@ -1,10 +1,11 @@
-package io.the.orm.exp
+package io.the.orm.test.functional.exp
 
 import failfast.FailFast
+import io.the.orm.exp.ConnectedMultiRepo
+import io.the.orm.exp.TransactionalMultiRepo
 import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
-import kotlin.reflect.KProperty1
 
 data class Page(
     val id: Long?,
@@ -13,21 +14,7 @@ data class Page(
     val description: String?,
     val ldJson: String?,
     val author: String?
-) {
-    companion object : ARecord() {
-        fun findPageByUrl(url: String) = findBy(Page::url, url)
-    }
-}
-
-open class ARecord {
-    @Suppress("UNUSED_PARAMETER")
-    fun <Entity, Field> findBy(kProperty1: KProperty1<Entity, Field>, url: Field): Entity {
-        throw NotImplementedError("stub")
-    }
-
-}
-
-
+)
 data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
 data class RecipeIngredient(val id: Long?, val amount: String, val recipeId: Long, val ingredientId: Long)
 data class Ingredient(val id: Long?, val name: String)

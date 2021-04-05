@@ -1,6 +1,6 @@
 @file:Suppress("SqlResolve", "SqlNoDataSourceInspection")
 
-package io.the.orm.exp
+package io.the.orm.test.functional.exp
 
 import failfast.FailFast
 import failfast.describe
@@ -8,7 +8,7 @@ import io.the.orm.dbio.TransactionalConnectionProvider
 import io.the.orm.dbio.r2dbc.R2dbcConnection
 import io.the.orm.test.DBS
 import io.the.orm.test.DBTestUtil
-import io.the.orm.test.TestConfig
+import io.the.orm.test.TestUtilConfig
 import io.the.orm.test.describeOnAllDbs
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toCollection
@@ -55,7 +55,7 @@ object R2dbcTest {
             expectThat(secondId).isEqualTo(2)
             expectThat(names).containsExactly("belle", "sebastian")
         }
-    } + if (!TestConfig.H2_ONLY)
+    } + if (!TestUtilConfig.H2_ONLY)
         listOf(describe("r2dbc pool") {
             test("can open and close pool") {
                 val (databaseName, host, port) = DBS.psql13.preparePostgresDB()

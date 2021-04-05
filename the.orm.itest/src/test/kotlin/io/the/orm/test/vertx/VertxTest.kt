@@ -1,10 +1,10 @@
-package io.the.orm.exp.vertx
+package io.the.orm.test.vertx
 
 
 import failfast.FailFast
 import failfast.describe
-import io.the.orm.TestConfig
 import io.the.orm.test.DBS
+import io.the.orm.test.TestUtilConfig
 import io.the.orm.test.schemaSql
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.reactivex.pgclient.PgPool
@@ -24,7 +24,7 @@ fun main() {
 
 @Suppress("SqlNoDataSourceInspection", "SqlResolve")
 object VertxTest {
-    val context = describe("vertx support", disabled = TestConfig.H2_ONLY) {
+    val context = describe("vertx support", disabled = TestUtilConfig.H2_ONLY) {
         val db by dependency({ DBS.psql13.preparePostgresDB() }) { it.close() }
 
 
