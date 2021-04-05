@@ -37,48 +37,26 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-
     api("io.r2dbc:r2dbc-spi:0.8.4.RELEASE")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("io.r2dbc:r2dbc-pool:0.8.6.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
-
     implementation("io.vertx:vertx-rx-java2:$vertxVersion")
-
     implementation("io.vertx:vertx-pg-client:$vertxVersion")
-    runtimeOnly("io.netty:netty-resolver-dns-native-macos:$nettyVersion:osx-x86_64")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
 
 
     testImplementation("io.strikt:strikt-core:0.30.0")
     testImplementation("com.christophsturm.failfast:failfast:$failfastVersion")
-//    testImplementation("com.christophsturm.failfast:failfast-r2dbc:$failfastVersion")
 
 
-    testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
-    testRuntimeOnly("com.h2database:h2:1.4.200")
-    testRuntimeOnly("org.postgresql:postgresql:42.2.19")
-    testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.7.RELEASE")
     testImplementation("com.christophsturm:randolf:0.2.0")
-//    testRuntimeOnly("io.projectreactor.netty:reactor-netty:0.9.14.RELEASE") // bump postgresql dependency
-
-    testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
-    testImplementation("io.projectreactor.tools:blockhound:1.0.5.RELEASE")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-    testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
-    testImplementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
-    testImplementation("org.apache.logging.log4j:log4j-jul:$log4j2Version")
-    testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version")
-
     testImplementation("org.junit.platform:junit-platform-launcher:1.7.1")
-
+    testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
-//kotlin { explicitApi() }
 val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal
 tasks {
     withType<KotlinCompile> {
