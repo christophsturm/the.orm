@@ -17,7 +17,6 @@ val nettyVersion = "4.1.63.Final"
 plugins {
     java
     kotlin("jvm")
-    id("info.solidsoft.pitest")
     kotlin("plugin.serialization")
 }
 
