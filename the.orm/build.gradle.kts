@@ -3,6 +3,7 @@
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import io.the.orm.BuildConfig
 import io.the.orm.BuildConfig.failfastVersion
+import io.the.orm.BuildConfig.striktVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "io.the.orm"
@@ -46,7 +47,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
 
 
-    testImplementation("io.strikt:strikt-core:0.30.0")
+    testImplementation("io.strikt:strikt-core:$striktVersion")
     testImplementation("com.christophsturm.failfast:failfast:$failfastVersion")
 
 

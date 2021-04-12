@@ -1,7 +1,9 @@
 @file:Suppress("ConstantConditionIf")
 
 import io.the.orm.BuildConfig
+import io.the.orm.BuildConfig.blockHoundVersion
 import io.the.orm.BuildConfig.failfastVersion
+import io.the.orm.BuildConfig.striktVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "io.the.orm"
@@ -43,7 +45,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
 
 
-    testImplementation("io.strikt:strikt-core:0.30.0")
+    testImplementation("io.strikt:strikt-core:$striktVersion")
     implementation("com.christophsturm.failfast:failfast:$failfastVersion")
 
 
@@ -54,7 +56,7 @@ dependencies {
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
-    testImplementation("io.projectreactor.tools:blockhound:1.0.5.RELEASE")
+    testImplementation("io.projectreactor.tools:$blockHoundVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
     testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
