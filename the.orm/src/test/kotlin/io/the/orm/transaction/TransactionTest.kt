@@ -36,12 +36,12 @@ object TransactionTest {
             verify(transaction) { commitTransaction() }
         }
         it("returns the result of the block") {
-            expectThat(connectionProvider.transaction() { "RESULT" }).isEqualTo("RESULT")
+            expectThat(connectionProvider.transaction { "RESULT" }).isEqualTo("RESULT")
         }
         test("rolls back transaction if exception occurs") {
             val runtimeException = RuntimeException("failed")
             expectThrows<RuntimeException> {
-                connectionProvider.transaction() {
+                connectionProvider.transaction {
                     throw runtimeException
                 }
             }.isEqualTo(runtimeException)

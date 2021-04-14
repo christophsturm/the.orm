@@ -34,7 +34,7 @@ val schemaSql =
 class DBTestUtil(val databaseName: String) {
     private val h2 = H2TestDatabase()
     val psql13 = PSQLContainer("postgres:13-alpine", databaseName)
-    val postgreSQLContainers = if (TestUtilConfig.ALL_PSQL) listOf(
+    private val postgreSQLContainers = if (TestUtilConfig.ALL_PSQL) listOf(
         psql13,
         PSQLContainer("postgres:12-alpine", databaseName),
         PSQLContainer("postgres:11-alpine", databaseName),
@@ -84,8 +84,7 @@ class DBTestUtil(val databaseName: String) {
     }
 
 
-
-    inner class VertxPSQLTestDatabase(val psql: PSQLContainer) : TestDatabase {
+    inner class VertxPSQLTestDatabase(private val psql: PSQLContainer) : TestDatabase {
         override val name = "Vertx-${psql.dockerImage}"
         override suspend fun createDB(): ConnectionProviderFactory {
             val database = psql.preparePostgresDB()
@@ -106,9 +105,9 @@ class DBTestUtil(val databaseName: String) {
 
 }
 
-class VertxConnectionProviderFactory(val poolOptions: PgConnectOptions, val db: AutoCloseable) :
+class VertxConnectionProviderFactory(private val poolOptions: PgConnectOptions, private val db: AutoCloseable) :
     ConnectionProviderFactory {
-    val clients = mutableListOf<SqlClient>()
+    private val clients = mutableListOf<SqlClient>()
     override suspend fun create(): TransactionProvider {
         val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(TEST_POOL_SIZE))
         clients.add(client)

@@ -10,18 +10,18 @@ import strikt.assertions.isA
 import strikt.assertions.isSameInstanceAs
 
 object ConnectedRepositoryTest {
-    val context = describe(io.the.orm.ConnectedRepository::class) {
+    val context = describe(ConnectedRepository::class) {
         val connection = mock<ConnectionProvider>()
         test("exposes Repository and Connection") {
-            expectThat(io.the.orm.ConnectedRepository.create<Entity>(connection)) {
-                get { repository }.isA<io.the.orm.Repository<Entity>>()
+            expectThat(ConnectedRepository.create<Entity>(connection)) {
+                get { repository }.isA<Repository<Entity>>()
                 get { this.connectionProvider }.isSameInstanceAs(connection)
             }
         }
 
         context("forwarding calls") {
-            val repo = mock<io.the.orm.Repository<Entity>>()
-            val subject = io.the.orm.ConnectedRepository(repo, connection)
+            val repo = mock<Repository<Entity>>()
+            val subject = ConnectedRepository(repo, connection)
             val entity = Entity()
             test("create call") {
                 subject.create(entity)
@@ -32,7 +32,7 @@ object ConnectedRepositoryTest {
                 verify(repo) { update(connection, entity) }
             }
             test("findById call") {
-                data class MyPK(override val id: Long) : io.the.orm.PK
+                data class MyPK(override val id: Long) : PK
 
                 val id = MyPK(1)
                 subject.findById(id)
