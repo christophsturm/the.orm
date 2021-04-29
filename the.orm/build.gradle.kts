@@ -11,7 +11,7 @@ group = "io.the.orm"
 val coroutinesVersion = "1.4.3"
 val kotlinVersion = BuildConfig.kotlinVersion
 val serializationVersion = "1.1.0"
-val testcontainersVersion = "1.15.2"
+val testcontainersVersion = "1.15.3"
 val log4j2Version = "2.14.1"
 val vertxVersion = "4.0.3"
 val nettyVersion = "4.1.63.Final"
@@ -25,11 +25,6 @@ plugins {
 }
 
 
-repositories {
-    jcenter()
-    mavenCentral()
-//    maven("https://oss.sonatype.org/content/repositories/comchristophsturmfailfast-1002/")
-}
 
 dependencies {
     implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))

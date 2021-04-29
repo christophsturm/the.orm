@@ -23,11 +23,6 @@ plugins {
 }
 
 
-repositories {
-    jcenter()
-    mavenCentral()
-//    maven("https://oss.sonatype.org/content/repositories/comchristophsturmfailfast-1002/")
-}
 
 dependencies {
     implementation(project(":the.orm"))
@@ -53,7 +48,7 @@ dependencies {
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
-    testRuntimeOnly("org.postgresql:postgresql:42.2.19")
+    testRuntimeOnly("org.postgresql:postgresql:42.2.20")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.7.RELEASE")
     testImplementation("com.christophsturm:randolf:0.2.0")
 //    testRuntimeOnly("io.projectreactor.netty:reactor-netty:0.9.14.RELEASE") // bump postgresql dependency
