@@ -50,7 +50,7 @@ dependencies {
     testRuntimeOnly("com.h2database:h2:1.4.200")
     testRuntimeOnly("org.postgresql:postgresql:42.2.20")
     testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.7.RELEASE")
-    testImplementation("com.christophsturm:randolf:0.2.0")
+    testImplementation("com.christophsturm:randolf:0.2.1")
 //    testRuntimeOnly("io.projectreactor.netty:reactor-netty:0.9.14.RELEASE") // bump postgresql dependency
 
 

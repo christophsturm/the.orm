@@ -46,7 +46,7 @@ dependencies {
     testImplementation("com.christophsturm.failfast:failfast:$failfastVersion")
 
 
-    testImplementation("com.christophsturm:randolf:0.2.0")
+    testImplementation("com.christophsturm:randolf:0.2.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
     testImplementation("org.junit.platform:junit-platform-launcher:1.7.1")
