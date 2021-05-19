@@ -11,6 +11,7 @@ import io.vertx.reactivex.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
 import java.time.Duration
 
+@Suppress("unused")
 object TheOrm {
     fun openR2dbcUrl(r2dbcUrl: String): DBConnectionFactory {
         val connectionFactory = ConnectionFactories.get(r2dbcUrl)
