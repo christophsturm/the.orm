@@ -8,13 +8,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "io.the.orm"
 
-val coroutinesVersion = "1.4.3"
+val coroutinesVersion = BuildConfig.coroutinesVersion
 val kotlinVersion = BuildConfig.kotlinVersion
-val serializationVersion = "1.1.0"
-val testcontainersVersion = "1.15.2"
+val serializationVersion = BuildConfig.serializationVersion
+val testcontainersVersion = BuildConfig.testContainersVersion
 val log4j2Version = "2.14.1"
 val vertxVersion = "4.0.3"
-val nettyVersion = "4.1.63.Final"
+val nettyVersion = BuildConfig.nettyVersion
 
 plugins {
     java
@@ -31,7 +31,7 @@ dependencies {
     implementation(kotlin("reflect"))
 
 
-    implementation("io.r2dbc:r2dbc-pool:0.8.6.RELEASE")
+    implementation("io.r2dbc:r2dbc-pool:0.8.7.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
 
     implementation("io.vertx:vertx-rx-java2:$vertxVersion")
@@ -49,7 +49,7 @@ dependencies {
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
     testRuntimeOnly("com.h2database:h2:1.4.200")
     testRuntimeOnly("org.postgresql:postgresql:42.2.20")
-    testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.7.RELEASE")
+    testRuntimeOnly("io.r2dbc:r2dbc-postgresql:0.8.8.RELEASE")
     testImplementation("com.christophsturm:randolf:0.2.1")
 //    testRuntimeOnly("io.projectreactor.netty:reactor-netty:0.9.14.RELEASE") // bump postgresql dependency
 
@@ -64,7 +64,7 @@ dependencies {
     testImplementation("org.apache.logging.log4j:log4j-jul:$log4j2Version")
     testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version")
 
-    testImplementation("org.junit.platform:junit-platform-launcher:1.7.1")
+    testImplementation("org.junit.platform:junit-platform-launcher:1.7.2")
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
 //kotlin { explicitApi() }

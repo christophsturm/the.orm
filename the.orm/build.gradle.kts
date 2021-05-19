@@ -8,13 +8,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "io.the.orm"
 
-val coroutinesVersion = "1.4.3"
+val coroutinesVersion = BuildConfig.coroutinesVersion
 val kotlinVersion = BuildConfig.kotlinVersion
-val serializationVersion = "1.1.0"
-val testcontainersVersion = "1.15.3"
+val serializationVersion = BuildConfig.serializationVersion
+val testcontainersVersion = BuildConfig.testContainersVersion
 val log4j2Version = "2.14.1"
 val vertxVersion = "4.0.3"
-val nettyVersion = "4.1.63.Final"
+val nettyVersion = BuildConfig.nettyVersion
 
 plugins {
     java
@@ -29,13 +29,13 @@ plugins {
 dependencies {
     implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
     implementation(enforcedPlatform("io.netty:netty-bom:$nettyVersion"))
-    implementation(enforcedPlatform("io.r2dbc:r2dbc-bom:Arabba-SR9"))
+//    implementation(enforcedPlatform("io.r2dbc:r2dbc-bom:Arabba-SR9"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    api("io.r2dbc:r2dbc-spi:0.8.4.RELEASE")
+    api("io.r2dbc:r2dbc-spi:0.8.5.RELEASE")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-    implementation("io.r2dbc:r2dbc-pool:0.8.6.RELEASE")
+    implementation("io.r2dbc:r2dbc-pool:0.8.7.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     implementation("io.vertx:vertx-rx-java2:$vertxVersion")
     implementation("io.vertx:vertx-pg-client:$vertxVersion")
@@ -49,7 +49,7 @@ dependencies {
     testImplementation("com.christophsturm:randolf:0.2.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-    testImplementation("org.junit.platform:junit-platform-launcher:1.7.1")
+    testImplementation("org.junit.platform:junit-platform-launcher:1.7.2")
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
 }
 configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }

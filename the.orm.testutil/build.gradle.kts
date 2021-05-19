@@ -6,11 +6,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "io.the.orm"
 
-val coroutinesVersion = "1.4.3"
+val coroutinesVersion = BuildConfig.coroutinesVersion
 val kotlinVersion = BuildConfig.kotlinVersion
-val testcontainersVersion = "1.15.2"
+val testcontainersVersion = BuildConfig.testContainersVersion
 val vertxVersion = "4.0.3"
-val nettyVersion = "4.1.63.Final"
+val nettyVersion = BuildConfig.nettyVersion
 
 plugins {
     java
@@ -23,7 +23,7 @@ dependencies {
     implementation(project(":the.orm"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
-    implementation("io.r2dbc:r2dbc-pool:0.8.6.RELEASE")
+    implementation("io.r2dbc:r2dbc-pool:0.8.7.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
 
     implementation("io.vertx:vertx-rx-java2:$vertxVersion")
