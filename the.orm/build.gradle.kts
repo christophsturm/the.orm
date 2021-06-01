@@ -13,7 +13,7 @@ val kotlinVersion = BuildConfig.kotlinVersion
 val serializationVersion = BuildConfig.serializationVersion
 val testcontainersVersion = BuildConfig.testContainersVersion
 val log4j2Version = "2.14.1"
-val vertxVersion = "4.0.3"
+val vertxVersion = BuildConfig.vertxVersion
 val nettyVersion = BuildConfig.nettyVersion
 
 plugins {
@@ -57,7 +57,6 @@ val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.
 tasks {
     withType<KotlinCompile> {
         kotlinOptions {
-            useIR = true
             jvmTarget = "1.8"
         }
     }

@@ -9,7 +9,7 @@ group = "io.the.orm"
 val coroutinesVersion = BuildConfig.coroutinesVersion
 val kotlinVersion = BuildConfig.kotlinVersion
 val testcontainersVersion = BuildConfig.testContainersVersion
-val vertxVersion = "4.0.3"
+val vertxVersion = BuildConfig.vertxVersion
 val nettyVersion = BuildConfig.nettyVersion
 
 plugins {
@@ -38,7 +38,6 @@ configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 
 tasks {
     withType<KotlinCompile> {
         kotlinOptions {
-            useIR = true
             jvmTarget = "1.8"
         }
     }
