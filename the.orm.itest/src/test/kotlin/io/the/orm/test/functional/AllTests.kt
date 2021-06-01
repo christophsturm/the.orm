@@ -4,7 +4,7 @@ import failfast.FailFast.runAllTests
 import io.netty.resolver.dns.UnixResolverDnsServerAddressStreamProvider
 import io.the.orm.test.DBS
 import io.the.orm.test.TestConfig.CI
-import io.the.orm.test.TestConfig.H2_ONLY
+import io.the.orm.test.TestUtilConfig.H2_ONLY
 import reactor.blockhound.BlockHound
 import java.io.File
 import kotlin.concurrent.thread
@@ -21,7 +21,7 @@ fun main() {
             }
         }
 
-        // and on CI wait for the containers to avoid running into test timeouts
+        // and on CI or when ALL_PSQL is et wait for the containers to avoid running into test timeouts
         if (CI)
             dbs.map { it.join() }
     }
