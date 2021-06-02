@@ -1,7 +1,7 @@
 package io.the.orm.query
 
-import failfast.describe
-import failfast.mock.mock
+import failgood.describe
+import failgood.mock.mock
 import io.the.orm.ResultMapper
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.IDHandler

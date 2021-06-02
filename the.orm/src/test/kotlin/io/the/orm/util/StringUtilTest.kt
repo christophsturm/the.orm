@@ -1,6 +1,6 @@
 package io.the.orm.util
 
-import failfast.context
+import failgood.context
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 

@@ -1,6 +1,6 @@
 package io.the.orm.test.functional.exp.ar
 
-import failfast.describe
+import failgood.describe
 import io.the.orm.test.DBS
 import io.the.orm.test.forAllDatabases
 import java.time.LocalDate

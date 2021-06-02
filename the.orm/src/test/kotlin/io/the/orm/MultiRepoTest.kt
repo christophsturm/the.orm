@@ -1,11 +1,11 @@
 package io.the.orm
 
-import failfast.FailFast
-import failfast.describe
+import failgood.FailGood
+import failgood.describe
 import io.the.orm.exp.MultiRepo
 
 fun main() {
-    FailFast.runTest()
+    FailGood.runTest()
 }
 
 data class Page(

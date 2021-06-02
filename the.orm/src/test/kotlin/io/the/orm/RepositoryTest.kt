@@ -1,6 +1,6 @@
 package io.the.orm
 
-import failfast.describe
+import failgood.describe
 import io.the.orm.query.QueryFactory
 import io.the.orm.test.TestObjects.Entity
 import strikt.api.expectCatching

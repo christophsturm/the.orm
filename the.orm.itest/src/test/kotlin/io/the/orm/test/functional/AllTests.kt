@@ -1,6 +1,6 @@
 package io.the.orm.test.functional
 
-import failfast.FailFast.runAllTests
+import failgood.FailGood.runAllTests
 import io.netty.resolver.dns.UnixResolverDnsServerAddressStreamProvider
 import io.the.orm.test.DBS
 import io.the.orm.test.TestConfig.CI

@@ -1,6 +1,6 @@
 package io.the.orm.test.functional
 
-import failfast.FailFast
+import failgood.FailGood
 import io.the.orm.query.like
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -10,7 +10,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 fun main() {
-    FailFast.runTest()
+    FailGood.runTest()
 }
 
 object TransactionFunctionalTest {

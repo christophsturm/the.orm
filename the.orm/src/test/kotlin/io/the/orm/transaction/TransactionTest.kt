@@ -1,10 +1,10 @@
 package io.the.orm.transaction
 
-import failfast.FailFast
-import failfast.describe
-import failfast.mock.mock
-import failfast.mock.verify
-import failfast.mock.whenever
+import failgood.FailGood
+import failgood.describe
+import failgood.mock.mock
+import failgood.mock.verify
+import failgood.mock.whenever
 import io.the.orm.dbio.DBConnection
 import io.the.orm.dbio.DBConnectionFactory
 import io.the.orm.dbio.DBTransaction
@@ -15,7 +15,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
 fun main() {
-    FailFast.runTest()
+    FailGood.runTest()
 }
 
 object TransactionTest {

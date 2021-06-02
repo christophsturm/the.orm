@@ -1,6 +1,6 @@
 package io.the.orm.dbio.r2dbc
 
-import failfast.describe
+import failgood.describe
 import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
 import io.r2dbc.spi.ConnectionFactories

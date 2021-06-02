@@ -1,13 +1,13 @@
 package io.the.orm.test
 
-import failfast.FailFast
+import failgood.FailGood
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 fun main() {
-    FailFast.runTest()
+    FailGood.runTest()
 }
 
 object DBConnectionTest {

@@ -1,6 +1,6 @@
 package io.the.orm
 
-import failfast.junit.FailFastJunitTestEngine
+import failgood.junit.FailGoodJunitTestEngine
 import org.junit.platform.engine.discovery.DiscoverySelectors
 import org.junit.platform.launcher.EngineFilter
 import org.junit.platform.launcher.TestExecutionListener
@@ -14,7 +14,7 @@ fun main() {
         setOf(Paths.get(object {}::class.java.protectionDomain.codeSource.location.toURI()))
     )
     val request = LauncherDiscoveryRequestBuilder.request()
-        .filters(EngineFilter.includeEngines(FailFastJunitTestEngine().id))
+        .filters(EngineFilter.includeEngines(FailGoodJunitTestEngine().id))
         .selectors(selectors).build()
     LauncherFactory.create().execute(request, TListener())
 }

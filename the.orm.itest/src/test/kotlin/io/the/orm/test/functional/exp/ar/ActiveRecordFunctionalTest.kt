@@ -1,6 +1,6 @@
 package io.the.orm.test.functional.exp.ar
 
-import failfast.FailFast
+import failgood.FailGood
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -27,7 +27,7 @@ data class User(
 interface ActiveRecord
 
 fun main() {
-    FailFast.runTest()
+    FailGood.runTest()
 }
 
 object ActiveRecordFunctionalTest {

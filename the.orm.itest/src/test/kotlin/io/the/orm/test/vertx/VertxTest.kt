@@ -1,8 +1,8 @@
 package io.the.orm.test.vertx
 
 
-import failfast.FailFast
-import failfast.describe
+import failgood.FailGood
+import failgood.describe
 import io.the.orm.test.DBS
 import io.the.orm.test.TestUtilConfig
 import io.the.orm.test.schemaSql
@@ -19,7 +19,7 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
 fun main() {
-    FailFast.runTest()
+    FailGood.runTest()
 }
 
 @Suppress("SqlNoDataSourceInspection", "SqlResolve")

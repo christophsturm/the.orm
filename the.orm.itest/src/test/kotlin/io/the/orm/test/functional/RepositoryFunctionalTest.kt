@@ -1,6 +1,6 @@
 package io.the.orm.test.functional
 
-import failfast.FailFast
+import failgood.FailGood
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 import kotlinx.coroutines.flow.single
@@ -18,7 +18,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 fun main() {
-    FailFast.runTest()
+    FailGood.runTest()
 }
 
 @Serializable

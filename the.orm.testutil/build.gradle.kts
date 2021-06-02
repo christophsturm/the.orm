@@ -1,7 +1,7 @@
 @file:Suppress("ConstantConditionIf")
 
 import io.the.orm.BuildConfig
-import io.the.orm.BuildConfig.failfastVersion
+import io.the.orm.BuildConfig.failgoodVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "io.the.orm"
@@ -30,7 +30,7 @@ dependencies {
 
     implementation("io.vertx:vertx-pg-client:$vertxVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
-    implementation("com.christophsturm.failfast:failfast:$failfastVersion")
+    implementation("dev.failgood:failgood:$failgoodVersion")
 
     implementation("org.testcontainers:postgresql:$testcontainersVersion")
 }

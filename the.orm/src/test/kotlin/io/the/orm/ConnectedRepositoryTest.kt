@@ -1,8 +1,8 @@
 package io.the.orm
 
-import failfast.describe
-import failfast.mock.mock
-import failfast.mock.verify
+import failgood.describe
+import failgood.mock.mock
+import failgood.mock.verify
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.test.TestObjects.Entity
 import strikt.api.expectThat

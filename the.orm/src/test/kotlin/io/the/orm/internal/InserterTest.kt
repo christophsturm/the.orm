@@ -1,6 +1,6 @@
 package io.the.orm.internal
 
-import failfast.describe
+import failgood.describe
 
 object InserterTest {
     val context = describe(Inserter::class, disabled = true) {

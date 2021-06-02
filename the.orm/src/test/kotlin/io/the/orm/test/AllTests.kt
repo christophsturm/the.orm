@@ -1,6 +1,6 @@
 package io.the.orm.test
 
-import failfast.FailFast.runAllTests
+import failgood.FailGood.runAllTests
 
 fun main() {
     runAllTests()

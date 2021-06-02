@@ -2,7 +2,8 @@
 
 package io.the.orm.test.functional
 
-import failfast.FailFast
+import failgood.FailGood
+import io.the.orm.NotFoundException
 import io.the.orm.query.QueryFactory
 import io.the.orm.query.between
 import io.the.orm.query.isEqualTo
@@ -21,7 +22,7 @@ import java.time.LocalDate
 import kotlin.reflect.KProperty1
 
 fun main() {
-    FailFast.runTest()
+    FailGood.runTest()
 }
 
 data class Vegetable(val id: Long? = null, val name: String, val weight: Double? = null)
@@ -109,7 +110,7 @@ object QueryFactoryFunctionalTest {
                 val queryByName = repo.queryFactory.createQuery(User::name.isEqualTo())
 
                 expectThat(queryByName.with(connectionProvider, "kurt").delete()).isEqualTo(1)
-                expectThrows<io.the.orm.NotFoundException> { repo.findById(connectionProvider, kurt.id!!) }
+                expectThrows<NotFoundException> { repo.findById(connectionProvider, kurt.id!!) }
                 repo.findById(connectionProvider, freddi.id!!)
             }
             describe("findOrCreate") {

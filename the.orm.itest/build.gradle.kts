@@ -2,7 +2,7 @@
 
 import io.the.orm.BuildConfig
 import io.the.orm.BuildConfig.blockHoundVersion
-import io.the.orm.BuildConfig.failfastVersion
+import io.the.orm.BuildConfig.failgoodVersion
 import io.the.orm.BuildConfig.striktVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -42,8 +42,8 @@ dependencies {
 
 
     testImplementation("io.strikt:strikt-core:$striktVersion")
-    testImplementation("com.christophsturm.failfast:failfast:$failfastVersion")
-//    testImplementation("com.christophsturm.failfast:failfast-r2dbc:$failfastVersion")
+    testImplementation("dev.failgood:failgood:$failgoodVersion")
+//    testImplementation("com.christophsturm.failgood:failgood-r2dbc:$failgoodVersion")
 
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")

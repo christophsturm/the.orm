@@ -1,6 +1,6 @@
 package io.the.orm.test
 
-import failfast.FailFast.autoTest
+import failgood.FailGood.autoTest
 
 fun main() {
     autoTest()

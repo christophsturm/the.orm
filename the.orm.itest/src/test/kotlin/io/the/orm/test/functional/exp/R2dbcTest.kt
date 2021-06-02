@@ -2,8 +2,8 @@
 
 package io.the.orm.test.functional.exp
 
-import failfast.FailFast
-import failfast.describe
+import failgood.FailGood
+import failgood.describe
 import io.the.orm.dbio.TransactionalConnectionProvider
 import io.the.orm.dbio.r2dbc.R2dbcConnection
 import io.the.orm.test.DBS
@@ -21,7 +21,7 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
 fun main() {
-    FailFast.runTest()
+    FailGood.runTest()
 }
 
 /**

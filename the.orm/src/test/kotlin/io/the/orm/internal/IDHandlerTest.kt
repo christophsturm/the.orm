@@ -1,6 +1,6 @@
 package io.the.orm.internal
 
-import failfast.describe
+import failgood.describe
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 

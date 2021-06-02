@@ -2,7 +2,7 @@
 
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import io.the.orm.BuildConfig
-import io.the.orm.BuildConfig.failfastVersion
+import io.the.orm.BuildConfig.failgoodVersion
 import io.the.orm.BuildConfig.striktVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -43,7 +43,7 @@ dependencies {
 
 
     testImplementation("io.strikt:strikt-core:$striktVersion")
-    testImplementation("com.christophsturm.failfast:failfast:$failfastVersion")
+    testImplementation("dev.failgood:failgood:$failgoodVersion")
 
 
     testImplementation("com.christophsturm:randolf:0.2.1")
@@ -84,7 +84,7 @@ plugins.withId("info.solidsoft.pitest") {
             jvmArgs.set(listOf("-Xmx512m"))
         }
         //        testPlugin.set("junit5")
-        testPlugin.set("failfast")
+        testPlugin.set("failgood")
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
         targetClasses.set(setOf("io.the.orm.*")) //by default "${project.group}.*"
         excludedClasses.set(

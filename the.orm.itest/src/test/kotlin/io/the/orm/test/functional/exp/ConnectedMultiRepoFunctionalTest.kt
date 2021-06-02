@@ -1,6 +1,6 @@
 package io.the.orm.test.functional.exp
 
-import failfast.FailFast
+import failgood.FailGood
 import io.the.orm.exp.ConnectedMultiRepo
 import io.the.orm.exp.TransactionalMultiRepo
 import io.the.orm.query.isEqualTo
@@ -20,7 +20,7 @@ data class RecipeIngredient(val id: Long?, val amount: String, val recipeId: Lon
 data class Ingredient(val id: Long?, val name: String)
 
 fun main() {
-    FailFast.runTest()
+    FailGood.runTest()
 }
 
 object ConnectedMultiRepoFunctionalTest {

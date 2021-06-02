@@ -1,7 +1,7 @@
 package io.the.orm.test.vertx
 
-import failfast.FailFast
-import failfast.describe
+import failgood.FailGood
+import failgood.describe
 import io.the.orm.dbio.DBConnection
 import io.the.orm.dbio.vertx.VertxDBConnectionFactory
 import io.the.orm.test.DBS
@@ -12,7 +12,7 @@ import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.rx2.await
 
 fun main() {
-    FailFast.runTest()
+    FailGood.runTest()
 }
 
 object VertxDBConnectionProviderTest {

@@ -1,7 +1,7 @@
 package io.the.orm.test
 
-import failfast.ContextDSL
-import failfast.RootContext
+import failgood.ContextDSL
+import failgood.RootContext
 import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
 import io.r2dbc.spi.ConnectionFactories
@@ -18,7 +18,7 @@ import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import java.io.BufferedReader
 import java.time.Duration
-import java.util.*
+import java.util.UUID
 import kotlin.reflect.KClass
 
 object TestUtilConfig {
