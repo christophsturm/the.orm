@@ -203,7 +203,7 @@ fun describeOnAllDbs(
     tests: suspend ContextDSL.(suspend () -> TransactionProvider) -> Unit
 ): List<RootContext> {
     return databases.mapIndexed { index, testDB ->
-        RootContext("$contextName on ${testDB.name}", disabled) {
+        RootContext("$contextName on ${testDB.name}", disabled, order = index) {
             val createDB by dependency({ testDB.createDB() }) { it.close() }
             val connectionFactory: suspend () -> TransactionProvider =
                 { createDB.create() }

@@ -3,7 +3,6 @@ package io.the.orm.test.functional
 import failgood.FailGood.runAllTests
 import io.netty.resolver.dns.UnixResolverDnsServerAddressStreamProvider
 import io.the.orm.test.DBS
-import io.the.orm.test.TestConfig.CI
 import io.the.orm.test.TestUtilConfig.H2_ONLY
 import reactor.blockhound.BlockHound
 import java.io.File
@@ -15,15 +14,11 @@ fun main() {
     if (!H2_ONLY) {
         enableTestContainersReuse()
         // prepare all database containers async at startup
-        val dbs = DBS.databases.map {
-            thread {
+        thread {
+            DBS.databases.map {
                 it.prepare()
             }
         }
-
-        // and on CI or when ALL_PSQL is et wait for the containers to avoid running into test timeouts
-        if (CI)
-            dbs.map { it.join() }
     }
     BlockHound.builder().allowBlockingCallsInside(
         UnixResolverDnsServerAddressStreamProvider::class.java.canonicalName,

@@ -3,7 +3,7 @@ package io.the.orm
 object BuildConfig {
     const val eap = false
     const val kotlinVersion = "1.5.10"
-    const val failgoodVersion = "0.4.3"
+    const val failgoodVersion = "0.4.4"
     const val striktVersion = "0.31.0"
     const val testContainersVersion = "1.15.3"
     const val blockHoundVersion = "blockhound:1.0.6.RELEASE"
