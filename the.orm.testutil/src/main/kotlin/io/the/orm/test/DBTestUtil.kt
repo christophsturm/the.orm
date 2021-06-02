@@ -47,8 +47,7 @@ class DBTestUtil(val databaseName: String) {
     val databases = if (TestUtilConfig.H2_ONLY) {
         listOf(h2)
     } else listOf(h2) +
-            postgreSQLContainers.map { R2DBCPostgresFactory(it) } +
-            postgreSQLContainers.map { VertxPSQLTestDatabase(it) }
+            postgreSQLContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
 
     @Suppress("unused")
     val unstableDatabases: List<TestDatabase> = listOf()
@@ -203,7 +202,7 @@ fun describeOnAllDbs(
     disabled: Boolean = false,
     tests: suspend ContextDSL.(suspend () -> TransactionProvider) -> Unit
 ): List<RootContext> {
-    return databases.map { testDB ->
+    return databases.mapIndexed { index, testDB ->
         RootContext("$contextName on ${testDB.name}", disabled) {
             val createDB by dependency({ testDB.createDB() }) { it.close() }
             val connectionFactory: suspend () -> TransactionProvider =
