@@ -2,9 +2,13 @@ package io.the.orm.test
 
 import org.testcontainers.containers.PostgreSQLContainer
 import java.sql.DriverManager
-import java.util.*
+import java.util.UUID
 
-class PSQLContainer(val dockerImage: String, private val databasePrefix: String = "r2dbc-testdatabase") {
+class PSQLContainer(
+    val dockerImage: String,
+    private val databasePrefix: String = "r2dbc-testdatabase",
+    val reuse: Boolean
+) {
     fun prepare() {
         dockerContainer
     }
@@ -13,7 +17,7 @@ class PSQLContainer(val dockerImage: String, private val databasePrefix: String 
     lazy {
         PostgreSQLContainer<Nothing>(dockerImage).apply {
 // WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
-            withReuse(true)
+            withReuse(reuse)
             start()
         }
     }

@@ -33,13 +33,13 @@ val schemaSql =
 
 class DBTestUtil(val databaseName: String) {
     private val h2 = H2TestDatabase()
-    val psql13 = PSQLContainer("postgres:13-alpine", databaseName)
+    val psql13 = PSQLContainer("postgres:13-alpine", databaseName, true)
     private val postgreSQLContainers = if (TestUtilConfig.ALL_PSQL) listOf(
         psql13,
-        PSQLContainer("postgres:12-alpine", databaseName),
-        PSQLContainer("postgres:11-alpine", databaseName),
-        PSQLContainer("postgres:10-alpine", databaseName),
-        PSQLContainer("postgres:9-alpine", databaseName)
+        PSQLContainer("postgres:12-alpine", databaseName, false),
+        PSQLContainer("postgres:11-alpine", databaseName, false),
+        PSQLContainer("postgres:10-alpine", databaseName, false),
+        PSQLContainer("postgres:9-alpine", databaseName, false)
     )
     else
         listOf(psql13)
