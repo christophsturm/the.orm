@@ -8,7 +8,7 @@ import reactor.blockhound.BlockHound
 import java.io.File
 import kotlin.concurrent.thread
 
-fun main() {
+suspend fun main() {
     // spin up dependencies in separate threads to speedup test
 
     if (!H2_ONLY) {

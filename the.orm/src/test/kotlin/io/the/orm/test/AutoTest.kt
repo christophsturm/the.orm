@@ -2,6 +2,6 @@ package io.the.orm.test
 
 import failgood.FailGood.autoTest
 
-fun main() {
+suspend fun main() {
     autoTest()
 }
