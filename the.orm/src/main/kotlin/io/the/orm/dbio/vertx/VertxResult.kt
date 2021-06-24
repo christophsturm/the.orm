@@ -2,8 +2,8 @@ package io.the.orm.dbio.vertx
 
 import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.DBRow
-import io.vertx.reactivex.sqlclient.Row
-import io.vertx.reactivex.sqlclient.RowSet
+import io.vertx.sqlclient.Row
+import io.vertx.sqlclient.RowSet
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map

@@ -34,8 +34,8 @@ dependencies {
     implementation("io.r2dbc:r2dbc-pool:0.8.7.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
 
-    implementation("io.vertx:vertx-rx-java2:$vertxVersion")
 
+    implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
     implementation("io.vertx:vertx-pg-client:$vertxVersion")
     runtimeOnly("io.netty:netty-resolver-dns-native-macos:$nettyVersion:osx-x86_64")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")

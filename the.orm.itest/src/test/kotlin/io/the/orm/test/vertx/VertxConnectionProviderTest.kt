@@ -6,10 +6,10 @@ import io.the.orm.dbio.DBConnection
 import io.the.orm.dbio.vertx.VertxDBConnectionFactory
 import io.the.orm.test.DBS
 import io.the.orm.test.TestUtilConfig
+import io.vertx.kotlin.coroutines.await
 import io.vertx.pgclient.PgConnectOptions
-import io.vertx.reactivex.pgclient.PgPool
+import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
-import kotlinx.coroutines.rx2.await
 
 fun main() {
     FailGood.runTest()
@@ -26,7 +26,7 @@ object VertxDBConnectionProviderTest {
                 .setUser("test")
                 .setPassword("test")
 
-            val pool = autoClose(PgPool.pool(connectOptions, PoolOptions().setMaxSize(5))) { it.rxClose().await() }
+            val pool = autoClose(PgPool.pool(connectOptions, PoolOptions().setMaxSize(5))) { it.close().await() }
 
             @Suppress("UNUSED_VARIABLE")
             val connection: DBConnection = VertxDBConnectionFactory(pool).getConnection()

@@ -2,7 +2,7 @@ package io.the.orm.dbio.vertx
 
 import io.the.orm.dbio.DBRow
 import io.the.orm.dbio.LazyResult
-import io.vertx.reactivex.sqlclient.Row
+import io.vertx.sqlclient.Row
 
 class VertxRow(val row: Row) : DBRow {
     override fun getLazy(key: String): LazyResult<Any?> {

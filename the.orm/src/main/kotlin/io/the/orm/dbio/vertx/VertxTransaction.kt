@@ -1,16 +1,16 @@
 package io.the.orm.dbio.vertx
 
 import io.the.orm.dbio.DBTransaction
-import io.vertx.reactivex.sqlclient.Transaction
-import kotlinx.coroutines.rx2.await
+import io.vertx.kotlin.coroutines.await
+import io.vertx.sqlclient.Transaction
 
 class VertxTransaction(private val transaction: Transaction) : DBTransaction {
     override suspend fun rollbackTransaction() {
-        transaction.rxRollback().await()
+        transaction.rollback().await()
     }
 
     override suspend fun commitTransaction() {
-        transaction.rxCommit().await()
+        transaction.commit().await()
     }
 
 }

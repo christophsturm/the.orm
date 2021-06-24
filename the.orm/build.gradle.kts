@@ -29,7 +29,6 @@ plugins {
 dependencies {
     implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
     implementation(enforcedPlatform("io.netty:netty-bom:$nettyVersion"))
-//    implementation(enforcedPlatform("io.r2dbc:r2dbc-bom:Arabba-SR9"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
@@ -37,9 +36,8 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("io.r2dbc:r2dbc-pool:0.8.7.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
-    implementation("io.vertx:vertx-rx-java2:$vertxVersion")
+    implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
     implementation("io.vertx:vertx-pg-client:$vertxVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
 
 
     testImplementation("io.strikt:strikt-core:$striktVersion")

@@ -7,7 +7,7 @@ import io.the.orm.dbio.DBConnectionFactory
 import io.the.orm.dbio.r2dbc.R2DbcDBConnectionFactory
 import io.the.orm.dbio.vertx.VertxDBConnectionFactory
 import io.vertx.pgclient.PgConnectOptions
-import io.vertx.reactivex.pgclient.PgPool
+import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
 import java.time.Duration
 

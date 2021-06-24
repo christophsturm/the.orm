@@ -12,9 +12,9 @@ import io.the.orm.dbio.r2dbc.R2DbcDBConnectionFactory
 import io.the.orm.dbio.vertx.VertxDBConnectionFactory
 import io.the.orm.test.TestUtilConfig.TEST_POOL_SIZE
 import io.vertx.pgclient.PgConnectOptions
-import io.vertx.reactivex.pgclient.PgPool
-import io.vertx.reactivex.sqlclient.SqlClient
+import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
+import io.vertx.sqlclient.SqlClient
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import java.io.BufferedReader
 import java.time.Duration
