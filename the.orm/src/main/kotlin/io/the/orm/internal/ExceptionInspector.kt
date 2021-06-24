@@ -4,12 +4,13 @@ import io.r2dbc.spi.R2dbcDataIntegrityViolationException
 import io.the.orm.DataIntegrityViolationException
 import io.the.orm.UniqueConstraintViolatedException
 import io.vertx.pgclient.PgException
+import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
 internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KClass<T>) {
-    private val fieldNamesProperties = kClass.memberProperties.associateBy { it.name.toLowerCase() }
+    private val fieldNamesProperties = kClass.memberProperties.associateBy { it.name.lowercase(Locale.getDefault()) }
     fun r2dbcDataIntegrityViolationException(
         e: R2dbcDataIntegrityViolationException,
         instance: T
@@ -22,7 +23,7 @@ internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KCl
 
     private fun computeAffectedField(message: String): KProperty1<T, *>? {
 
-        val lowerCasedMessage = message.toLowerCase()
+        val lowerCasedMessage = message.lowercase(Locale.getDefault())
         val fieldString = when {
 
             // h2: Unique index or primary key violation: "PUBLIC.CONSTRAINT_INDEX_4 ON PUBLIC.USERS(EMAIL) VALUES 1"; SQL statement:
@@ -35,7 +36,7 @@ internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KCl
                 .substringBefore("_key\"")
             else -> null
         }
-        return fieldNamesProperties[fieldString?.toLowerCase()]
+        return fieldNamesProperties[fieldString?.lowercase(Locale.getDefault())]
     }
 
     fun pgException(e: PgException, instance: T): DataIntegrityViolationException {

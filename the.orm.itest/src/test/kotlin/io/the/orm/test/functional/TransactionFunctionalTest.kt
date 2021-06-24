@@ -42,7 +42,8 @@ object TransactionFunctionalTest {
             }
             it("rolls back the transaction if the block fails") {
                 try {
-                    outerRepo.transaction<Nothing> { transactionRepo ->
+                    @Suppress("IMPLICIT_NOTHING_TYPE_ARGUMENT_IN_RETURN_POSITION")
+                    outerRepo.transaction { transactionRepo ->
                         transactionRepo.create(User(name = "a user", email = "with email"))
                         throw RuntimeException("failed (oops)")
                     }

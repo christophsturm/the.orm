@@ -5,8 +5,8 @@ internal fun String.toSnakeCase(): String =
         .foldIndexed(StringBuilder(this.length + 5)) { idx, target, char ->
             when {
                 char.isLowerCase() -> target.append(char)
-                idx > 0 -> target.append('_').append(char.toLowerCase())
-                else -> target.append(char.toLowerCase())
+                idx > 0 -> target.append('_').append(char.lowercaseChar())
+                else -> target.append(char.lowercaseChar())
             }
         }
         .toString()

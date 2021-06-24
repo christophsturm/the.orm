@@ -7,7 +7,7 @@ import java.util.UUID
 class PSQLContainer(
     val dockerImage: String,
     private val databasePrefix: String = "r2dbc-testdatabase",
-    val reuse: Boolean
+    private val reuse: Boolean
 ) {
     fun prepare() {
         dockerContainer
