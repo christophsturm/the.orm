@@ -1,16 +1,10 @@
 @file:Suppress("ConstantConditionIf")
 
-import io.the.orm.BuildConfig
-import io.the.orm.BuildConfig.failgoodVersion
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import io.the.orm.versions.coroutinesVersion
+import io.the.orm.versions.failgoodVersion
+import io.the.orm.versions.testContainersVersion
+import io.the.orm.versions.vertxVersion
 
-group = "io.the.orm"
-
-val coroutinesVersion = BuildConfig.coroutinesVersion
-val kotlinVersion = BuildConfig.kotlinVersion
-val testcontainersVersion = BuildConfig.testContainersVersion
-val vertxVersion = BuildConfig.vertxVersion
-val nettyVersion = BuildConfig.nettyVersion
 
 plugins {
     java
@@ -30,24 +24,5 @@ dependencies {
     implementation("io.vertx:vertx-pg-client:$vertxVersion")
     implementation("dev.failgood:failgood:$failgoodVersion")
 
-    implementation("org.testcontainers:postgresql:$testcontainersVersion")
-}
-configure<JavaPluginConvention> { sourceCompatibility = JavaVersion.VERSION_1_8 }
-tasks {
-    withType<KotlinCompile> {
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
-    }
-    withType<Test> {
-        enabled = false
-    }
-    create<Jar>("sourceJar") {
-        from(sourceSets.main.get().allSource)
-        archiveClassifier.set("sources")
-    }
-}
-artifacts {
-    add("archives", tasks["jar"])
-    add("archives", tasks["sourceJar"])
+    implementation("org.testcontainers:postgresql:$testContainersVersion")
 }
