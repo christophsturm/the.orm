@@ -4,7 +4,6 @@ import io.the.orm.versions.blockHoundVersion
 import io.the.orm.versions.coroutinesVersion
 import io.the.orm.versions.failgoodVersion
 import io.the.orm.versions.log4j2Version
-import io.the.orm.versions.nettyVersion
 import io.the.orm.versions.serializationVersion
 import io.the.orm.versions.striktVersion
 import io.the.orm.versions.vertxVersion
@@ -31,7 +30,6 @@ dependencies {
 
     implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
     implementation("io.vertx:vertx-pg-client:$vertxVersion")
-    runtimeOnly("io.netty:netty-resolver-dns-native-macos:$nettyVersion:osx-x86_64")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion")
 
 
@@ -50,7 +48,7 @@ dependencies {
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
-    testImplementation("io.projectreactor.tools:$blockHoundVersion")
+    testImplementation("io.projectreactor.tools:blockhound:$blockHoundVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
     testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
