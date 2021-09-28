@@ -1,4 +1,4 @@
-@file:Suppress("ConstantConditionIf")
+@file:Suppress("ConstantConditionIf", "GradlePackageUpdate")
 
 import io.the.orm.versions.coroutinesVersion
 import io.the.orm.versions.failgoodVersion
@@ -25,7 +25,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    api("io.r2dbc:r2dbc-spi:0.8.5.RELEASE")
+    api("io.r2dbc:r2dbc-spi:0.8.6.RELEASE")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("io.r2dbc:r2dbc-pool:0.8.7.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
@@ -40,7 +40,6 @@ dependencies {
     testImplementation("com.christophsturm:randolf:0.2.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-    testImplementation("org.junit.platform:junit-platform-launcher:1.7.2")
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
 }
 val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal
