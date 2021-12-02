@@ -58,7 +58,7 @@ object R2dbcTest {
     } + if (!TestUtilConfig.H2_ONLY)
         listOf(describe("r2dbc pool") {
             test("can open and close pool") {
-                val (databaseName, host, port) = DBS.psql13.preparePostgresDB()
+                val (databaseName, host, port) = DBS.psql14.preparePostgresDB()
                 val factory =
                     io.r2dbc.spi.ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
                 val connection1 = factory.create().awaitSingle()

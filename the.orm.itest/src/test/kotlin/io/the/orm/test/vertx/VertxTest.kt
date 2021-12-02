@@ -25,7 +25,7 @@ fun main() {
 @Suppress("SqlNoDataSourceInspection", "SqlResolve")
 object VertxTest {
     val context = describe("vertx support", disabled = TestUtilConfig.H2_ONLY) {
-        val db by dependency({ DBS.psql13.preparePostgresDB() }) { it.close() }
+        val db by dependency({ DBS.psql14.preparePostgresDB() }) { it.close() }
 
 
         val client: SqlClient by dependency({

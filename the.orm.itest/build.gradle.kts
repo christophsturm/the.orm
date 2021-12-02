@@ -35,7 +35,6 @@ dependencies {
 
     testImplementation("io.strikt:strikt-core:$striktVersion")
     testImplementation("dev.failgood:failgood:$failgoodVersion")
-//    testImplementation("com.christophsturm.failgood:failgood-r2dbc:$failgoodVersion")
 
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")

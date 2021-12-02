@@ -18,7 +18,7 @@ fun main() {
 object VertxDBConnectionProviderTest {
     val context = describe(VertxDBConnectionFactory::class, disabled = TestUtilConfig.H2_ONLY) {
         it("can create connections from a pool") {
-            val (databaseName, host, port) = DBS.psql13.preparePostgresDB()
+            val (databaseName, host, port) = DBS.psql14.preparePostgresDB()
             val connectOptions = PgConnectOptions()
                 .setPort(port)
                 .setHost(host)
