@@ -1,5 +1,7 @@
 @file:Suppress("ConstantConditionIf", "GradlePackageUpdate")
 
+import com.adarshr.gradle.testlogger.theme.ThemeType.MOCHA_PARALLEL
+
 import io.the.orm.versions.blockHoundVersion
 import io.the.orm.versions.coroutinesVersion
 import io.the.orm.versions.failgoodVersion
@@ -10,6 +12,7 @@ import io.the.orm.versions.vertxVersion
 
 
 plugins {
+    id("com.adarshr.test-logger") version "3.1.0"
     java
     kotlin("jvm")
     kotlin("plugin.serialization")
@@ -63,7 +66,11 @@ val testMain = tasks.register("testMain", JavaExec::class) {
         jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
 }
 
-tasks.check {
-    dependsOn(testMain)
+tasks.withType<Test> {
+    useJUnitPlatform()
+    outputs.upToDateWhen { false }
 }
-
+configure<com.adarshr.gradle.testlogger.TestLoggerExtension> {
+    theme = MOCHA_PARALLEL
+    showSimpleNames = true
+}
