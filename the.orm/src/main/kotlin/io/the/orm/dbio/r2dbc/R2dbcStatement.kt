@@ -19,14 +19,15 @@ class R2dbcStatement(private val statement: io.r2dbc.spi.Statement) : Statement 
     }
 
     override suspend fun executeBatch(types: List<Class<*>>, valuesList: Sequence<Sequence<Any?>>): Flow<DBResult> {
-        valuesList.forEach { values ->
+        valuesList.forEachIndexed { valuesIdx, values ->
+            if (valuesIdx != 0)
+                statement.add()
             values.forEachIndexed { index, o ->
                 if (o == null) {
                     statement.bindNull(index, types[index])
                 } else
                     statement.bind(index, o)
             }
-            statement.add()
         }
         return statement.execute().asFlow().map { R2dbcResult(it) }
     }
