@@ -1,4 +1,4 @@
-@file:Suppress("ConstantConditionIf")
+@file:Suppress("ConstantConditionIf", "GradlePackageUpdate")
 
 import io.the.orm.versions.coroutinesVersion
 import io.the.orm.versions.failgoodVersion
@@ -17,7 +17,7 @@ dependencies {
     implementation(project(":the.orm"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
-    implementation("io.r2dbc:r2dbc-pool:0.8.7.RELEASE")
+    implementation("io.r2dbc:r2dbc-pool:0.9.0.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
 
     implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")

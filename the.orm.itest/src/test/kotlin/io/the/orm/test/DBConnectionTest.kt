@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.toList
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-
 @Test
 class DBConnectionTest {
     val context = describeOnAllDbs("DBConnection::class", DBS.databases) { createConnectionProvider ->

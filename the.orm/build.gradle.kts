@@ -25,9 +25,9 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    api("io.r2dbc:r2dbc-spi:0.8.6.RELEASE")
+    api("io.r2dbc:r2dbc-spi:0.9.0.RELEASE")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-    implementation("io.r2dbc:r2dbc-pool:0.8.7.RELEASE")
+    implementation("io.r2dbc:r2dbc-pool:0.9.0.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
     implementation("io.vertx:vertx-pg-client:$vertxVersion")
@@ -40,7 +40,7 @@ dependencies {
     testImplementation("com.christophsturm:randolf:0.2.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-    testRuntimeOnly("io.r2dbc:r2dbc-h2:0.8.4.RELEASE")
+    testRuntimeOnly("io.r2dbc:r2dbc-h2:0.9.0.RELEASE")
 }
 val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal
 val testMain = tasks.register("testMain", JavaExec::class) {
