@@ -1,6 +1,8 @@
-package io.the.orm.test
+package io.the.orm.dbio
 
 import failgood.Test
+import io.the.orm.test.DBS
+import io.the.orm.test.describeOnAllDbs
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import strikt.api.expectThat
