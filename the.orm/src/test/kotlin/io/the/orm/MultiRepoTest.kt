@@ -1,12 +1,8 @@
 package io.the.orm
 
-import failgood.FailGood
+import failgood.Test
 import failgood.describe
 import io.the.orm.exp.MultiRepo
-
-fun main() {
-    FailGood.runTest()
-}
 
 data class Page(
     val id: Long?,
@@ -19,7 +15,8 @@ data class Page(
 
 data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
 
-object MultiRepoTest {
+@Test
+class MultiRepoTest {
     val context = describe(MultiRepo::class) {
         it("can be created with classes that reference each other") {
             MultiRepo(listOf(Page::class, Recipe::class))

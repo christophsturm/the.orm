@@ -1,6 +1,6 @@
 package io.the.orm.test.vertx
 
-import failgood.FailGood
+import failgood.Test
 import failgood.describe
 import io.the.orm.dbio.DBConnection
 import io.the.orm.dbio.vertx.VertxDBConnectionFactory
@@ -11,11 +11,8 @@ import io.vertx.pgclient.PgConnectOptions
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
 
-fun main() {
-    FailGood.runTest()
-}
-
-object VertxDBConnectionProviderTest {
+@Test
+class VertxDBConnectionProviderTest {
     val context = describe(VertxDBConnectionFactory::class, disabled = TestUtilConfig.H2_ONLY) {
         it("can create connections from a pool") {
             val (databaseName, host, port) = DBS.psql14.preparePostgresDB()

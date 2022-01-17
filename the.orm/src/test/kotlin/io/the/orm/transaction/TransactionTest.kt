@@ -1,6 +1,6 @@
 package io.the.orm.transaction
 
-import failgood.FailGood
+import failgood.Test
 import failgood.describe
 import failgood.mock.mock
 import failgood.mock.verify
@@ -14,17 +14,14 @@ import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
-fun main() {
-    FailGood.runTest()
-}
-
-object TransactionTest {
+@Test
+class TransactionTest {
     val context = describe("transaction handling") {
         val connectionFactory = mock<DBConnectionFactory>()
         val r2dbcConnection = mock<DBConnection>()
-        whenever(connectionFactory) { getConnection() }.thenReturn(r2dbcConnection)
+        whenever(connectionFactory) { getConnection() }.then { r2dbcConnection }
         val transaction = mock<DBTransaction>()
-        whenever(r2dbcConnection) { beginTransaction() }.thenReturn(transaction)
+        whenever(r2dbcConnection) { beginTransaction() }.then { transaction }
         val connectionProvider = TransactionalConnectionProvider(connectionFactory)
         it("calls block") {
             var called = false

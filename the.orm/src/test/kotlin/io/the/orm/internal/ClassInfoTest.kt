@@ -2,16 +2,14 @@
 
 package io.the.orm.internal
 
-import failgood.FailGood
+import failgood.Test
 import failgood.describe
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
 
-fun main() {
-    FailGood.runTest()
-}
-object ClassInfoTest {
+@Test
+class ClassInfoTest {
     val context = describe(ClassInfo::class) {
         data class Entity(val name: String, val id: Long? = null)
 

@@ -1,10 +1,12 @@
 package io.the.orm.internal
 
+import failgood.Test
 import failgood.describe
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-object IDHandlerTest {
+@Test
+class IDHandlerTest {
     val context = describe(IDHandler::class) {
         context("assigning an id to a newly created instance") {
             test("assigns a long id") {

@@ -1,5 +1,6 @@
 package io.the.orm
 
+import failgood.Test
 import failgood.describe
 import failgood.mock.mock
 import failgood.mock.verify
@@ -9,7 +10,8 @@ import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isSameInstanceAs
 
-object ConnectedRepositoryTest {
+@Test
+class ConnectedRepositoryTest {
     val context = describe(ConnectedRepository::class) {
         val connection = mock<ConnectionProvider>()
         test("exposes Repository and Connection") {

@@ -1,5 +1,6 @@
 package io.the.orm.dbio.r2dbc
 
+import failgood.Test
 import failgood.describe
 import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
@@ -7,8 +8,8 @@ import io.r2dbc.spi.ConnectionFactories
 import io.the.orm.dbio.DBConnection
 import java.time.Duration
 
-
-object R2dbcConnectionProviderTest {
+@Test
+class R2dbcConnectionProviderTest {
     val context = describe(R2DbcDBConnectionFactory::class) {
         test("creates connections from a connection Pool") {
             val connectionFactory = ConnectionFactories.get("r2dbc:h2:mem:///any")

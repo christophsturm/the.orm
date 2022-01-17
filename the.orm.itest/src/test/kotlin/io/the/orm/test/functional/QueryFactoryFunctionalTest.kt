@@ -2,7 +2,7 @@
 
 package io.the.orm.test.functional
 
-import failgood.FailGood
+import failgood.Test
 import io.the.orm.NotFoundException
 import io.the.orm.query.QueryFactory
 import io.the.orm.query.between
@@ -21,13 +21,10 @@ import strikt.assertions.isNotNull
 import java.time.LocalDate
 import kotlin.reflect.KProperty1
 
-fun main() {
-    FailGood.runTest()
-}
-
 data class Vegetable(val id: Long? = null, val name: String, val weight: Double? = null)
 
-object QueryFactoryFunctionalTest {
+@Test
+class QueryFactoryFunctionalTest {
     val context = describeOnAllDbs("support for querying data", DBS.databases) { createConnectionProvider ->
         val connectionProvider by dependency({ createConnectionProvider() })
 

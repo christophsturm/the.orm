@@ -1,16 +1,14 @@
 package io.the.orm.test
 
-import failgood.FailGood
+import failgood.Test
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-fun main() {
-    FailGood.runTest()
-}
 
-object DBConnectionTest {
+@Test
+class DBConnectionTest {
     val context = describeOnAllDbs("DBConnection::class", DBS.databases) { createConnectionProvider ->
         it("can insert with autoincrement") {
             val result =

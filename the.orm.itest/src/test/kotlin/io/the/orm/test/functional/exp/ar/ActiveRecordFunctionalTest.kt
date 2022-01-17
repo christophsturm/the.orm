@@ -1,6 +1,6 @@
 package io.the.orm.test.functional.exp.ar
 
-import failgood.FailGood
+import failgood.Test
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -26,11 +26,8 @@ data class User(
 
 interface ActiveRecord
 
-fun main() {
-    FailGood.runTest()
-}
-
-object ActiveRecordFunctionalTest {
+@Test
+class ActiveRecordFunctionalTest {
 
     val context = describeOnAllDbs("Active Record API", DBS.databases) { connectionProvider ->
         it("just works") {

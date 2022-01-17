@@ -1,7 +1,7 @@
 package io.the.orm.test.vertx
 
 
-import failgood.FailGood
+import failgood.Test
 import failgood.describe
 import io.the.orm.test.DBS
 import io.the.orm.test.TestUtilConfig
@@ -18,12 +18,10 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
-fun main() {
-    FailGood.runTest()
-}
 
 @Suppress("SqlNoDataSourceInspection", "SqlResolve")
-object VertxTest {
+@Test
+class VertxTest {
     val context = describe("vertx support", disabled = TestUtilConfig.H2_ONLY) {
         val db by dependency({ DBS.psql14.preparePostgresDB() }) { it.close() }
 

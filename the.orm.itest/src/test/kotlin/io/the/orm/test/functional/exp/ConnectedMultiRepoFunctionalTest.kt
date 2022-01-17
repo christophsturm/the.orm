@@ -1,6 +1,6 @@
 package io.the.orm.test.functional.exp
 
-import failgood.FailGood
+import failgood.Test
 import io.the.orm.exp.ConnectedMultiRepo
 import io.the.orm.exp.TransactionalMultiRepo
 import io.the.orm.query.isEqualTo
@@ -19,11 +19,8 @@ data class Recipe(val id: Long?, val name: String, val description: String?, val
 data class RecipeIngredient(val id: Long?, val amount: String, val recipeId: Long, val ingredientId: Long)
 data class Ingredient(val id: Long?, val name: String)
 
-fun main() {
-    FailGood.runTest()
-}
-
-object ConnectedMultiRepoFunctionalTest {
+@Test
+class ConnectedMultiRepoFunctionalTest {
     val context = describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, disabled = true) {
         it("works") {
             val connection = it()

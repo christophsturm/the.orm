@@ -2,7 +2,7 @@
 
 package io.the.orm.test.functional.exp
 
-import failgood.FailGood
+import failgood.Test
 import failgood.describe
 import io.the.orm.dbio.TransactionalConnectionProvider
 import io.the.orm.dbio.r2dbc.R2dbcConnection
@@ -20,16 +20,13 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
-fun main() {
-    FailGood.runTest()
-}
-
 /**
  * this is just the r2dbc playground that started this project.
  *
  * @see io.the.orm.test.functional.RepositoryFunctionalTest for api usage.
  */
-object R2dbcTest {
+@Test
+class R2dbcTest {
     val context = describeOnAllDbs(
         "the r2dbc api",
         DBS.databases.filterNot { it is DBTestUtil.VertxPSQLTestDatabase }) { createConnectionProvider ->
@@ -37,7 +34,7 @@ object R2dbcTest {
             val connection = createConnectionProvider()
             val conn =
                 ((connection as TransactionalConnectionProvider).DBConnectionFactory.getConnection() as R2dbcConnection).connection
-            autoClose(conn) { it.close() }
+            autoClose(conn) { it.close().awaitFirstOrNull() }
             val asFlow = conn.createStatement("insert into users(name) values($1)")
                 .bind("$1", "belle")
                 .add()

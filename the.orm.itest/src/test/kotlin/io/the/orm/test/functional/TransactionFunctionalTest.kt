@@ -1,6 +1,6 @@
 package io.the.orm.test.functional
 
-import failgood.FailGood
+import failgood.Test
 import io.the.orm.query.like
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -9,11 +9,8 @@ import kotlinx.coroutines.flow.single
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-fun main() {
-    FailGood.runTest()
-}
-
-object TransactionFunctionalTest {
+@Test
+class TransactionFunctionalTest {
     val context = describeOnAllDbs("Transaction handling", DBS.databases) { createConnectionProvider ->
         val repo = io.the.orm.Repository.create<User>()
         val userNameLike = repo.queryFactory.createQuery(User::name.like())
@@ -47,7 +44,7 @@ object TransactionFunctionalTest {
                         transactionRepo.create(User(name = "a user", email = "with email"))
                         throw RuntimeException("failed (oops)")
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                 }
                 expectThat(userNameLike.with(connectionProvider, "%").find().count()).isEqualTo(0)
             }
@@ -80,7 +77,7 @@ object TransactionFunctionalTest {
                         repo.create(connectionProvider, User(name = "a user", email = "with email"))
                         throw RuntimeException("failed (oops)")
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                 }
                 expectThat(userNameLike.with(connectionProvider, "%").find().count()).isEqualTo(0)
             }

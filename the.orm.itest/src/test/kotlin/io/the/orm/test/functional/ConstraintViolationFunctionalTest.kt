@@ -1,5 +1,6 @@
 package io.the.orm.test.functional
 
+import failgood.Test
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 import strikt.api.expectThrows
@@ -8,7 +9,8 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import java.time.LocalDate
 
-object ConstraintViolationFunctionalTest {
+@Test
+class ConstraintViolationFunctionalTest {
     val context = describeOnAllDbs("constraint error handling", DBS.databases) { createConnectionProvider ->
         val repo by dependency({ io.the.orm.ConnectedRepository.create<User>(createConnectionProvider()) })
 

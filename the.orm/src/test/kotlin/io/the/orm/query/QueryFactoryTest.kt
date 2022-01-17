@@ -1,5 +1,6 @@
 package io.the.orm.query
 
+import failgood.Test
 import failgood.describe
 import failgood.mock.mock
 import io.the.orm.ResultMapper
@@ -8,7 +9,8 @@ import io.the.orm.internal.IDHandler
 import io.the.orm.internal.Table
 import io.the.orm.test.TestObjects.Entity
 
-object QueryFactoryTest {
+@Test
+class QueryFactoryTest {
     val context = describe(QueryFactory::class) {
         val resultMapper = mock<ResultMapper<Entity>>()
         val queryFactory =

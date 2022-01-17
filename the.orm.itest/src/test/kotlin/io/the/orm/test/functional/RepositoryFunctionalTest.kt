@@ -1,6 +1,6 @@
 package io.the.orm.test.functional
 
-import failgood.FailGood
+import failgood.Test
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 import kotlinx.coroutines.flow.single
@@ -17,10 +17,6 @@ import strikt.assertions.message
 import java.math.BigDecimal
 import java.time.LocalDate
 
-fun main() {
-    FailGood.runTest()
-}
-
 @Serializable
 data class SerializableUserPK(override val id: Long) : io.the.orm.PK
 
@@ -31,7 +27,8 @@ data class SerializableUser(
     val email: String?
 )
 
-object RepositoryFunctionalTest {
+@Test
+class RepositoryFunctionalTest {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
     val context = describeOnAllDbs("the repository class", DBS.databases) { createConnectionProvider ->

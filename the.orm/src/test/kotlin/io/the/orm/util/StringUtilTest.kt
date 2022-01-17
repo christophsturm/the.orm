@@ -1,10 +1,12 @@
 package io.the.orm.util
 
+import failgood.Test
 import failgood.context
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-object StringUtilTest {
+@Test
+class StringUtilTest {
     val context =
         context("string methods") {
             test("can convert camel case to snake case") {
