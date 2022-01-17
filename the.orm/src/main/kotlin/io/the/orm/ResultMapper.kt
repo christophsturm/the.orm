@@ -17,28 +17,31 @@ internal class ResultMapperImpl<T : Any>(
     override suspend fun mapQueryResult(queryResult: DBResult): Flow<T> {
         data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: LazyResult<Any?>)
 
-        val parameters: Flow<List<ResultPair>> =
-            queryResult
-                .map { row ->
-                    classInfo.fieldInfo
-                        .map { entry ->
-                            val result = row.getLazy(entry.dbFieldName)
-                            ResultPair(entry, result)
-                        }
+        val parameters: Flow<List<ResultPair>> = queryResult.map { row ->
+            classInfo.fieldInfo.map { entry ->
+                val result = try {
+                    row.getLazy(entry.dbFieldName)
+                } catch (e: Exception) {
+                    throw RepositoryException("error getting value for field ${entry.dbFieldName}", e)
                 }
+                ResultPair(entry, result)
+            }
+        }
         return parameters.map { values ->
-            val resolvedParameters =
-                values.associateTo(HashMap()) { (fieldInfo, result) ->
-                    val resolvedValue = result.resolve()
-                    val value = fieldInfo.fieldConverter.dbValueToParameter(resolvedValue)
-                    Pair(fieldInfo.constructorParameter, value)
+            val resolvedParameters = values.associateTo(HashMap()) { (fieldInfo, result) ->
+                val resolvedValue: Any? = try {
+                    result.resolve()
+                } catch (e: Exception) {
+                    throw RepositoryException("error resolving value for field ${fieldInfo.dbFieldName}", e)
                 }
+                val value = fieldInfo.fieldConverter.dbValueToParameter(resolvedValue)
+                Pair(fieldInfo.constructorParameter, value)
+            }
             try {
                 classInfo.constructor.callBy(resolvedParameters)
             } catch (e: IllegalArgumentException) {
                 throw RepositoryException(
-                    "error invoking constructor for ${classInfo.name}. parameters:$resolvedParameters",
-                    e
+                    "error invoking constructor for ${classInfo.name}. parameters:$resolvedParameters", e
                 )
             }
         }

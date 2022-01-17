@@ -4,8 +4,6 @@ import failgood.Test
 import io.the.orm.query.like
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
-import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.single
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
@@ -24,7 +22,7 @@ class TransactionFunctionalTest {
                         transactionRepo.create(User(name = "a user", email = "with email"))
                     // the created user is visible in the same connection
                     expectThat(
-                        userNameLike.with(transactionRepo.connectionProvider, "%").find().single()
+                        userNameLike.with(transactionRepo.connectionProvider, "%").findSingle()
                     ).isEqualTo(user)
                     // but the outer connection does not see it
                     expectThat(
@@ -33,7 +31,7 @@ class TransactionFunctionalTest {
                     user
                 }
                 // now the outer connection sees them too
-                expectThat(userNameLike.with(connectionProvider, "%").find().single()).isEqualTo(
+                expectThat(userNameLike.with(connectionProvider, "%").findSingle()).isEqualTo(
                     user
                 )
             }
@@ -58,7 +56,7 @@ class TransactionFunctionalTest {
                         repo.create(transactionConnectionProvider, User(name = "a user", email = "with email"))
                     // the created user is visible in the same connection
                     expectThat(
-                        userNameLike.with(transactionConnectionProvider, "%").find().single()
+                        userNameLike.with(transactionConnectionProvider, "%").findSingle()
                     ).isEqualTo(user)
                     // but the outer connection does not see it
                     expectThat(
@@ -67,7 +65,7 @@ class TransactionFunctionalTest {
                     user
                 }
                 // now the outer connection sees them too
-                expectThat(userNameLike.with(connectionProvider, "%").find().single()).isEqualTo(
+                expectThat(userNameLike.with(connectionProvider, "%").findSingle()).isEqualTo(
                     user
                 )
             }

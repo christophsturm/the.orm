@@ -11,8 +11,6 @@ import io.the.orm.query.isNull
 import io.the.orm.query.like
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.toCollection
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactlyInAnyOrder
@@ -90,15 +88,15 @@ class QueryFactoryFunctionalTest {
                     repo.queryFactory.createQuery(User::isCool.isEqualTo())
                 val findByNullCoolness =
                     repo.queryFactory.createQuery(User::isCool.isNull())
-                expectThat(findByNullCoolness.with(connectionProvider, Unit).find().single())
+                expectThat(findByNullCoolness.with(connectionProvider, Unit).findSingle())
                     .isEqualTo(userOfUndefinedCoolness)
                 // this does not compile because equaling by null makes no sense
                 // anyway:
                 // expectThat(findByCoolness(connection,
                 // null).single()).isEqualTo(userOfUndefinedCoolness)
-                expectThat(findByCoolness.with(connectionProvider, false).find().single())
+                expectThat(findByCoolness.with(connectionProvider, false).findSingle())
                     .isEqualTo(uncoolUser)
-                expectThat(findByCoolness.with(connectionProvider, true).find().single())
+                expectThat(findByCoolness.with(connectionProvider, true).findSingle())
                     .isEqualTo(coolUser)
             }
             test("can delete by query") {

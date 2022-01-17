@@ -69,7 +69,7 @@ internal class ClassInfo<T : Any>(
         kClass.primaryConstructor
             ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
-    val fieldInfo = constructor.parameters.map { parameter ->
+    val fieldInfo: List<FieldInfo> = constructor.parameters.map { parameter ->
         val type = parameter.type
         val javaClass = type.javaType as Class<*>
         val kotlinClass = type.classifier as KClass<*>

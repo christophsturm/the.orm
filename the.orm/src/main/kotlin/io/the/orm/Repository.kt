@@ -11,7 +11,6 @@ import io.the.orm.internal.Updater
 import io.the.orm.query.QueryFactory
 import io.the.orm.query.QueryFactory.Companion.isEqualToCondition
 import io.vertx.pgclient.PgException
-import kotlinx.coroutines.flow.single
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -113,7 +112,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = 
      */
     override suspend fun findById(connectionProvider: ConnectionProvider, id: PK): T {
         return try {
-            byIdQuery.with(connectionProvider, id.id).find().single()
+            byIdQuery.with(connectionProvider, id.id).findSingle()
         } catch (e: NoSuchElementException) {
             throw NotFoundException("No ${table.name} found for id ${id.id}")
         }

@@ -1,6 +1,7 @@
 package io.the.orm.test.functional
 
 import failgood.Test
+import io.the.orm.dbio.TransactionProvider
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 import kotlinx.coroutines.flow.single
@@ -32,7 +33,7 @@ class RepositoryFunctionalTest {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
     val context = describeOnAllDbs("the repository class", DBS.databases) { createConnectionProvider ->
-        val connection by dependency({ createConnectionProvider() })
+        val connection: TransactionProvider by dependency({ createConnectionProvider() })
         context("with a user class") {
             val repo = io.the.orm.Repository.create<User>()
             context("Creating Rows") {

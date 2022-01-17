@@ -27,13 +27,12 @@ internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KCl
         val fieldString = when {
 
             // h2: Unique index or primary key violation: "PUBLIC.CONSTRAINT_INDEX_4 ON PUBLIC.USERS(EMAIL) VALUES 1"; SQL statement:
-            lowerCasedMessage.contains("unique index or primary key violation") -> lowerCasedMessage.substringAfter("public.${table.name}(")
-                .substringBefore(")")
+            lowerCasedMessage.contains("unique index or primary key violation") ->
+                lowerCasedMessage.substringAfter("public.${table.name}(").substringBefore(")").substringBefore(" ")
             // psql: duplicate key value violates unique constraint "users_email_key"
-            lowerCasedMessage.startsWith("duplicate key value violates unique constraint") -> lowerCasedMessage.substringAfter(
-                "constraint \"${table.name}_"
-            )
-                .substringBefore("_key\"")
+            lowerCasedMessage.startsWith("duplicate key value violates unique constraint") ->
+                lowerCasedMessage.substringAfter("constraint \"${table.name}_")
+                    .substringBefore("_key\"")
             else -> null
         }
         return fieldNamesProperties[fieldString?.lowercase(Locale.getDefault())]

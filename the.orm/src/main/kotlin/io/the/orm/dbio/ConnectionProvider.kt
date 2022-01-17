@@ -40,7 +40,6 @@ interface TransactionProvider : ConnectionProvider {
 }
 
 interface ConnectionProvider {
-
     suspend fun <T> withConnection(function: suspend (DBConnection) -> T): T
 }
 

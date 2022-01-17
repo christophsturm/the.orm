@@ -10,7 +10,9 @@ import io.the.orm.internal.Table
 import io.the.orm.util.toIndexedPlaceholders
 import io.the.orm.util.toSnakeCase
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.toCollection
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -109,15 +111,25 @@ class QueryFactory<T : Any> internal constructor(
         private val parameterValues: Sequence<Any>
     ) {
 
-        suspend fun find(): Flow<T> =
-            resultMapper.mapQueryResult(
-                connectionProvider.withConnection { connection ->
-                    connection.executeSelect(
-                        parameterValues,
-                        selectPrefix + queryString
-                    )
-                }
+        suspend fun find(): List<T> {
+            return connectionProvider.withConnection { connection ->
+                find(connection).toCollection(mutableListOf())
+            }
+        }
+
+        suspend fun findSingle(): T {
+            return connectionProvider.withConnection { connection ->
+                find(connection).single()
+            }
+        }
+
+        private suspend fun find(connection: DBConnection): Flow<T> {
+            val queryResult = connection.executeSelect(
+                parameterValues,
+                selectPrefix + queryString
             )
+            return resultMapper.mapQueryResult(queryResult)
+        }
 
         suspend fun delete(): Int =
             connectionProvider.withConnection { connection ->

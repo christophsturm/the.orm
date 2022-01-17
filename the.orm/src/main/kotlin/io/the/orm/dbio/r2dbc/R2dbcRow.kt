@@ -4,8 +4,8 @@ import io.r2dbc.spi.Clob
 import io.r2dbc.spi.Row
 import io.the.orm.dbio.DBRow
 import io.the.orm.dbio.LazyResult
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 
 class R2dbcRow(private val row: Row) : DBRow {
     override fun getLazy(key: String): LazyResult<Any?> {
@@ -20,7 +20,7 @@ class R2dbcRow(private val row: Row) : DBRow {
         result.stream()
             .asFlow()
             .collect { chunk -> @Suppress("BlockingMethodInNonBlockingContext") sb.append(chunk) }
-        result.discard()
+        result.discard().awaitFirstOrNull()
         return sb.toString()
     }
 
