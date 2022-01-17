@@ -23,13 +23,15 @@ class R2dbcStatement(private val statement: io.r2dbc.spi.Statement) : Statement 
             if (valuesIdx != 0)
                 statement.add()
             values.forEachIndexed { index, o ->
+                val indexString = "$${index + 1}" // binding by index is broken in r2dbc-h2 0.9
                 if (o == null) {
-                    statement.bindNull(index, types[index])
+                    statement.bindNull(indexString, types[index])
                 } else
-                    statement.bind(index, o)
+                    statement.bind(indexString, o)
             }
         }
-        return statement.execute().asFlow().map { R2dbcResult(it) }
+        val result = statement.execute().asFlow()
+        return result.map { R2dbcResult(it) }
     }
 
 }
