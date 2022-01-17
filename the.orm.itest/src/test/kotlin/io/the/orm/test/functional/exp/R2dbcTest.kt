@@ -19,6 +19,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+import java.lang.Long
 
 /**
  * this is just the r2dbc playground that started this project.
@@ -30,19 +31,18 @@ class R2dbcTest {
     val context = describeOnAllDbs(
         "the r2dbc api",
         DBS.databases.filterNot { it is DBTestUtil.VertxPSQLTestDatabase }) { createConnectionProvider ->
-        test("can insert values and select result") {
+        it("can batch insert values and select result") {
             val connection = createConnectionProvider()
             val conn =
                 ((connection as TransactionalConnectionProvider).DBConnectionFactory.getConnection() as R2dbcConnection).connection
             autoClose(conn) { it.close().awaitFirstOrNull() }
-            val asFlow = conn.createStatement("insert into users(name) values($1)")
+            val (firstId, secondId) = conn.createStatement("insert into users(name) values($1)")
                 .bind("$1", "belle")
                 .add()
                 .bind("$1", "sebastian")
                 .returnGeneratedValues().execute().asFlow().map {
-                    it.map { row, _ -> row.get(0, java.lang.Long::class.java)!!.toLong() }.awaitSingle()
-                }
-            val (firstId, secondId) = asFlow.toList()
+                    it.map { row, _ -> row.get(0, Long::class.java)!!.toLong() }.awaitSingle()
+                }.toList()
             val selectResult =
                 conn.createStatement("select * from users").execute().awaitSingle()
             val namesFlow =
@@ -64,9 +64,7 @@ class R2dbcTest {
                 connection2.createStatement("select * from users").execute().awaitSingle()
                 connection1.close().awaitFirstOrNull()
                 connection2.close().awaitFirstOrNull()
-
             }
-
         })
     else listOf()
     }
