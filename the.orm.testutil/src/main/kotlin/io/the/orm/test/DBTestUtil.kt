@@ -175,9 +175,9 @@ interface ConnectionProviderFactory {
 
 }
 
-suspend fun ContextDSL.forAllDatabases(
+suspend fun ContextDSL<*>.forAllDatabases(
     databases: List<DBTestUtil.TestDatabase>,
-    tests: suspend ContextDSL.(suspend () -> TransactionProvider) -> Unit
+    tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ) {
     databases.map { db ->
         context("on ${db.name}") {
@@ -194,14 +194,14 @@ fun describeOnAllDbs(
     subject: KClass<*>,
     databases: List<DBTestUtil.TestDatabase>,
     disabled: Boolean = false,
-    tests: suspend ContextDSL.(suspend () -> TransactionProvider) -> Unit
+    tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ) = describeOnAllDbs("the ${subject.simpleName!!}", databases, disabled, tests)
 
 fun describeOnAllDbs(
     contextName: String,
     databases: List<DBTestUtil.TestDatabase>,
     disabled: Boolean = false,
-    tests: suspend ContextDSL.(suspend () -> TransactionProvider) -> Unit
+    tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ): List<RootContext> {
     return databases.mapIndexed { index, testDB ->
         RootContext("$contextName on ${testDB.name}", disabled, order = index) {
