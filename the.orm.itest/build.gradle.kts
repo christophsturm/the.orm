@@ -6,13 +6,14 @@ import io.the.orm.versions.blockHoundVersion
 import io.the.orm.versions.coroutinesVersion
 import io.the.orm.versions.failgoodVersion
 import io.the.orm.versions.log4j2Version
+import io.the.orm.versions.r2dbcVersion
 import io.the.orm.versions.serializationVersion
 import io.the.orm.versions.striktVersion
 import io.the.orm.versions.vertxVersion
 
 
 plugins {
-    id("com.adarshr.test-logger") version "3.1.0"
+    id("com.adarshr.test-logger") version "3.2.0"
     java
     kotlin("jvm")
     kotlin("plugin.serialization")
@@ -40,10 +41,10 @@ dependencies {
     testImplementation("dev.failgood:failgood:$failgoodVersion")
 
 
-    testRuntimeOnly("io.r2dbc:r2dbc-h2:0.9.0.RELEASE")
+    testRuntimeOnly("io.r2dbc:r2dbc-h2:$r2dbcVersion")
     testRuntimeOnly("com.h2database:h2:2.1.210")
-    testRuntimeOnly("org.postgresql:postgresql:42.3.1")
-    testRuntimeOnly("org.postgresql:r2dbc-postgresql:0.9.0.RELEASE")
+    testRuntimeOnly("org.postgresql:postgresql:42.3.3")
+    testRuntimeOnly("org.postgresql:r2dbc-postgresql:$r2dbcVersion")
     testImplementation("com.christophsturm:randolf:0.2.1")
 
 

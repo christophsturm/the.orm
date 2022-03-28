@@ -4,6 +4,7 @@ import io.the.orm.versions.coroutinesVersion
 import io.the.orm.versions.failgoodVersion
 import io.the.orm.versions.kotlinVersion
 import io.the.orm.versions.nettyVersion
+import io.the.orm.versions.r2dbcVersion
 import io.the.orm.versions.serializationVersion
 import io.the.orm.versions.striktVersion
 import io.the.orm.versions.vertxVersion
@@ -25,7 +26,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    api("io.r2dbc:r2dbc-spi:0.9.0.RELEASE")
+    api("io.r2dbc:r2dbc-spi:$r2dbcVersion")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("io.r2dbc:r2dbc-pool:0.9.0.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
@@ -40,7 +41,7 @@ dependencies {
     testImplementation("com.christophsturm:randolf:0.2.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-    testRuntimeOnly("io.r2dbc:r2dbc-h2:0.9.0.RELEASE")
+    testRuntimeOnly("io.r2dbc:r2dbc-h2:$r2dbcVersion")
 }
 val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal
 val testMain = tasks.register("testMain", JavaExec::class) {
