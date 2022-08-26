@@ -1,5 +1,6 @@
 package io.the.orm.test.functional
 
+import io.the.orm.ConnectedRepository
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 import kotlinx.coroutines.Deferred
@@ -10,7 +11,7 @@ import kotlinx.coroutines.launch
 
 
 /**
- * place to add code examples for maybe interesting use-cases.
+ * examples for standard use-cases.
  * they run as part of the test suite to make sure they work.
  *
  */
@@ -24,7 +25,7 @@ object ExamplesTest {
                 name = "a user",
                 email = "with email"
             )
-            val repo = io.the.orm.ConnectedRepository.create<User>(connectionProvider)
+            val repo = ConnectedRepository.create<User>(connectionProvider)
 
             val channel = Channel<Deferred<User>>(capacity = 40)
             val entries = 1000
