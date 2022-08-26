@@ -38,7 +38,7 @@ dependencies {
     testImplementation("dev.failgood:failgood:$failgoodVersion")
 
 
-    testImplementation("com.christophsturm:randolf:0.2.1")
+    testImplementation("com.christophsturm:randolf:0.2.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:$r2dbcVersion")
