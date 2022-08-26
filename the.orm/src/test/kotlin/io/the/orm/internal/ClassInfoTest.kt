@@ -36,7 +36,7 @@ class ClassInfoTest {
                 expectThat(classInfo.fieldInfo.map { Pair(it.dbFieldName, it.type) })
                     .containsExactlyInAnyOrder(Pair("entity_id", Long::class.java), Pair("id", Long::class.java))
             }
-            pending("know values for references") {
+            ignore("know values for references") {
                 expectThat(names.zip(classInfo.values(BelongsToEntity(Entity("name", 10))).toList()))
                     .containsExactlyInAnyOrder(Pair("name", "name"), Pair("id", 10))
             }

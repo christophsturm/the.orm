@@ -55,7 +55,7 @@ class QueryFactoryFunctionalTest {
                         ).find().toCollection(mutableListOf())
                     ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                 }
-                pending("can query by list parameters") {
+                ignore("can query by list parameters") {
                     fun <T> KProperty1<T, io.the.orm.PK?>.`in`(): QueryFactory.Condition<Array<Long>> =
                         QueryFactory.Condition("in unnest(array(?))", this)
 

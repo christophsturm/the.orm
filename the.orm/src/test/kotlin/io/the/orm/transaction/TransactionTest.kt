@@ -4,7 +4,6 @@ import failgood.Test
 import failgood.describe
 import failgood.mock.mock
 import failgood.mock.verify
-import failgood.mock.whenever
 import io.the.orm.dbio.DBConnection
 import io.the.orm.dbio.DBConnectionFactory
 import io.the.orm.dbio.DBTransaction
@@ -17,11 +16,9 @@ import strikt.assertions.isTrue
 @Test
 class TransactionTest {
     val context = describe("transaction handling") {
-        val connectionFactory = mock<DBConnectionFactory>()
-        val r2dbcConnection = mock<DBConnection>()
-        whenever(connectionFactory) { getConnection() }.then { r2dbcConnection }
         val transaction = mock<DBTransaction>()
-        whenever(r2dbcConnection) { beginTransaction() }.then { transaction }
+        val r2dbcConnection = mock<DBConnection>() { method { beginTransaction() }.returns(transaction) }
+        val connectionFactory = mock<DBConnectionFactory> { method { getConnection() }.returns(r2dbcConnection) }
         val connectionProvider = TransactionalConnectionProvider(connectionFactory)
         it("calls block") {
             var called = false
