@@ -45,7 +45,7 @@ dependencies {
     testRuntimeOnly("com.h2database:h2:2.1.210")
     testRuntimeOnly("org.postgresql:postgresql:42.3.3")
     testRuntimeOnly("org.postgresql:r2dbc-postgresql:$r2dbcVersion")
-    testImplementation("com.christophsturm:randolf:0.2.1")
+    testImplementation("com.christophsturm:randolf:0.2.2")
 
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
