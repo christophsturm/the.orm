@@ -28,7 +28,7 @@ dependencies {
 
     api("io.r2dbc:r2dbc-spi:$r2dbcVersion")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-    implementation("io.r2dbc:r2dbc-pool:0.9.0.RELEASE")
+    implementation("io.r2dbc:r2dbc-pool:0.9.2.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
     implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
     implementation("io.vertx:vertx-pg-client:$vertxVersion")

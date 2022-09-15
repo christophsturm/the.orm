@@ -28,7 +28,7 @@ dependencies {
     implementation(kotlin("reflect"))
 
 
-    implementation("io.r2dbc:r2dbc-pool:0.9.0.RELEASE")
+    implementation("io.r2dbc:r2dbc-pool:0.9.2.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
 
 
