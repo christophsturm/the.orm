@@ -42,7 +42,7 @@ dependencies {
 
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:$r2dbcVersion")
-    testRuntimeOnly("com.h2database:h2:2.1.210")
+    testRuntimeOnly("com.h2database:h2:2.1.214")
     testRuntimeOnly("org.postgresql:postgresql:42.5.0")
     testRuntimeOnly("org.postgresql:r2dbc-postgresql:$r2dbcVersion")
     testImplementation("com.christophsturm:randolf:0.2.2")
