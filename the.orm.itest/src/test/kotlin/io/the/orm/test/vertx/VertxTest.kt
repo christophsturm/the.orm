@@ -20,7 +20,7 @@ import strikt.assertions.isEqualTo
 @Suppress("SqlNoDataSourceInspection", "SqlResolve")
 @Test
 class VertxTest {
-    val context = describe("vertx support", disabled = TestUtilConfig.H2_ONLY) {
+    val context = describe("vertx sql client api", disabled = TestUtilConfig.H2_ONLY) {
         val db by dependency({ DBS.psql14.preparePostgresDB() }) { it.close() }
 
         val client: SqlClient by dependency({
