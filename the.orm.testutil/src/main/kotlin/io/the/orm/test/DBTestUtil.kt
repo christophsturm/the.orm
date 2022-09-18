@@ -36,6 +36,7 @@ class DBTestUtil(val databaseName: String) {
     val psql14 = PSQLContainer("postgres:14-alpine", databaseName, true)
     private val postgreSQLContainers = if (TestUtilConfig.ALL_PSQL) listOf(
         psql14,
+        PSQLContainer("postgres:15beta4-alpine", databaseName, false),
         PSQLContainer("postgres:13-alpine", databaseName, false),
         PSQLContainer("postgres:12-alpine", databaseName, false),
         PSQLContainer("postgres:11-alpine", databaseName, false),

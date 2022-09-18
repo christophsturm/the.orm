@@ -28,7 +28,7 @@ class PSQLContainer(
         val uuid = UUID.randomUUID()
         val databaseName = "$databasePrefix$uuid".replace("-", "_")
         // testcontainers says that it returns an ip address but it returns a host name.
-        val host = dockerContainer.containerIpAddress.let { if (it == "localhost") "127.0.0.1" else it }
+        val host = dockerContainer.host.let { if (it == "localhost") "127.0.0.1" else it }
         val port = dockerContainer.getMappedPort(5432)
         val postgresDb = PostgresDb(databaseName, host, port)
         postgresDb.createDb()
