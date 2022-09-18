@@ -22,7 +22,6 @@ class PSQLContainer(
         }
     }
 
-
     fun preparePostgresDB(): PostgresDb {
         Class.forName("org.postgresql.Driver")
         val uuid = UUID.randomUUID()
@@ -34,7 +33,6 @@ class PSQLContainer(
         postgresDb.createDb()
         return postgresDb
     }
-
 }
 
 data class PostgresDb(val databaseName: String, val host: String, val port: Int) : AutoCloseable {
@@ -61,5 +59,4 @@ data class PostgresDb(val databaseName: String, val host: String, val port: Int)
     override fun close() {
         dropDb()
     }
-
 }

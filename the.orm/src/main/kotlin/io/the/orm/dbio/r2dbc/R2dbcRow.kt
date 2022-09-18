@@ -19,9 +19,10 @@ class R2dbcRow(private val row: Row) : DBRow {
         val sb = StringBuilder()
         result.stream()
             .asFlow()
-            .collect { chunk -> @Suppress("BlockingMethodInNonBlockingContext") sb.append(chunk) }
+            .collect { chunk ->
+                sb.append(chunk)
+            }
         result.discard().awaitFirstOrNull()
         return sb.toString()
     }
-
 }

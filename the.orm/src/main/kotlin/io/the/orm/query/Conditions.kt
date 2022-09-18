@@ -14,4 +14,3 @@ fun <T : Any, V : Any> KProperty1<T, V?>.isEqualTo(): QueryFactory.Condition<V> 
 
 fun <T : Any> KProperty1<T, LocalDate?>.between(): QueryFactory.Condition<Pair<LocalDate, LocalDate>> =
     QueryFactory.Condition("between ? and ?", this)
-

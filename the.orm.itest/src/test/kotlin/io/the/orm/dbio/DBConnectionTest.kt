@@ -52,6 +52,5 @@ class DBConnectionTest {
                 }
             expectThat(result).isEqualTo(listOf(1, 2))
         }
-
     }
 }

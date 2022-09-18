@@ -3,6 +3,7 @@ import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 plugins {
     id("com.github.ben-manes.versions") version "0.42.0"
     kotlin("plugin.serialization").version(io.the.orm.versions.kotlinVersion) apply false
+    id("org.jmailen.kotlinter") version "3.12.0" apply false
 }
 
 

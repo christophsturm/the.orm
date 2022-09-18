@@ -44,4 +44,3 @@ class ActiveRecordFunctionalTest {
 
 suspend inline fun <reified T : ActiveRecord> T.create(connection: ConnectionProvider): T =
     io.the.orm.RepositoryImpl(T::class).create(connection, this)
-

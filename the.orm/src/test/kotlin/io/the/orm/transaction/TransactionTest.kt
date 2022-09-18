@@ -40,7 +40,6 @@ class TransactionTest {
                 }
             }.isEqualTo(runtimeException)
             verify(transaction) { rollbackTransaction() }
-
         }
     }
 }

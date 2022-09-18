@@ -17,7 +17,8 @@ internal class Updater<T : Any>(
             val propertiesString =
                 fieldsWithoutId.withIndex().joinToString { (index, value) -> "${value.dbFieldName}=$${index + 2}" }
 
-            @Suppress("SqlResolve") "UPDATE ${table.name} set $propertiesString where id=$1"
+            @Suppress("SqlResolve")
+            "UPDATE ${table.name} set $propertiesString where id=$1"
         }
 
     suspend fun update(connection: DBConnection, instance: T) {

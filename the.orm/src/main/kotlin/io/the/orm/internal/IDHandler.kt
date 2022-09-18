@@ -13,7 +13,10 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
     @Suppress("UNCHECKED_CAST")
     private val copyFunction: KFunction<T> =
         (kClass.memberFunctions.singleOrNull { it.name == "copy" }
-            ?: throw RepositoryException("no copy function found for ${kClass.simpleName}. Entities must be data classes")) as KFunction<T>
+            ?: throw RepositoryException(
+                "no copy function found for ${kClass.simpleName}." +
+                    " Entities must be data classes"
+            )) as KFunction<T>
     private val idParameter = copyFunction.parameters.single { it.name == "id" }
     private val instanceParameter = copyFunction.instanceParameter!!
     private val pkConstructor: KFunction<Any>?

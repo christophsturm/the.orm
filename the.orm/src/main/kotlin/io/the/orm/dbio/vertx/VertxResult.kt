@@ -17,5 +17,4 @@ class VertxResult(private val rows: RowSet<Row>) : DBResult {
         val flow: Flow<Row> = rows.asFlow()
         return flow.map { mappingFunction(VertxRow(it)) }
     }
-
 }

@@ -9,6 +9,4 @@ class R2DbcDBConnectionFactory(private val connectionPool: ConnectionPool) : DBC
     override suspend fun getConnection(): DBConnection {
         return R2dbcConnection(connectionPool.create().awaitSingle())
     }
-
-
 }

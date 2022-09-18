@@ -12,5 +12,4 @@ class VertxTransaction(private val transaction: Transaction) : DBTransaction {
     override suspend fun commitTransaction() {
         transaction.commit().await()
     }
-
 }

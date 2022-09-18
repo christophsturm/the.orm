@@ -46,7 +46,6 @@ class TransactionFunctionalTest {
                 }
                 expectThat(userNameLike.with(connectionProvider, "%").find().count()).isEqualTo(0)
             }
-
         }
 
         describe("a transaction started with the connectionProvider") {
@@ -79,8 +78,6 @@ class TransactionFunctionalTest {
                 }
                 expectThat(userNameLike.with(connectionProvider, "%").find().count()).isEqualTo(0)
             }
-
         }
     }
 }
-

@@ -1,5 +1,6 @@
 package io.the.orm.test.functional
 
+import failgood.Test
 import io.the.orm.ConnectedRepository
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -9,13 +10,12 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-
 /**
  * examples for standard use-cases.
  * they run as part of the test suite to make sure they work.
  *
  */
-
+@Test
 object ExamplesTest {
     val context = describeOnAllDbs("examples", DBS.databases) { createConnectionProvider ->
 

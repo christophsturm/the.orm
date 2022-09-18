@@ -35,5 +35,4 @@ object TheOrm {
 
         return VertxDBConnectionFactory(pool)
     }
-
 }

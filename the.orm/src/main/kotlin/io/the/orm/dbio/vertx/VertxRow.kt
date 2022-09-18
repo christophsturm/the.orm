@@ -13,5 +13,4 @@ class VertxRow(val row: Row) : DBRow {
     override fun <T> get(key: String, type: Class<T>): T? {
         return row.get(type, key)
     }
-
 }

@@ -55,7 +55,6 @@ object DoubleConverter : FieldConverter {
     }
 }
 
-
 internal class ClassInfo<T : Any>(
     kClass: KClass<T>,
     idHandler: IDHandler<T>,
@@ -117,7 +116,6 @@ internal class ClassInfo<T : Any>(
     ) {
         fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
     }
-
 }
 
 private class PKFieldConverter(val idHandler: IDHandler<*>) : FieldConverter {
@@ -136,9 +134,7 @@ class BelongsToConverter(kotlinClass: KClass<*>) : FieldConverter {
     override fun propertyToDBValue(value: Any?): Any? {
         TODO("Not yet implemented")
     }
-
 }
-
 
 /** converts strings from the database to enums in the mapped class */
 private class EnumConverter(private val clazz: Class<*>) : FieldConverter {
@@ -153,4 +149,3 @@ private class EnumConverter(private val clazz: Class<*>) : FieldConverter {
         return value?.toString()
     }
 }
-

@@ -26,7 +26,6 @@ class VertxStatement(private val preparedQuery: PreparedQuery<RowSet<Row>>) :
                 emit(VertxResult(rowSet))
                 rowSet = rowSet.next() ?: break
             }
-
         }
     }
 }

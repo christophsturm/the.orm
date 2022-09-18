@@ -60,7 +60,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
     private val idProperty =
         (properties["id"]
             ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")) as
-                KProperty1<T, Any>
+            KProperty1<T, Any>
 
     private val idHandler = IDHandler(kClass)
     private val classInfo = ClassInfo(kClass, idHandler, hasRelationsTo)
@@ -70,7 +70,6 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
     private val inserter = Inserter(table, idHandler, classInfo)
 
     private val updater = Updater(table, idHandler, idProperty, classInfo)
-
 
     override val queryFactory: QueryFactory<T> =
         QueryFactory(table, kClass, ResultMapperImpl(classInfo), this, idHandler, idProperty)

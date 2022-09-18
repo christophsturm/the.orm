@@ -16,6 +16,7 @@ plugins {
     id("info.solidsoft.pitest")
     `maven-publish`
     kotlin("plugin.serialization")
+    id("org.jmailen.kotlinter") version "3.12.0"
 }
 
 

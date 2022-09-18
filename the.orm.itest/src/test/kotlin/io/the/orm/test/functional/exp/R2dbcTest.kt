@@ -4,6 +4,7 @@ package io.the.orm.test.functional.exp
 
 import failgood.Test
 import failgood.describe
+import io.r2dbc.spi.ConnectionFactories
 import io.the.orm.dbio.TransactionalConnectionProvider
 import io.the.orm.dbio.r2dbc.R2dbcConnection
 import io.the.orm.test.DBS
@@ -33,8 +34,8 @@ class R2dbcTest {
         DBS.databases.filterNot { it is DBTestUtil.VertxPSQLTestDatabase }) { createConnectionProvider ->
         it("can batch insert values and select result") {
             val connection = createConnectionProvider()
-            val conn =
-                ((connection as TransactionalConnectionProvider).DBConnectionFactory.getConnection() as R2dbcConnection).connection
+            val dbConnectionFactory = (connection as TransactionalConnectionProvider).DBConnectionFactory
+            val conn = (dbConnectionFactory.getConnection() as R2dbcConnection).connection
             autoClose(conn) { it.close().awaitFirstOrNull() }
             val (firstId, secondId) = conn.createStatement("insert into users(name) values($1)")
                 .bind("$1", "belle")
@@ -57,7 +58,7 @@ class R2dbcTest {
             test("can open and close pool") {
                 val (databaseName, host, port) = DBS.psql14.preparePostgresDB()
                 val factory =
-                    io.r2dbc.spi.ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
+                    ConnectionFactories.get("r2dbc:pool:postgresql://test:test@$host:$port/$databaseName?initialSize=1")
                 val connection1 = factory.create().awaitSingle()
                 val connection2 = factory.create().awaitSingle()
                 connection1.createStatement("select * from users").execute().awaitSingle()
@@ -67,4 +68,4 @@ class R2dbcTest {
             }
         })
     else listOf()
-    }
+}

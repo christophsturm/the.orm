@@ -14,7 +14,6 @@ class R2dbcConnection(val connection: Connection) : DBConnection {
         return R2DCTransaction(connection)
     }
 
-
     override suspend fun close() {
         connection.close().awaitFirstOrNull()
     }
@@ -30,7 +29,6 @@ class R2dbcConnection(val connection: Connection) : DBConnection {
     override fun createInsertStatement(sql: String): Statement {
         return R2dbcStatement(connection.createStatement(sql).returnGeneratedValues())
     }
-
 }
 
 class R2DCTransaction(val connection: Connection) : DBTransaction {
@@ -41,5 +39,4 @@ class R2DCTransaction(val connection: Connection) : DBTransaction {
     override suspend fun rollbackTransaction() {
         connection.rollbackTransaction().awaitFirstOrNull()
     }
-
 }

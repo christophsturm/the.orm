@@ -30,5 +30,4 @@ class QueryFactoryTest {
             query.with(connection, 1, 1, 1)
         }
     }
-
 }

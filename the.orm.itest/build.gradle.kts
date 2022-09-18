@@ -17,6 +17,7 @@ plugins {
     java
     kotlin("jvm")
     kotlin("plugin.serialization")
+    id("org.jmailen.kotlinter") version "3.12.0"
 }
 
 

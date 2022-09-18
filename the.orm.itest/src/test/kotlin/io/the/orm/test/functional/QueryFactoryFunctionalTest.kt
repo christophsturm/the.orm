@@ -152,11 +152,7 @@ class QueryFactoryFunctionalTest {
                         get { weight }.isEqualTo(20.0)
                     }
                 }
-
             }
         }
-
     }
-
 }
-

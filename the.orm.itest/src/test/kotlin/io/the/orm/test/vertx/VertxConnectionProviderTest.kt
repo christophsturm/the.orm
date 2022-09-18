@@ -28,7 +28,5 @@ class VertxDBConnectionProviderTest {
             @Suppress("UNUSED_VARIABLE")
             val connection: DBConnection = VertxDBConnectionFactory(pool).getConnection()
         }
-
     }
 }
-

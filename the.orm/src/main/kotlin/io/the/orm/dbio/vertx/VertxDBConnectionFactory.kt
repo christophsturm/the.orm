@@ -9,5 +9,4 @@ class VertxDBConnectionFactory(private val pool: PgPool) : DBConnectionFactory {
     override suspend fun getConnection(): DBConnection {
         return VertxConnection(pool.connection.await())
     }
-
 }

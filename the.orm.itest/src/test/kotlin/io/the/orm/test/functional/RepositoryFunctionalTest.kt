@@ -163,7 +163,9 @@ class RepositoryFunctionalTest {
                                 )
                             )
                             .id!!
-                    @Suppress("SqlResolve") val color =
+
+                    @Suppress("SqlResolve")
+                    val color =
                         connection.withConnection { connection ->
                             connection.createStatement("select * from Users where id = $1")
                                 .execute(listOf(Long::class.java), sequenceOf(id.id))
@@ -173,7 +175,6 @@ class RepositoryFunctionalTest {
                                         String::class.java
                                     )!!
                                 }.single()
-
                         }
                     expectThat(color).isEqualTo("RED")
                 }
@@ -195,8 +196,5 @@ class RepositoryFunctionalTest {
                 }
             }
         }
-
     }
-
 }
-

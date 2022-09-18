@@ -49,7 +49,7 @@ class DBTestUtil(val databaseName: String) {
     val databases = if (TestUtilConfig.H2_ONLY) {
         listOf(h2)
     } else listOf(h2) +
-            postgreSQLContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
+        postgreSQLContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
 
     @Suppress("unused")
     val unstableDatabases: List<TestDatabase> = listOf()
@@ -72,7 +72,6 @@ class DBTestUtil(val databaseName: String) {
         }
     }
 
-
     class R2DBCPostgresFactory(private val psqlContainer: PSQLContainer) : TestDatabase {
         override val name = "R2DBC-${psqlContainer.dockerImage}"
 
@@ -83,9 +82,7 @@ class DBTestUtil(val databaseName: String) {
                 db
             )
         }
-
     }
-
 
     inner class VertxPSQLTestDatabase(private val psql: PSQLContainer) : TestDatabase {
         override val name = "Vertx-${psql.dockerImage}"
@@ -105,7 +102,6 @@ class DBTestUtil(val databaseName: String) {
             psql.prepare()
         }
     }
-
 }
 
 class VertxConnectionProviderFactory(private val poolOptions: PgConnectOptions, private val db: AutoCloseable) :
@@ -119,16 +115,13 @@ class VertxConnectionProviderFactory(private val poolOptions: PgConnectOptions, 
         return connectionProvider
     }
 
-
     override suspend fun close() {
         clients.forEach {
             it.close()
         }
         db.close()
     }
-
 }
-
 
 class R2dbcConnectionProviderFactory(
     private val connectionFactory: ConnectionFactory,
@@ -164,16 +157,14 @@ class R2dbcConnectionProviderFactory(
         try {
             closable?.close()
         } catch (e: Exception) {
-            println("ERROR dropping database. pool metrics:${poolMetrics}")
+            println("ERROR dropping database. pool metrics:$poolMetrics")
         }
     }
-
 }
 
 interface ConnectionProviderFactory {
     suspend fun create(): TransactionProvider
     suspend fun close()
-
 }
 
 suspend fun ContextDSL<*>.forAllDatabases(
@@ -189,7 +180,6 @@ suspend fun ContextDSL<*>.forAllDatabases(
         }
     }
 }
-
 
 fun describeOnAllDbs(
     subject: KClass<*>,
@@ -213,4 +203,3 @@ fun describeOnAllDbs(
         }
     }
 }
-

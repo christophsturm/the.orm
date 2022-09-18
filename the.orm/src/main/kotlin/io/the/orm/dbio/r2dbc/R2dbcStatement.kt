@@ -33,5 +33,4 @@ class R2dbcStatement(private val statement: io.r2dbc.spi.Statement) : Statement 
         val result = statement.execute().asFlow()
         return result.map { R2dbcResult(it) }
     }
-
 }

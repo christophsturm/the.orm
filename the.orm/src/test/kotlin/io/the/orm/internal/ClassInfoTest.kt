@@ -40,8 +40,6 @@ class ClassInfoTest {
                 expectThat(names.zip(classInfo.values(BelongsToEntity(Entity("name", 10))).toList()))
                     .containsExactlyInAnyOrder(Pair("name", "name"), Pair("id", 10))
             }
-
         }
-
     }
 }

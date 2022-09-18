@@ -42,9 +42,6 @@ class ConnectedMultiRepoFunctionalTest {
                     .findOrCreate { Ingredient(null, "Gurke") }
                 repo.create(RecipeIngredient(null, "100g", recipe.id!!, gurke.id!!))
             }
-
-
         }
     }
 }
-

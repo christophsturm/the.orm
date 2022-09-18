@@ -17,14 +17,12 @@ class MultiRepo(classes: List<KClass<out Any>>) {
     inline fun <reified T : Any> getRepo(kClass: KClass<T>) = repos[kClass] as Repository<T>
 
     inline fun <reified T : Any> queryFactory() = getRepo(T::class).queryFactory
-
 }
 
 open class ConnectedMultiRepo internal constructor(
     open val connectionProvider: ConnectionProvider,
     val repo: MultiRepo
 ) {
-    @Suppress("UNCHECKED_CAST")
     suspend inline fun <reified T : Any> create(entity: T): T = repo.create(connectionProvider, entity)
 }
 
@@ -41,5 +39,4 @@ class TransactionalMultiRepo(
         connectionProvider.transaction { transactionConnectionProvider ->
             function(ConnectedMultiRepo(transactionConnectionProvider, repo))
         }
-
 }

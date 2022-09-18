@@ -9,6 +9,7 @@ import io.the.orm.versions.vertxVersion
 plugins {
     java
     kotlin("jvm")
+    id("org.jmailen.kotlinter") version "3.12.0"
 }
 
 

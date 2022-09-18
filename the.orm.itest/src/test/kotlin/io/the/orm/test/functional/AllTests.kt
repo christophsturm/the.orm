@@ -28,10 +28,8 @@ suspend fun main() {
     runAllTests()
 }
 
-
 private fun enableTestContainersReuse() {
     val testContainersPropertiesFile = File("${System.getProperty("user.home")}/.testcontainers.properties")
     if (!testContainersPropertiesFile.exists())
         testContainersPropertiesFile.writeText("testcontainers.reuse.enable=true")
 }
-

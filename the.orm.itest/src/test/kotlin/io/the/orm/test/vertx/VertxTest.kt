@@ -1,6 +1,5 @@
 package io.the.orm.test.vertx
 
-
 import failgood.Test
 import failgood.describe
 import io.the.orm.test.DBS
@@ -18,13 +17,11 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
-
 @Suppress("SqlNoDataSourceInspection", "SqlResolve")
 @Test
 class VertxTest {
     val context = describe("vertx support", disabled = TestUtilConfig.H2_ONLY) {
         val db by dependency({ DBS.psql14.preparePostgresDB() }) { it.close() }
-
 
         val client: SqlClient by dependency({
             PgPool.pool(

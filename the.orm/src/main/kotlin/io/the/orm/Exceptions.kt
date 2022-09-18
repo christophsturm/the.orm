@@ -4,7 +4,7 @@ import kotlin.reflect.KProperty1
 
 open class RepositoryException(
     message: String,
-    cause: Throwable? = null,
+    cause: Throwable? = null
 ) : RuntimeException(message, cause)
 
 class NotFoundException(message: String) : RepositoryException(message)

@@ -15,7 +15,6 @@ class VertxConnection(private val client: SqlConnection) : DBConnection {
         return createStatement("$sql returning id")
     }
 
-
     override suspend fun beginTransaction(): DBTransaction {
         return VertxTransaction(client.begin().await())
     }
@@ -27,5 +26,4 @@ class VertxConnection(private val client: SqlConnection) : DBConnection {
     override suspend fun execute(sql: String) {
         client.query(sql).execute().await()
     }
-
 }

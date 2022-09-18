@@ -18,7 +18,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
 class QueryFactory<T : Any> internal constructor(
-    val table: Table,
+    table: Table,
     kClass: KClass<T>,
     private val resultMapper: ResultMapper<T>,
     private val repository: Repository<T>,
@@ -33,12 +33,11 @@ class QueryFactory<T : Any> internal constructor(
             Condition("like(?)", property)
 
         fun <T : Any, V : Any> isEqualToCondition(property: KProperty1<T, V?>):
-                Condition<V> = Condition("=?", property)
+            Condition<V> = Condition("=?", property)
     }
 
     private val snakeCaseForProperty =
         kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
-
 
     private val selectPrefix =
         "select ${snakeCaseForProperty.values.joinToString { it }} from ${table.name} where "
@@ -48,11 +47,10 @@ class QueryFactory<T : Any> internal constructor(
         OneParameterQuery(p1)
 
     fun <P1 : Any, P2 : Any> createQuery(p1: Condition<P1>, p2: Condition<P2>):
-            TwoParameterQuery<P1, P2> = TwoParameterQuery(p1, p2)
+        TwoParameterQuery<P1, P2> = TwoParameterQuery(p1, p2)
 
     fun <P1 : Any, P2 : Any, P3 : Any> createQuery(p1: Condition<P1>, p2: Condition<P2>, p3: Condition<P3>):
-            ThreeParameterQuery<P1, P2, P3> = ThreeParameterQuery(p1, p2, p3)
-
+        ThreeParameterQuery<P1, P2, P3> = ThreeParameterQuery(p1, p2, p3)
 
     @Suppress("unused")
     data class Condition<Type>(val conditionString: String, val prop: KProperty1<*, *>)
@@ -81,7 +79,6 @@ class QueryFactory<T : Any> internal constructor(
         fun with(connection: ConnectionProvider, p1: P1, p2: P2, p3: P3): QueryWithParameters =
             query.with(connection, p1, p2, p3)
     }
-
 
     // internal api
     inner class Query internal constructor(vararg conditions: Condition<*>) {
@@ -173,13 +170,10 @@ class QueryFactory<T : Any> internal constructor(
                 }
             }
         }
-
     }
-
 }
 
 private suspend fun DBConnection.executeSelect(
     parameterValues: Sequence<Any>,
     sql: String
 ): DBResult = createStatement(sql).execute(listOf(), parameterValues)
-

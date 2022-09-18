@@ -27,7 +27,6 @@ class TransactionalConnectionProvider(val DBConnectionFactory: DBConnectionFacto
         } finally {
             connection.close()
         }
-
     }
 }
 
@@ -50,7 +49,6 @@ interface DBConnection {
     suspend fun close()
     suspend fun execute(sql: String)
 }
-
 
 interface Statement {
     suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult
