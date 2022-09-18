@@ -105,7 +105,7 @@ internal class ClassInfo<T : Any>(
     }
 
     fun values(instance: T): Sequence<Any?> {
-        return fieldInfo.asSequence().map { it.value(instance) }
+        return fieldInfo.asSequence().map { it.valueForDb(instance) }
     }
 
     data class FieldInfo(
@@ -115,7 +115,7 @@ internal class ClassInfo<T : Any>(
         val fieldConverter: FieldConverter,
         val type: Class<*>
     ) {
-        fun value(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
+        fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
     }
 
 }

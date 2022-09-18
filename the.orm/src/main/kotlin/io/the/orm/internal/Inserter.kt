@@ -17,7 +17,7 @@ internal class Inserter<T : Any>(
         }
 
     suspend fun create(connection: DBConnection, instance: T): T {
-        val values = fieldsWithoutId.asSequence().map { it.value(instance) }
+        val values = fieldsWithoutId.asSequence().map { it.valueForDb(instance) }
         val statement = connection.createInsertStatement(insertStatementString)
 
         val id = statement.execute(types, values).getId()

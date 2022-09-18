@@ -26,7 +26,7 @@ class ClassInfoTest {
             expectThat(names.zip(classInfo.values(Entity("name", null)).toList()))
                 .containsExactlyInAnyOrder(Pair("name", "name"), Pair("id", null))
         }
-        describe("iss on its way to support belongs to relations") {
+        describe("is on its way to support belongs to relations") {
             data class BelongsToEntity(val entity: Entity, val id: Long? = null)
 
             val classInfo = ClassInfo(BelongsToEntity::class, IDHandler(BelongsToEntity::class), setOf(Entity::class))

@@ -50,7 +50,7 @@ interface Repository<T : Any> {
     suspend fun findById(connectionProvider: ConnectionProvider, id: PK): T
 }
 
-class RepositoryImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptySet()) : Repository<T> {
+class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> = emptySet()) : Repository<T> {
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
 
@@ -63,7 +63,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = 
                 KProperty1<T, Any>
 
     private val idHandler = IDHandler(kClass)
-    private val classInfo = ClassInfo(kClass, idHandler, otherClasses)
+    private val classInfo = ClassInfo(kClass, idHandler, hasRelationsTo)
 
     private val exceptionInspector = ExceptionInspector(table, kClass)
 

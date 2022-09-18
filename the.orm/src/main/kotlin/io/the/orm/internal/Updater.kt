@@ -21,7 +21,7 @@ internal class Updater<T : Any>(
         }
 
     suspend fun update(connection: DBConnection, instance: T) {
-        val values = fieldsWithoutId.asSequence().map { it.value(instance) }
+        val values = fieldsWithoutId.asSequence().map { it.valueForDb(instance) }
 
         val id = idHandler.getId(idProperty.call(instance))
         val statement =
