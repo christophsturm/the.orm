@@ -1,5 +1,6 @@
 package io.the.orm
 
+import failgood.Test
 import failgood.describe
 import io.the.orm.query.QueryFactory
 import io.the.orm.test.TestObjects.Entity
@@ -11,6 +12,7 @@ import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
 import strikt.assertions.message
 
+@Test
 object RepositoryTest {
     val context = describe(Repository::class) {
         test("returns a query factory") {
