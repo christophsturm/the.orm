@@ -23,7 +23,7 @@ import strikt.assertions.isEqualTo
 import java.lang.Long
 
 /**
- * this is just the r2dbc playground that started this project.
+ * this is just the R2DBC playground that started this project.
  *
  * @see io.the.orm.test.functional.RepositoryFunctionalTest for api usage.
  */

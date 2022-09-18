@@ -7,20 +7,20 @@ import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 
-data class Page(
-    val id: Long?,
-    val url: String,
-    val title: String?,
-    val description: String?,
-    val ldJson: String?,
-    val author: String?
-)
-data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
-data class RecipeIngredient(val id: Long?, val amount: String, val recipeId: Long, val ingredientId: Long)
-data class Ingredient(val id: Long?, val name: String)
 
 @Test
-class ConnectedMultiRepoFunctionalTest {
+object ConnectedMultiRepoFunctionalTest {
+    data class Page(
+        val id: Long?,
+        val url: String,
+        val title: String?,
+        val description: String?,
+        val ldJson: String?,
+        val author: String?
+    )
+    data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
+    data class RecipeIngredient(val id: Long?, val amount: String, val recipeId: Long, val ingredientId: Long)
+    data class Ingredient(val id: Long?, val name: String)
     val context = describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, disabled = true) {
         it("works") {
             val connection = it()
