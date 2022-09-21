@@ -17,6 +17,7 @@ import io.vertx.sqlclient.PoolOptions
 import io.vertx.sqlclient.SqlClient
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import java.io.BufferedReader
+import java.io.InputStream
 import java.time.Duration
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -27,15 +28,12 @@ object TestUtilConfig {
     const val TEST_POOL_SIZE = 2
 }
 
-val schemaSql =
-    DBTestUtil::class.java.getResourceAsStream("/db/migration/V1__create_test_tables.sql")!!.bufferedReader()
-        .use(BufferedReader::readText)
-
 class DBTestUtil(val databaseName: String) {
-    private val h2 = H2TestDatabase()
+    val h2 = H2TestDatabase()
     val psql14 = PSQLContainer("postgres:14-alpine", databaseName, true)
-    private val postgreSQLContainers = if (TestUtilConfig.ALL_PSQL) listOf(
-        psql14,
+    val psql14R2DBC = R2DBCPostgresFactory(psql14)
+    val psql14Vertx = VertxPSQLTestDatabase(psql14)
+    private val postgreSQLLegacyContainers = if (TestUtilConfig.ALL_PSQL) listOf(
         PSQLContainer("postgres:15beta4-alpine", databaseName, false),
         PSQLContainer("postgres:13-alpine", databaseName, false),
         PSQLContainer("postgres:12-alpine", databaseName, false),
@@ -43,13 +41,12 @@ class DBTestUtil(val databaseName: String) {
         PSQLContainer("postgres:10-alpine", databaseName, false),
         PSQLContainer("postgres:9-alpine", databaseName, false)
     )
-    else
-        listOf(psql14)
+    else listOf()
 
     val databases = if (TestUtilConfig.H2_ONLY) {
         listOf(h2)
-    } else listOf(h2) +
-        postgreSQLContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
+    } else listOf(h2, psql14R2DBC, psql14Vertx) +
+        postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
 
     @Suppress("unused")
     val unstableDatabases: List<TestDatabase> = listOf()
@@ -111,7 +108,7 @@ class VertxConnectionProviderFactory(private val poolOptions: PgConnectOptions, 
         val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(TEST_POOL_SIZE))
         clients.add(client)
         val connectionProvider = TransactionalConnectionProvider(VertxDBConnectionFactory(client))
-        connectionProvider.withConnection { it.execute(schemaSql) }
+
         return connectionProvider
     }
 
@@ -138,7 +135,6 @@ class R2dbcConnectionProviderFactory(
         pools.add(pool)
         val dbConnectionFactory = R2DbcDBConnectionFactory(pool)
         val connectionProvider = TransactionalConnectionProvider(dbConnectionFactory)
-        connectionProvider.withConnection { it.execute(schemaSql) }
         return connectionProvider
     }
 
@@ -172,13 +168,38 @@ suspend fun ContextDSL<*>.forAllDatabases(
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ) {
     databases.map { db ->
-        context("on ${db.name}") {
-            val createDB by dependency({ db.createDB() }) { it.close() }
-            val connectionFactory: suspend () -> TransactionProvider =
-                { createDB.create() }
-            tests(connectionFactory)
-        }
+        withDb(db, tests)
     }
+}
+
+suspend fun ContextDSL<*>.withDb(
+    db: DBTestUtil.TestDatabase,
+    tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
+) {
+    context("on ${db.name}") {
+        withDbInternal(db, tests)
+    }
+}
+
+private suspend fun ContextDSL<Unit>.withDbInternal(
+    db: DBTestUtil.TestDatabase,
+    tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit,
+    inputStream: InputStream? = DBTestUtil::class.java.getResourceAsStream("/db/migration/V1__create_test_tables.sql")
+) {
+    val createDB by dependency({ db.createDB() }) { it.close() }
+    val connectionFactory: suspend () -> TransactionProvider =
+        {
+            createDB.create().also { transactionProvider ->
+                inputStream?.let {
+                    transactionProvider.withConnection { dbConnection ->
+                        dbConnection.execute(
+                            it.bufferedReader().use(BufferedReader::readText)
+                        )
+                    }
+                }
+            }
+        }
+    tests(connectionFactory)
 }
 
 fun describeOnAllDbs(
@@ -196,10 +217,7 @@ fun describeOnAllDbs(
 ): List<RootContext> {
     return databases.mapIndexed { index, testDB ->
         RootContext("$contextName on ${testDB.name}", disabled, order = index) {
-            val createDB by dependency({ testDB.createDB() }) { it.close() }
-            val connectionFactory: suspend () -> TransactionProvider =
-                { createDB.create() }
-            tests(connectionFactory)
+            withDbInternal(testDB, tests)
         }
     }
 }

@@ -10,7 +10,6 @@ create table users
     birthday       date,
     weight         decimal(5, 2),
     balance        decimal(5, 2)
-
 );
 
 

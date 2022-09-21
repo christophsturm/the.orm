@@ -7,7 +7,7 @@ import io.the.orm.test.withDb
 
 @Test
 class SchemaLoadTest {
-    val tests = describe("schema loading") {
+    val tests = describe("schema loading", disabled = true) {
         withDb(DBS.h2) {
             it("loads schema.sql from the classpath") {
             }

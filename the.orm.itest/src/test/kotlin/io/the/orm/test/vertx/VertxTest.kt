@@ -4,7 +4,6 @@ import failgood.Test
 import failgood.describe
 import io.the.orm.test.DBS
 import io.the.orm.test.TestUtilConfig
-import io.the.orm.test.schemaSql
 import io.vertx.kotlin.coroutines.await
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.pgclient.PgPool
@@ -31,7 +30,20 @@ class VertxTest {
                     .setDatabase(db.databaseName)
                     .setUser("test")
                     .setPassword("test"), PoolOptions().setMaxSize(5)
-            ).also { it.query(schemaSql).execute().await() }
+            ).also { it.query("""create sequence users_id_seq no maxvalue;
+                create table users
+(
+    id             bigint       not null default nextval('users_id_seq') primary key,
+    name           varchar(100) not null,
+    email          varchar(100) unique,
+    is_cool        boolean,
+    bio            text,
+    favorite_color varchar(10),
+    birthday       date,
+    weight         decimal(5, 2),
+    balance        decimal(5, 2)
+);
+""").execute().await() }
         }) { it.close() }
         it("can run sql queries") {
             val result: RowSet<Row> = client.query("SELECT * FROM users WHERE id=1").execute().await()

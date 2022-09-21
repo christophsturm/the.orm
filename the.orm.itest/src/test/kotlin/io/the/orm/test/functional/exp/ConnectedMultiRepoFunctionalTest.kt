@@ -7,7 +7,6 @@ import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 
-
 @Test
 object ConnectedMultiRepoFunctionalTest {
     data class Page(

@@ -15,8 +15,6 @@ object BelongsToTest {
     )
     data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
 
-
     val tests = describe("belongs to support") {
-
     }
 }
