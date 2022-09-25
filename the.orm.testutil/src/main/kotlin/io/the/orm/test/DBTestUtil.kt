@@ -17,7 +17,6 @@ import io.vertx.sqlclient.PoolOptions
 import io.vertx.sqlclient.SqlClient
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import java.io.BufferedReader
-import java.io.InputStream
 import java.time.Duration
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -46,7 +45,7 @@ class DBTestUtil(val databaseName: String) {
     val databases = if (TestUtilConfig.H2_ONLY) {
         listOf(h2)
     } else listOf(h2, psql14R2DBC, psql14Vertx) +
-        postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
+            postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
 
     @Suppress("unused")
     val unstableDatabases: List<TestDatabase> = listOf()
@@ -177,25 +176,27 @@ suspend fun ContextDSL<*>.withDb(
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ) {
     context("on ${db.name}") {
-        withDbInternal(db, tests)
+        withDbInternal(db, tests = tests)
     }
 }
 
+private val resourceAsStream = DBTestUtil::class.java.getResourceAsStream("/db/migration/V1__create_test_tables.sql")
+    ?: throw RuntimeException("schema file not found")
+private val defaultSchema: String =
+    resourceAsStream.bufferedReader()
+        .use(BufferedReader::readText)
+
 private suspend fun ContextDSL<Unit>.withDbInternal(
     db: DBTestUtil.TestDatabase,
-    tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit,
-    inputStream: InputStream? = DBTestUtil::class.java.getResourceAsStream("/db/migration/V1__create_test_tables.sql")
+    schema: String = defaultSchema,
+    tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ) {
     val createDB by dependency({ db.createDB() }) { it.close() }
     val connectionFactory: suspend () -> TransactionProvider =
         {
             createDB.create().also { transactionProvider ->
-                inputStream?.let {
-                    transactionProvider.withConnection { dbConnection ->
-                        dbConnection.execute(
-                            it.bufferedReader().use(BufferedReader::readText)
-                        )
-                    }
+                transactionProvider.withConnection { dbConnection ->
+                    dbConnection.execute(schema)
                 }
             }
         }
@@ -206,18 +207,20 @@ fun describeOnAllDbs(
     subject: KClass<*>,
     databases: List<DBTestUtil.TestDatabase>,
     disabled: Boolean = false,
+    schema: String = defaultSchema,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
-) = describeOnAllDbs("the ${subject.simpleName!!}", databases, disabled, tests)
+) = describeOnAllDbs("the ${subject.simpleName!!}", databases, disabled, schema, tests)
 
 fun describeOnAllDbs(
     contextName: String,
     databases: List<DBTestUtil.TestDatabase>,
     disabled: Boolean = false,
+    schema: String = defaultSchema,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ): List<RootContext> {
     return databases.mapIndexed { index, testDB ->
         RootContext("$contextName on ${testDB.name}", disabled, order = index) {
-            withDbInternal(testDB, tests)
+            withDbInternal(testDB, schema, tests)
         }
     }
 }
