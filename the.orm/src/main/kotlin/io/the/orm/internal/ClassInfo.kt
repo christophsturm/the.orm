@@ -2,9 +2,9 @@ package io.the.orm.internal
 
 import io.r2dbc.spi.Blob
 import io.r2dbc.spi.Clob
-import io.the.orm.BelongsTo
-import io.the.orm.HasOne
 import io.the.orm.RepositoryException
+import io.the.orm.exp.BelongsTo
+import io.the.orm.exp.HasOne
 import io.the.orm.util.toSnakeCase
 import io.vertx.sqlclient.data.Numeric
 import java.lang.reflect.ParameterizedType
@@ -85,7 +85,7 @@ internal class ClassInfo<T : Any>(
         val property = properties[parameter.name]!!
 
         if (otherClasses.contains(kotlinClass)) {
-            FieldInfo(parameter, property, fieldName + "_id", BelongsToConverter(kotlinClass), Long::class.java)
+            FieldInfo(parameter, property, fieldName + "_id", BelongsToConverter(), Long::class.java)
         } else when {
             javaClass.isEnum -> FieldInfo(
                 parameter,
@@ -133,7 +133,7 @@ private class PKFieldConverter(val idHandler: IDHandler<*>) : FieldConverter {
     override fun propertyToDBValue(value: Any?): Any? = value?.let { idHandler.getId(it) }
 }
 
-class BelongsToConverter(kotlinClass: KClass<*>) : FieldConverter {
+class BelongsToConverter : FieldConverter {
 
     override fun dbValueToParameter(value: Any?): Any? {
         TODO("Not yet implemented")

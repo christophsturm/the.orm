@@ -2,6 +2,7 @@ package io.the.orm
 
 import failgood.Test
 import failgood.describe
+import io.the.orm.exp.HasOne
 import io.the.orm.exp.MultiRepo
 
 data class Page(

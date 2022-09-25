@@ -2,8 +2,8 @@ package io.the.orm.internal
 
 import failgood.Test
 import failgood.describe
-import io.the.orm.BelongsTo
-import io.the.orm.HasOne
+import io.the.orm.exp.BelongsTo
+import io.the.orm.exp.HasOne
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
