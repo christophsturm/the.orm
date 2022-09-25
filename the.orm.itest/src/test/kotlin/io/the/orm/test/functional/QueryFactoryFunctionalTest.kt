@@ -5,6 +5,7 @@ package io.the.orm.test.functional
 import failgood.Test
 import io.the.orm.ConnectedRepository
 import io.the.orm.NotFoundException
+import io.the.orm.PK
 import io.the.orm.Repository
 import io.the.orm.query.QueryFactory
 import io.the.orm.query.between
@@ -23,7 +24,7 @@ import kotlin.reflect.KProperty1
 
 data class Vegetable(val id: Long? = null, val name: String, val weight: Double? = null)
 
-private val SCHEMA = """
+private const val SCHEMA = """
 $USERS_SCHEMA
 create sequence vegetables_id_seq no maxvalue;
 create table vegetables
@@ -33,7 +34,7 @@ create table vegetables
     weight decimal(5, 2)
 );
 
-""".trimIndent()
+"""
 
 @Test
 class QueryFactoryFunctionalTest {
@@ -70,7 +71,7 @@ class QueryFactoryFunctionalTest {
                     ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                 }
                 ignore("can query by list parameters") {
-                    fun <T> KProperty1<T, io.the.orm.PK?>.`in`(): QueryFactory.Condition<Array<Long>> =
+                    fun <T> KProperty1<T, PK?>.`in`(): QueryFactory.Condition<Array<Long>> =
                         QueryFactory.Condition("in unnest(array(?))", this)
 
                     val findIdIn = repo.queryFactory.createQuery(User::id.`in`())

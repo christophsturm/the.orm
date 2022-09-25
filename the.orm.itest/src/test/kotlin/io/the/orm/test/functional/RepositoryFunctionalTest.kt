@@ -1,6 +1,7 @@
 package io.the.orm.test.functional
 
 import failgood.Test
+import io.the.orm.PK
 import io.the.orm.dbio.TransactionProvider
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -19,7 +20,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @Serializable
-data class SerializableUserPK(override val id: Long) : io.the.orm.PK
+data class SerializableUserPK(override val id: Long) : PK
 
 @Serializable
 data class SerializableUser(
@@ -27,7 +28,8 @@ data class SerializableUser(
     val name: String,
     val email: String?
 )
-private val SCHEMA = """$USERS_SCHEMA
+private const val SCHEMA = """
+    $USERS_SCHEMA
 create sequence serializable_users_id_seq no maxvalue;
 
 create table serializable_users

@@ -1,9 +1,10 @@
 package io.the.orm.test.functional
 
+import io.the.orm.PK
 import java.math.BigDecimal
 import java.time.LocalDate
 
-data class UserPK(override val id: Long) : io.the.orm.PK
+data class UserPK(override val id: Long) : PK
 enum class Color {
     RED,
 
@@ -23,7 +24,7 @@ data class User(
     val balance: BigDecimal? = null
 )
 
-val USERS_SCHEMA = """    create sequence users_id_seq no maxvalue;
+const val USERS_SCHEMA = """    create sequence users_id_seq no maxvalue;
     create table users
     (
         id             bigint       not null default nextval('users_id_seq') primary key,
