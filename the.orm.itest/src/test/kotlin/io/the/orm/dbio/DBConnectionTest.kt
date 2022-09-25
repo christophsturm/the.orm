@@ -8,9 +8,19 @@ import kotlinx.coroutines.flow.toList
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
+private const val SCHEMA = """
+    create sequence users_id_seq no maxvalue;
+create table users
+(
+    id             bigint       not null default nextval('users_id_seq') primary key,
+    name           varchar(100) not null,
+    email          varchar(100) unique
+);
+
+"""
 @Test
 class DBConnectionTest {
-    val context = describeOnAllDbs("DBConnection::class", DBS.databases) { createConnectionProvider ->
+    val context = describeOnAllDbs("DBConnection::class", DBS.databases, SCHEMA) { createConnectionProvider ->
         it("can insert with autoincrement") {
             val result =
                 createConnectionProvider().withConnection { connection ->

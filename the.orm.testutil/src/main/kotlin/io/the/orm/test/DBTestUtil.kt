@@ -206,16 +206,16 @@ private suspend fun ContextDSL<Unit>.withDbInternal(
 fun describeOnAllDbs(
     subject: KClass<*>,
     databases: List<DBTestUtil.TestDatabase>,
-    disabled: Boolean = false,
     schema: String = defaultSchema,
+    disabled: Boolean = false,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
-) = describeOnAllDbs("the ${subject.simpleName!!}", databases, disabled, schema, tests)
+) = describeOnAllDbs("the ${subject.simpleName!!}", databases, schema, disabled, tests)
 
 fun describeOnAllDbs(
     contextName: String,
     databases: List<DBTestUtil.TestDatabase>,
-    disabled: Boolean = false,
     schema: String = defaultSchema,
+    disabled: Boolean = false,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ): List<RootContext> {
     return databases.mapIndexed { index, testDB ->
