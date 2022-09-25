@@ -13,7 +13,7 @@ data class Page(
     val author: String?
 )
 
-data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
+data class Recipe(val id: Long?, val name: String, val description: String?, val page: HasOne<Page>)
 
 @Test
 class MultiRepoTest {

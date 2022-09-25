@@ -2,6 +2,8 @@ package io.the.orm.internal
 
 import failgood.Test
 import failgood.describe
+import io.the.orm.BelongsTo
+import io.the.orm.HasOne
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
@@ -9,9 +11,10 @@ import strikt.assertions.isEqualTo
 @Test
 class ClassInfoTest {
     val context = describe(ClassInfo::class, isolation = false) {
-        data class Entity(val name: String, val id: Long? = null)
 
         describe("for a single class") {
+            data class Entity(val name: String, val id: Long? = null)
+
             val classInfo = ClassInfo(Entity::class, IDHandler(Entity::class), setOf())
             it("knows the class name") {
                 expectThat(classInfo.name).isEqualTo("Entity")
@@ -26,20 +29,22 @@ class ClassInfoTest {
                     .containsExactlyInAnyOrder(Pair("name", "name"), Pair("id", null))
             }
         }
-        describe("belongs to relations") {
-            data class BelongsToEntity(val entity: Entity, val id: Long? = null)
+        describe("has one to relations") {
 
-            val classInfo = ClassInfo(BelongsToEntity::class, IDHandler(BelongsToEntity::class), setOf(Entity::class))
+            val classInfo = ClassInfo(UserGroup::class, IDHandler(UserGroup::class), setOf(User::class))
             val names = classInfo.fieldInfo.map { it.dbFieldName }
 
             it("knows field names and types for references") {
                 expectThat(classInfo.fieldInfo.map { Pair(it.dbFieldName, it.type) })
-                    .containsExactlyInAnyOrder(Pair("entity_id", Long::class.java), Pair("id", Long::class.java))
+                    .containsExactlyInAnyOrder(Pair("user_id", Long::class.java), Pair("id", Long::class.java))
             }
             ignore("know values for references") {
-                expectThat(names.zip(classInfo.values(BelongsToEntity(Entity("name", 10))).toList()))
+                expectThat(names.zip(classInfo.values(UserGroup(HasOne(User("name")))).toList()))
                     .containsExactlyInAnyOrder(Pair("name", "name"), Pair("id", 10))
             }
         }
     }
 }
+
+data class UserGroup(val user: HasOne<User>, val id: Long? = null)
+data class User(val name: String, val groups: BelongsTo<UserGroup>? = null, val id: Long? = null)

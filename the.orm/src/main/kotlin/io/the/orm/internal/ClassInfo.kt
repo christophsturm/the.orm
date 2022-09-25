@@ -2,10 +2,12 @@ package io.the.orm.internal
 
 import io.r2dbc.spi.Blob
 import io.r2dbc.spi.Clob
+import io.the.orm.BelongsTo
+import io.the.orm.HasOne
 import io.the.orm.RepositoryException
-import io.the.orm.RepositoryImpl
 import io.the.orm.util.toSnakeCase
 import io.vertx.sqlclient.data.Numeric
+import java.lang.reflect.ParameterizedType
 import java.math.BigDecimal
 import java.nio.ByteBuffer
 import java.time.LocalDate
@@ -70,8 +72,15 @@ internal class ClassInfo<T : Any>(
 
     val fieldInfo: List<FieldInfo> = constructor.parameters.map { parameter ->
         val type = parameter.type
-        val javaClass = type.javaType as Class<*>
-        val kotlinClass = type.classifier as KClass<*>
+        val javaClass = when (val t = type.javaType) {
+            is Class<*> -> t
+            is ParameterizedType -> t.actualTypeArguments.single() as Class<*>
+            else -> throw RuntimeException("unsupported type: ${t.typeName}")
+        }
+        val kotlinClass = when (val kc = type.classifier as KClass<*>) {
+            HasOne::class, BelongsTo::class -> type.arguments.single().type!!.classifier as KClass<*>
+            else -> kc
+        }
         val fieldName = parameter.name!!.toSnakeCase()
         val property = properties[parameter.name]!!
 
@@ -125,7 +134,6 @@ private class PKFieldConverter(val idHandler: IDHandler<*>) : FieldConverter {
 }
 
 class BelongsToConverter(kotlinClass: KClass<*>) : FieldConverter {
-    val repo = RepositoryImpl(kotlinClass)
 
     override fun dbValueToParameter(value: Any?): Any? {
         TODO("Not yet implemented")
