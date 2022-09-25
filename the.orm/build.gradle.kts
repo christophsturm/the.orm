@@ -24,6 +24,7 @@ plugins {
 dependencies {
     implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
     implementation(enforcedPlatform("io.netty:netty-bom:$nettyVersion"))
+    implementation("io.netty:netty-resolver-dns-native-macos:4.1.82.Final:osx-aarch_64")
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
