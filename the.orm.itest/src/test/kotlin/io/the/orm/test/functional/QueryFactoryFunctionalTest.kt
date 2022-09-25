@@ -3,7 +3,9 @@
 package io.the.orm.test.functional
 
 import failgood.Test
+import io.the.orm.ConnectedRepository
 import io.the.orm.NotFoundException
+import io.the.orm.Repository
 import io.the.orm.query.QueryFactory
 import io.the.orm.query.between
 import io.the.orm.query.isEqualTo
@@ -26,7 +28,7 @@ class QueryFactoryFunctionalTest {
     val context = describeOnAllDbs("support for querying data", DBS.databases) { createConnectionProvider ->
         val connectionProvider by dependency({ createConnectionProvider() })
 
-        val repo = io.the.orm.Repository.create<User>()
+        val repo = Repository.create<User>()
         suspend fun create(instance: User) = repo.create(connectionProvider, instance)
 
         val user = User(
@@ -109,8 +111,7 @@ class QueryFactoryFunctionalTest {
                 repo.findById(connectionProvider, freddi.id!!)
             }
             describe("findOrCreate") {
-
-                val repo = io.the.orm.ConnectedRepository.create<Vegetable>(connectionProvider)
+                val repo = ConnectedRepository.create<Vegetable>(connectionProvider)
                 val carrot = repo.create(Vegetable(name = "carrot"))
                 val queryByName = repo.repository.queryFactory.createQuery(Vegetable::name.isEqualTo())
                 it("finds an existing entity") {
@@ -130,8 +131,7 @@ class QueryFactoryFunctionalTest {
                 }
             }
             describe("createOrUpdate") {
-
-                val repo = io.the.orm.ConnectedRepository.create<Vegetable>(connectionProvider)
+                val repo = ConnectedRepository.create<Vegetable>(connectionProvider)
                 val queryByName = repo.repository.queryFactory.createQuery(Vegetable::name.isEqualTo())
                 it("creates a new entity if it does not yet exist") {
                     expectThat(
