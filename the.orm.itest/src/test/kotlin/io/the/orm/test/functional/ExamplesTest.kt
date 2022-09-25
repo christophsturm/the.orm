@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
  */
 @Test
 object ExamplesTest {
-    val context = describeOnAllDbs("examples", DBS.databases) { createConnectionProvider ->
+    val context = describeOnAllDbs("examples", DBS.databases, USERS_SCHEMA) { createConnectionProvider ->
 
         test("throttled bulk inserts") {
             val connectionProvider = createConnectionProvider()

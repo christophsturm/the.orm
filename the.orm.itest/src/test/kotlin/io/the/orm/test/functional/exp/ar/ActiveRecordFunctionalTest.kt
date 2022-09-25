@@ -5,6 +5,7 @@ import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 import io.the.orm.test.functional.Color
+import io.the.orm.test.functional.USERS_SCHEMA
 import io.the.orm.test.functional.UserPK
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -29,7 +30,7 @@ interface ActiveRecord
 @Test
 class ActiveRecordFunctionalTest {
 
-    val context = describeOnAllDbs("Active Record API", DBS.databases) { connectionProvider ->
+    val context = describeOnAllDbs("Active Record API", DBS.databases, USERS_SCHEMA) { connectionProvider ->
         it("just works") {
             val connection = connectionProvider()
             val user = User(

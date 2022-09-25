@@ -27,11 +27,23 @@ import java.lang.Long
  *
  * @see io.the.orm.test.functional.RepositoryFunctionalTest for api usage.
  */
+
+private const val SCHEMA = """
+    create sequence users_id_seq no maxvalue;
+create table users
+(
+    id             bigint       not null default nextval('users_id_seq') primary key,
+    name           varchar(100) not null,
+    email          varchar(100) unique
+);
+
+"""
+
 @Test
 class R2dbcTest {
     val context = describeOnAllDbs(
         "the r2dbc api",
-        DBS.databases.filterNot { it is DBTestUtil.VertxPSQLTestDatabase }) { createConnectionProvider ->
+        DBS.databases.filterNot { it is DBTestUtil.VertxPSQLTestDatabase }, SCHEMA) { createConnectionProvider ->
         it("can batch insert values and select result") {
             val connection = createConnectionProvider()
             val dbConnectionFactory = (connection as TransactionalConnectionProvider).DBConnectionFactory

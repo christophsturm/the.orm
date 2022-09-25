@@ -27,12 +27,26 @@ data class SerializableUser(
     val name: String,
     val email: String?
 )
+private val SCHEMA = """$USERS_SCHEMA
+create sequence serializable_users_id_seq no maxvalue;
+
+create table serializable_users
+(
+    id    bigint       not null default nextval('serializable_users_id_seq') primary key,
+    name  varchar(100) not null,
+    email varchar(100)
+);
+
+
+"""
 
 @Test
 class RepositoryFunctionalTest {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
-    val context = describeOnAllDbs("the repository class", DBS.databases) { createConnectionProvider ->
+    val context = describeOnAllDbs("the repository class", DBS.databases,
+        SCHEMA
+    ) { createConnectionProvider ->
         val connection: TransactionProvider by dependency({ createConnectionProvider() })
         context("with a user class") {
             val repo = io.the.orm.Repository.create<User>()

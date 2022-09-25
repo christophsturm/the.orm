@@ -9,7 +9,7 @@ import strikt.assertions.isEqualTo
 
 @Test
 class TransactionFunctionalTest {
-    val context = describeOnAllDbs("Transaction handling", DBS.databases) { createConnectionProvider ->
+    val context = describeOnAllDbs("Transaction handling", DBS.databases, USERS_SCHEMA) { createConnectionProvider ->
         val repo = io.the.orm.Repository.create<User>()
         val userNameLike = repo.queryFactory.createQuery(User::name.like())
 

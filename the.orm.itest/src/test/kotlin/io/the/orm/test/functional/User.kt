@@ -22,3 +22,18 @@ data class User(
     val weight: Double? = null,
     val balance: BigDecimal? = null
 )
+
+val USERS_SCHEMA = """    create sequence users_id_seq no maxvalue;
+    create table users
+    (
+        id             bigint       not null default nextval('users_id_seq') primary key,
+        name           varchar(100) not null,
+        email          varchar(100) unique,
+        is_cool        boolean,
+        bio            text,
+        favorite_color varchar(10),
+        birthday       date,
+        weight         decimal(5, 2),
+        balance        decimal(5, 2)
+    );
+"""

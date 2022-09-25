@@ -18,6 +18,7 @@ create table users
 );
 
 """
+
 @Test
 class DBConnectionTest {
     val context = describeOnAllDbs("DBConnection::class", DBS.databases, SCHEMA) { createConnectionProvider ->

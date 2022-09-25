@@ -24,19 +24,7 @@ import kotlin.reflect.KProperty1
 data class Vegetable(val id: Long? = null, val name: String, val weight: Double? = null)
 
 private val SCHEMA = """
-    create sequence users_id_seq no maxvalue;
-    create table users
-    (
-        id             bigint       not null default nextval('users_id_seq') primary key,
-        name           varchar(100) not null,
-        email          varchar(100) unique,
-        is_cool        boolean,
-        bio            text,
-        favorite_color varchar(10),
-        birthday       date,
-        weight         decimal(5, 2),
-        balance        decimal(5, 2)
-    );
+$USERS_SCHEMA
 create sequence vegetables_id_seq no maxvalue;
 create table vegetables
 (
@@ -46,6 +34,7 @@ create table vegetables
 );
 
 """.trimIndent()
+
 @Test
 class QueryFactoryFunctionalTest {
     val context = describeOnAllDbs("support for querying data", DBS.databases, SCHEMA) { createConnectionProvider ->

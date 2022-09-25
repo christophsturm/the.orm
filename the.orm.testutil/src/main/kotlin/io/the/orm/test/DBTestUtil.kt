@@ -16,7 +16,6 @@ import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
 import io.vertx.sqlclient.SqlClient
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import java.io.BufferedReader
 import java.time.Duration
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -45,7 +44,7 @@ class DBTestUtil(val databaseName: String) {
     val databases = if (TestUtilConfig.H2_ONLY) {
         listOf(h2)
     } else listOf(h2, psql14R2DBC, psql14Vertx) +
-            postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
+        postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
 
     @Suppress("unused")
     val unstableDatabases: List<TestDatabase> = listOf()
@@ -164,31 +163,27 @@ interface ConnectionProviderFactory {
 
 suspend fun ContextDSL<*>.forAllDatabases(
     databases: List<DBTestUtil.TestDatabase>,
+    schema: String,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ) {
     databases.map { db ->
-        withDb(db, tests)
+        withDb(db, schema, tests)
     }
 }
 
 suspend fun ContextDSL<*>.withDb(
     db: DBTestUtil.TestDatabase,
+    schema: String,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ) {
     context("on ${db.name}") {
-        withDbInternal(db, tests = tests)
+        withDbInternal(db, schema, tests)
     }
 }
 
-private val resourceAsStream = DBTestUtil::class.java.getResourceAsStream("/db/migration/V1__create_test_tables.sql")
-    ?: throw RuntimeException("schema file not found")
-private val defaultSchema: String =
-    resourceAsStream.bufferedReader()
-        .use(BufferedReader::readText)
-
 private suspend fun ContextDSL<Unit>.withDbInternal(
     db: DBTestUtil.TestDatabase,
-    schema: String = defaultSchema,
+    schema: String,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ) {
     val createDB by dependency({ db.createDB() }) { it.close() }
@@ -206,7 +201,7 @@ private suspend fun ContextDSL<Unit>.withDbInternal(
 fun describeOnAllDbs(
     subject: KClass<*>,
     databases: List<DBTestUtil.TestDatabase>,
-    schema: String = defaultSchema,
+    schema: String,
     disabled: Boolean = false,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ) = describeOnAllDbs("the ${subject.simpleName!!}", databases, schema, disabled, tests)
@@ -214,7 +209,7 @@ fun describeOnAllDbs(
 fun describeOnAllDbs(
     contextName: String,
     databases: List<DBTestUtil.TestDatabase>,
-    schema: String = defaultSchema,
+    schema: String,
     disabled: Boolean = false,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ): List<RootContext> {

@@ -3,6 +3,7 @@ package io.the.orm.test.functional.exp.ar
 import failgood.describe
 import io.the.orm.test.DBS
 import io.the.orm.test.forAllDatabases
+import io.the.orm.test.functional.USERS_SCHEMA
 import java.time.LocalDate
 
 /**
@@ -12,7 +13,7 @@ import java.time.LocalDate
 object ActiveRecordFunctionalOldSyntaxTest {
 
     val context = describe("Active Record API", disabled = true) {
-        forAllDatabases(DBS.databases) { connectionProvider ->
+        forAllDatabases(DBS.databases, USERS_SCHEMA) { connectionProvider ->
             val connection = connectionProvider()
             it("just works") {
                 val user = User(
