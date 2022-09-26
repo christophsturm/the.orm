@@ -3,7 +3,7 @@ package io.the.orm.internal
 import failgood.Test
 import failgood.describe
 import io.the.orm.exp.BelongsTo
-import io.the.orm.exp.HasOne
+import io.the.orm.exp.HasMany
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
@@ -39,12 +39,12 @@ class ClassInfoTest {
                     .containsExactlyInAnyOrder(Pair("user_id", Long::class.java), Pair("id", Long::class.java))
             }
             ignore("know values for references") {
-                expectThat(names.zip(classInfo.values(UserGroup(HasOne(User("name")))).toList()))
+                expectThat(names.zip(classInfo.values(UserGroup(BelongsTo(User("name")))).toList()))
                     .containsExactlyInAnyOrder(Pair("name", "name"), Pair("id", 10))
             }
         }
     }
 }
 
-data class UserGroup(val user: HasOne<User>, val id: Long? = null)
-data class User(val name: String, val groups: BelongsTo<UserGroup>? = null, val id: Long? = null)
+data class UserGroup(val user: BelongsTo<User>, val id: Long? = null)
+data class User(val name: String, val groups: HasMany<UserGroup>? = null, val id: Long? = null)

@@ -2,7 +2,7 @@ package io.the.orm
 
 import failgood.Test
 import failgood.describe
-import io.the.orm.exp.HasOne
+import io.the.orm.exp.BelongsTo
 import io.the.orm.exp.MultiRepo
 
 data class Page(
@@ -14,7 +14,7 @@ data class Page(
     val author: String?
 )
 
-data class Recipe(val id: Long?, val name: String, val description: String?, val page: HasOne<Page>)
+data class Recipe(val id: Long?, val name: String, val description: String?, val page: BelongsTo<Page>)
 
 @Test
 class MultiRepoTest {

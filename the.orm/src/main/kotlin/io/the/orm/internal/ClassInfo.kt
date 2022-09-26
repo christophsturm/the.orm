@@ -4,7 +4,7 @@ import io.r2dbc.spi.Blob
 import io.r2dbc.spi.Clob
 import io.the.orm.RepositoryException
 import io.the.orm.exp.BelongsTo
-import io.the.orm.exp.HasOne
+import io.the.orm.exp.HasMany
 import io.the.orm.util.toSnakeCase
 import io.vertx.sqlclient.data.Numeric
 import java.lang.reflect.ParameterizedType
@@ -78,7 +78,7 @@ internal class ClassInfo<T : Any>(
             else -> throw RuntimeException("unsupported type: ${t.typeName}")
         }
         val kotlinClass = when (val kc = type.classifier as KClass<*>) {
-            HasOne::class, BelongsTo::class -> type.arguments.single().type!!.classifier as KClass<*>
+            BelongsTo::class, HasMany::class -> type.arguments.single().type!!.classifier as KClass<*>
             else -> kc
         }
         val fieldName = parameter.name!!.toSnakeCase()
@@ -135,12 +135,10 @@ private class PKFieldConverter(val idHandler: IDHandler<*>) : FieldConverter {
 
 class BelongsToConverter : FieldConverter {
 
-    override fun dbValueToParameter(value: Any?): Any? {
-        TODO("Not yet implemented")
-    }
+    override fun dbValueToParameter(value: Any?): Any? = null
 
     override fun propertyToDBValue(value: Any?): Any? {
-        TODO("Not yet implemented")
+        return null
     }
 }
 

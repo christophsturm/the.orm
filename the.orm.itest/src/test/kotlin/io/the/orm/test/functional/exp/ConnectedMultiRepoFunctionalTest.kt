@@ -2,6 +2,7 @@ package io.the.orm.test.functional.exp
 
 import failgood.Test
 import io.the.orm.Repository
+import io.the.orm.exp.BelongsTo
 import io.the.orm.exp.ConnectedMultiRepo
 import io.the.orm.exp.TransactionalMultiRepo
 import io.the.orm.query.isEqualTo
@@ -56,16 +57,16 @@ private const val SCHEMA = """
 @Test
 object ConnectedMultiRepoFunctionalTest {
     data class Page(
-        val id: Long?,
         val url: String,
         val title: String?,
         val description: String?,
         val ldJson: String?,
-        val author: String?
+        val author: String?,
+        val id: Long? = null
     )
-    data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
-    data class RecipeIngredient(val id: Long?, val amount: String, val recipeId: Long, val ingredientId: Long)
-    data class Ingredient(val id: Long?, val name: String)
+    data class Recipe(val name: String, val description: String?, val page: BelongsTo<Page>, val id: Long? = null)
+    data class RecipeIngredient(val amount: String, val recipeId: Long, val ingredientId: Long, val id: Long? = null)
+    data class Ingredient(val name: String, val id: Long?)
     val context = describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA, disabled = true) {
         it("works") {
             val connection = it()
@@ -80,12 +81,16 @@ object ConnectedMultiRepoFunctionalTest {
                 // Recipe belongsTo Page
                 // recipe hasMany RecipeIngredient(s)
                 // recipe hasMany Ingredients through RecipeIngredients
-                val page = repo.create(Page(null, "url", "pageTitle", "description", "{}", "author"))
+                val page = repo.create(Page("url", "pageTitle", "description", "{}", "author"))
                 val recipe =
-                    repo.create(Recipe(null, "Spaghetti Carbonara", "Wasser Salzen, Speck dazu, fertig", page))
+                    repo.create(Recipe(
+                        "Spaghetti Carbonara",
+                        "Wasser Salzen, Speck dazu, fertig",
+                        BelongsTo(page)
+                    ))
                 val gurke = findIngredientByName.with(repo.connectionProvider, "gurke")
-                    .findOrCreate { Ingredient(null, "Gurke") }
-                repo.create(RecipeIngredient(null, "100g", recipe.id!!, gurke.id!!))
+                    .findOrCreate { Ingredient("Gurke", null) }
+                repo.create(RecipeIngredient("100g", recipe.id!!, gurke.id!!))
             }
         }
     }
