@@ -1,6 +1,7 @@
 package io.the.orm.test.functional.exp
 
 import failgood.Test
+import io.the.orm.Repository
 import io.the.orm.exp.ConnectedMultiRepo
 import io.the.orm.exp.TransactionalMultiRepo
 import io.the.orm.query.isEqualTo
@@ -69,7 +70,7 @@ object ConnectedMultiRepoFunctionalTest {
         it("works") {
             val connection = it()
             val findIngredientByName =
-                io.the.orm.Repository.create<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
+                Repository.create<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
 
 //                val findPageByUrl = repo.repository.queryFactory.createQuery(Page::url.isEqualTo())
             TransactionalMultiRepo(
