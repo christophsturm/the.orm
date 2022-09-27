@@ -3,8 +3,8 @@ package io.the.orm.internal.classinfo
 import io.r2dbc.spi.Blob
 import io.r2dbc.spi.Clob
 import io.the.orm.RepositoryException
-import io.the.orm.exp.BelongsTo
-import io.the.orm.exp.HasMany
+import io.the.orm.exp.relations.BelongsTo
+import io.the.orm.exp.relations.HasMany
 import io.the.orm.internal.IDHandler
 import io.the.orm.util.toSnakeCase
 import io.vertx.sqlclient.data.Numeric

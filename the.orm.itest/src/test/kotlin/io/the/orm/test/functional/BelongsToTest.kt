@@ -1,9 +1,8 @@
 package io.the.orm.test.functional
 
-import failgood.Test
 import failgood.describe
 
-@Test
+// currently not used, see ConnectedMultiRepoFunctionalTest
 object BelongsToTest {
     data class Page(
         val id: Long?,
@@ -13,6 +12,7 @@ object BelongsToTest {
         val ldJson: String?,
         val author: String?
     )
+
     data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
 
     val tests = describe("belongs to support") {

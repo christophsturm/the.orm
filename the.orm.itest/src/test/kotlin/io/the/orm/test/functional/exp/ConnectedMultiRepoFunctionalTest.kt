@@ -2,9 +2,9 @@ package io.the.orm.test.functional.exp
 
 import failgood.Test
 import io.the.orm.Repository
-import io.the.orm.exp.BelongsTo
 import io.the.orm.exp.ConnectedMultiRepo
 import io.the.orm.exp.TransactionalMultiRepo
+import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -64,30 +64,39 @@ object ConnectedMultiRepoFunctionalTest {
         val author: String?,
         val id: Long? = null
     )
+
     data class Recipe(val name: String, val description: String?, val page: BelongsTo<Page>, val id: Long? = null)
     data class RecipeIngredient(val amount: String, val recipeId: Long, val ingredientId: Long, val id: Long? = null)
     data class Ingredient(val name: String, val id: Long?)
-    val context = describeOnAllDbs(ConnectedMultiRepo::class, listOf(DBS.h2), SCHEMA) {
-        it("works") {
-            val connection = it()
+
+    val context = describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA) {
+        val connection = it()
+        val transactionalMultiRepo = TransactionalMultiRepo(
+            connection,
+            listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
+        )
+        it("can write Entities that have BelongsTo relations") {
+            transactionalMultiRepo.transaction { repo ->
+                repo.create(Page("url", "pageTitle", "description", "{}", "author"))
+            }
+        }
+        it("can write and query") {
             val findIngredientByName =
                 Repository.create<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
 
 //                val findPageByUrl = repo.repository.queryFactory.createQuery(Page::url.isEqualTo())
-            TransactionalMultiRepo(
-                connection,
-                listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
-            ).transaction { repo ->
-                // Recipe belongsTo Page
+            transactionalMultiRepo.transaction { repo ->
                 // recipe hasMany RecipeIngredient(s)
                 // recipe hasMany Ingredients through RecipeIngredients
                 val page = repo.create(Page("url", "pageTitle", "description", "{}", "author"))
                 val recipe =
-                    repo.create(Recipe(
-                        "Spaghetti Carbonara",
-                        "Wasser Salzen, Speck dazu, fertig",
-                        BelongsTo(page)
-                    ))
+                    repo.create(
+                        Recipe(
+                            "Spaghetti Carbonara",
+                            "Wasser Salzen, Speck dazu, fertig",
+                            BelongsTo(page)
+                        )
+                    )
                 val gurke = findIngredientByName.with(repo.connectionProvider, "gurke")
                     .findOrCreate { Ingredient("Gurke", null) }
                 repo.create(RecipeIngredient("100g", recipe.id!!, gurke.id!!))

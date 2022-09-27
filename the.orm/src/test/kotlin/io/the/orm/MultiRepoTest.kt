@@ -2,8 +2,8 @@ package io.the.orm
 
 import failgood.Test
 import failgood.describe
-import io.the.orm.exp.BelongsTo
 import io.the.orm.exp.MultiRepo
+import io.the.orm.exp.relations.BelongsTo
 
 data class Page(
     val id: Long?,

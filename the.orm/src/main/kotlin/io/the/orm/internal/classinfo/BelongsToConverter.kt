@@ -1,6 +1,6 @@
 package io.the.orm.internal.classinfo
 
-import io.the.orm.exp.BelongsTo
+import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.internal.IDHandler
 
 internal class BelongsToConverter<Reference : Any>(private val idHandler: IDHandler<Reference>) : FieldConverter {
