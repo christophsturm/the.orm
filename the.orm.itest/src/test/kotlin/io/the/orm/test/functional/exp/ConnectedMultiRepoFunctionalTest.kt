@@ -77,7 +77,15 @@ object ConnectedMultiRepoFunctionalTest {
         )
         it("can write Entities that have BelongsTo relations") {
             transactionalMultiRepo.transaction { repo ->
-                repo.create(Page("url", "pageTitle", "description", "{}", "author"))
+                val page = repo.create(Page("url", "pageTitle", "description", "{}", "author"))
+                repo.create(
+                    Recipe(
+                        "Spaghetti Carbonara",
+                        "Wasser Salzen, Speck dazu, fertig",
+                        BelongsTo(page)
+                    )
+                )
+
             }
         }
         it("can write and query") {
