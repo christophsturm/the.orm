@@ -4,6 +4,7 @@ import io.the.orm.RepositoryException
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
@@ -18,6 +19,7 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
                     " Entities must be data classes"
             )) as KFunction<T>
     private val idParameter = copyFunction.parameters.single { it.name == "id" }
+    private val idField = kClass.declaredMemberProperties.single { it.name == "id" }
     private val instanceParameter = copyFunction.instanceParameter!!
     private val pkConstructor: KFunction<Any>?
     private val pkIdGetter: KProperty1.Getter<out Any, Any?>?
@@ -40,6 +42,9 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
         return copyFunction.callBy(
             mapOf(idParameter to createId(id), instanceParameter to instance)
         )
+    }
+    fun readId(instance: T): Long {
+        return idField.getter.call(instance) as Long
     }
 
     fun createId(id: Long): Any = pkConstructor?.call(id) ?: id

@@ -138,14 +138,6 @@ private class PKFieldConverter(val idHandler: IDHandler<*>) : FieldConverter {
     override fun propertyToDBValue(value: Any?): Any? = value?.let { idHandler.getId(it) }
 }
 
-internal class BelongsToConverter(private val idHandler: IDHandler<*>) : FieldConverter {
-    override fun dbValueToParameter(value: Any?): Any? = null
-
-    override fun propertyToDBValue(value: Any?): Any? {
-        return value?.let { idHandler.getId((it as BelongsTo<*>).entity) }
-    }
-}
-
 /** converts strings from the database to enums in the mapped class */
 private class EnumConverter(private val clazz: Class<*>) : FieldConverter {
     override fun dbValueToParameter(value: Any?): Any? {
