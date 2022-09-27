@@ -2,7 +2,7 @@ package io.the.orm
 
 import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.LazyResult
-import io.the.orm.internal.ClassInfo
+import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

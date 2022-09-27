@@ -1,6 +1,7 @@
 package io.the.orm.internal
 
 import io.the.orm.dbio.DBConnection
+import io.the.orm.internal.classinfo.ClassInfo
 
 internal class Inserter<T : Any>(
     table: Table,

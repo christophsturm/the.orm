@@ -2,6 +2,7 @@ package io.the.orm.internal
 
 import io.the.orm.RepositoryException
 import io.the.orm.dbio.DBConnection
+import io.the.orm.internal.classinfo.ClassInfo
 import kotlin.reflect.KProperty1
 
 internal class Updater<T : Any>(

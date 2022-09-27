@@ -1,9 +1,10 @@
-package io.the.orm.internal
+package io.the.orm.internal.classinfo
 
 import failgood.Test
 import failgood.describe
 import io.the.orm.exp.BelongsTo
 import io.the.orm.exp.HasMany
+import io.the.orm.internal.IDHandler
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo

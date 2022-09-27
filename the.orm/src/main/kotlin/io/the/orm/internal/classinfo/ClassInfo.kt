@@ -1,10 +1,11 @@
-package io.the.orm.internal
+package io.the.orm.internal.classinfo
 
 import io.r2dbc.spi.Blob
 import io.r2dbc.spi.Clob
 import io.the.orm.RepositoryException
 import io.the.orm.exp.BelongsTo
 import io.the.orm.exp.HasMany
+import io.the.orm.internal.IDHandler
 import io.the.orm.util.toSnakeCase
 import io.vertx.sqlclient.data.Numeric
 import java.lang.reflect.ParameterizedType
@@ -85,7 +86,10 @@ internal class ClassInfo<T : Any>(
         val property = properties[parameter.name]!!
 
         if (otherClasses.contains(kotlinClass)) {
-            FieldInfo(parameter, property, fieldName + "_id", BelongsToConverter(IDHandler(kotlinClass)), Long::class.java)
+            FieldInfo(
+                parameter, property, fieldName + "_id",
+                BelongsToConverter(IDHandler(kotlinClass)), Long::class.java
+            )
         } else when {
             javaClass.isEnum -> FieldInfo(
                 parameter,
@@ -94,6 +98,7 @@ internal class ClassInfo<T : Any>(
                 EnumConverter(javaClass),
                 String::class.java
             )
+
             else -> {
                 val isPK = parameter.name == "id"
                 if (isPK) FieldInfo(

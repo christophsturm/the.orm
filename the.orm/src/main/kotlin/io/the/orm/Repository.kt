@@ -2,12 +2,12 @@ package io.the.orm
 
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException
 import io.the.orm.dbio.ConnectionProvider
-import io.the.orm.internal.ClassInfo
 import io.the.orm.internal.ExceptionInspector
 import io.the.orm.internal.IDHandler
 import io.the.orm.internal.Inserter
 import io.the.orm.internal.Table
 import io.the.orm.internal.Updater
+import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.query.QueryFactory
 import io.the.orm.query.QueryFactory.Companion.isEqualToCondition
 import io.vertx.pgclient.PgException
