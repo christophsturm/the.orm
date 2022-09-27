@@ -6,5 +6,5 @@ package io.the.orm.exp
 Relations support, not yet finished
  */
 
-class BelongsTo<Entity>(val entity: Entity)
-class HasMany<Entity>
+class BelongsTo<Entity : Any>(val entity: Entity)
+class HasMany<Entity : Any>

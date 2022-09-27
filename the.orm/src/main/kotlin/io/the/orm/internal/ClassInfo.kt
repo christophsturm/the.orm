@@ -85,7 +85,7 @@ internal class ClassInfo<T : Any>(
         val property = properties[parameter.name]!!
 
         if (otherClasses.contains(kotlinClass)) {
-            FieldInfo(parameter, property, fieldName + "_id", BelongsToConverter(), Long::class.java)
+            FieldInfo(parameter, property, fieldName + "_id", BelongsToConverter(IDHandler(kotlinClass)), Long::class.java)
         } else when {
             javaClass.isEnum -> FieldInfo(
                 parameter,
@@ -133,12 +133,11 @@ private class PKFieldConverter(val idHandler: IDHandler<*>) : FieldConverter {
     override fun propertyToDBValue(value: Any?): Any? = value?.let { idHandler.getId(it) }
 }
 
-class BelongsToConverter : FieldConverter {
-
+internal class BelongsToConverter(private val idHandler: IDHandler<*>) : FieldConverter {
     override fun dbValueToParameter(value: Any?): Any? = null
 
     override fun propertyToDBValue(value: Any?): Any? {
-        return null
+        return value?.let { idHandler.getId((it as BelongsTo<*>).entity) }
     }
 }
 

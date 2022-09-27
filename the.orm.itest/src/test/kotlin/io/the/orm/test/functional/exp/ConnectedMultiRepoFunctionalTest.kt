@@ -67,7 +67,7 @@ object ConnectedMultiRepoFunctionalTest {
     data class Recipe(val name: String, val description: String?, val page: BelongsTo<Page>, val id: Long? = null)
     data class RecipeIngredient(val amount: String, val recipeId: Long, val ingredientId: Long, val id: Long? = null)
     data class Ingredient(val name: String, val id: Long?)
-    val context = describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA, disabled = true) {
+    val context = describeOnAllDbs(ConnectedMultiRepo::class, listOf(DBS.h2), SCHEMA, disabled = true) {
         it("works") {
             val connection = it()
             val findIngredientByName =
