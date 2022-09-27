@@ -85,7 +85,6 @@ object ConnectedMultiRepoFunctionalTest {
                         BelongsTo(page)
                     )
                 )
-
             }
         }
         it("can write and query") {
