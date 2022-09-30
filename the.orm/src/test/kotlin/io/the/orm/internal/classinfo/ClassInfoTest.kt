@@ -30,18 +30,27 @@ class ClassInfoTest {
                     .containsExactlyInAnyOrder(Pair("name", "name"), Pair("id", null))
             }
         }
-        describe("has one to relations") {
-
-            val classInfo = ClassInfo(UserGroup::class, IDHandler(UserGroup::class), setOf(User::class))
-            val names = classInfo.fieldInfo.map { it.dbFieldName }
+        describe("belongs to relations") {
 
             it("knows field names and types for references") {
+                val classInfo = ClassInfo(UserGroup::class, IDHandler(UserGroup::class), setOf(User::class))
                 expectThat(classInfo.fieldInfo.map { Pair(it.dbFieldName, it.type) })
                     .containsExactlyInAnyOrder(Pair("user_id", Long::class.java), Pair("id", Long::class.java))
             }
-            ignore("know values for references") {
-                expectThat(names.zip(classInfo.values(UserGroup(BelongsTo(User("name")))).toList()))
-                    .containsExactlyInAnyOrder(Pair("name", "name"), Pair("id", 10))
+            it("knows values for references") {
+                val classInfo = ClassInfo(UserGroup::class, IDHandler(UserGroup::class), setOf(User::class))
+                val values = classInfo.values(UserGroup(BelongsTo(User("name", id = 10)), id = 20))
+                val names = classInfo.fieldInfo.map { it.dbFieldName }
+                expectThat(names.zip(values.toList()))
+                    .containsExactlyInAnyOrder(Pair("id", 20L), Pair("user_id", 10L))
+            }
+            ignore("knows referenced classes") {
+                val classInfo = ClassInfo(
+                    UserGroup::class,
+                    IDHandler(UserGroup::class),
+                    setOf(User::class, UnreferencedClass::class)
+                )
+//                assert(classInfo.referencedClasses.single() == User::class)
             }
         }
     }
@@ -49,3 +58,4 @@ class ClassInfoTest {
 
 data class UserGroup(val user: BelongsTo<User>, val id: Long? = null)
 data class User(val name: String, val groups: HasMany<UserGroup>? = null, val id: Long? = null)
+data class UnreferencedClass(val name: String, val id: Long? = null)
