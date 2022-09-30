@@ -16,6 +16,10 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
+/*
+this test is for experimenting with the vertx psql client. it uses the vertx api directly to try out and show
+how things work.
+ */
 @Suppress("SqlNoDataSourceInspection", "SqlResolve")
 @Test
 class VertxTest {
@@ -73,12 +77,12 @@ class VertxTest {
                 val query = client.preparedQuery("SELECT * FROM users WHERE id in ($1, $2)")
                 assert(query.execute(Tuple.from(listOf(1, 2))).await().size() == 2)
             }
-            it("works with any") {
+            it("works with ANY") {
                 val query = client.preparedQuery("SELECT * FROM users WHERE id = ANY($1)")
                 assert(query.execute(Tuple.of(arrayOf(1, 2))).await().size() == 2)
             }
-            ignore("works with unnest") {
-                val query = client.preparedQuery("SELECT * FROM users WHERE id in (select unnest($1))")
+            it("works with unnest") {
+                val query = client.preparedQuery("SELECT * FROM users WHERE id in (select unnest(($1)::bigint[]))")
                 assert(query.execute(Tuple.of(arrayOf(1, 2))).await().size() == 2)
             }
         }
