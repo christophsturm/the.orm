@@ -6,7 +6,6 @@ import io.the.orm.versions.blockHoundVersion
 import io.the.orm.versions.coroutinesVersion
 import io.the.orm.versions.failgoodVersion
 import io.the.orm.versions.log4j2Version
-import io.the.orm.versions.r2dbcVersion
 import io.the.orm.versions.serializationVersion
 import io.the.orm.versions.striktVersion
 import io.the.orm.versions.vertxVersion
@@ -42,10 +41,10 @@ dependencies {
     testImplementation("dev.failgood:failgood:$failgoodVersion")
 
 
-    testRuntimeOnly("io.r2dbc:r2dbc-h2:$r2dbcVersion")
+    testRuntimeOnly("io.r2dbc:r2dbc-h2:0.9.1.RELEASE")
     testRuntimeOnly("com.h2database:h2:2.1.214")
     testRuntimeOnly("org.postgresql:postgresql:42.5.0")
-    testRuntimeOnly("org.postgresql:r2dbc-postgresql:$r2dbcVersion")
+    testRuntimeOnly("org.postgresql:r2dbc-postgresql:0.9.1.RELEASE")
     testImplementation("com.christophsturm:randolf:0.2.2")
 
 
