@@ -59,7 +59,7 @@ class QueryFactoryFunctionalTest {
                         )
                     )
                 }
-                it("can query by condition with on and two parameters") {
+                it("can query by condition with one and two parameters") {
                     val findByUserNameLikeAndBirthdayBetween =
                         repo.queryFactory.createQuery(User::name.like(), User::birthday.between())
 
@@ -70,16 +70,29 @@ class QueryFactoryFunctionalTest {
                         ).find().toCollection(mutableListOf())
                     ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                 }
-                ignore("can query by list parameters") {
+                ignore("can query by list parameters with unnest") {
                     fun <T> KProperty1<T, PK?>.`in`(): QueryFactory.Condition<Array<Long>> =
-                        QueryFactory.Condition("in unnest(array(?))", this)
+                        QueryFactory.Condition("in (select unnest(?))", this)
 
                     val findIdIn = repo.queryFactory.createQuery(User::id.`in`())
 
                     expectThat(
                         findIdIn.with(
                             connectionProvider,
-                            arrayOf(usersPerMonth[4].id!!.id, usersPerMonth[4].id!!.id)
+                            arrayOf(usersPerMonth[4].id!!.id, usersPerMonth[5].id!!.id)
+                        ).find().toCollection(mutableListOf())
+                    ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
+                }
+                it("can query by list parameters") {
+                    fun <T> KProperty1<T, PK?>.`in`(): QueryFactory.Condition<Array<Long>> =
+                        QueryFactory.Condition("= ANY(?)", this)
+
+                    val findIdIn = repo.queryFactory.createQuery(User::id.`in`())
+
+                    expectThat(
+                        findIdIn.with(
+                            connectionProvider,
+                            arrayOf(usersPerMonth[4].id!!.id, usersPerMonth[5].id!!.id)
                         ).find().toCollection(mutableListOf())
                     ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                 }

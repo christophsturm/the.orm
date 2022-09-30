@@ -62,5 +62,25 @@ class VertxTest {
             expectThat(result.columnsNames()).containsExactly("id")
             expectThat(result.single().get(Integer::class.java, "id").toInt()).isEqualTo(1)
         }
+        describe("querying by lists") {
+            // first we insert 3 rows
+            val query = client.preparedQuery("insert into users(name) values ($1) returning id")
+            val ids = listOf("ton", "steine", "scherben").map {
+                query.execute(Tuple.of(it)).await().single().get(Integer::class.java, "id").toInt()
+            }
+            assert(ids == listOf(1, 2, 3))
+            it("works with one parameter per item") {
+                val query = client.preparedQuery("SELECT * FROM users WHERE id in ($1, $2)")
+                assert(query.execute(Tuple.from(listOf(1, 2))).await().size() == 2)
+            }
+            it("works with any") {
+                val query = client.preparedQuery("SELECT * FROM users WHERE id = ANY($1)")
+                assert(query.execute(Tuple.of(arrayOf(1, 2))).await().size() == 2)
+            }
+            ignore("works with unnest") {
+                val query = client.preparedQuery("SELECT * FROM users WHERE id in (select unnest($1))")
+                assert(query.execute(Tuple.of(arrayOf(1, 2))).await().size() == 2)
+            }
+        }
     }
 }
