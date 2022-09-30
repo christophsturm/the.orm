@@ -19,6 +19,7 @@ interface PK {
     val id: Long
 }
 
+data class AnyPK(override val id: Long) : PK
 interface Repository<T : Any> {
     companion object {
         /** creates a Repo for the entity <T> */
@@ -72,7 +73,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
     private val updater = Updater(table, idHandler, idProperty, classInfo)
 
     override val queryFactory: QueryFactory<T> =
-        QueryFactory(table, kClass, ResultMapperImpl(classInfo), this, idHandler, idProperty)
+        QueryFactory(table, kClass, ResultMapperImpl(classInfo), this, idHandler, idProperty, classInfo)
 
     /**
      * creates a new record in the database.

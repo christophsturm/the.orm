@@ -7,6 +7,7 @@ import io.the.orm.dbio.DBConnection
 import io.the.orm.dbio.DBResult
 import io.the.orm.internal.IDHandler
 import io.the.orm.internal.Table
+import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.util.toIndexedPlaceholders
 import io.the.orm.util.toSnakeCase
 import kotlinx.coroutines.flow.Flow
@@ -23,7 +24,8 @@ class QueryFactory<T : Any> internal constructor(
     private val resultMapper: ResultMapper<T>,
     private val repository: Repository<T>,
     private val idHandler: IDHandler<T>,
-    private val idProperty: KProperty1<T, Any>
+    private val idProperty: KProperty1<T, Any>,
+    private val classInfo: ClassInfo<T>
 ) {
     companion object {
         fun <T : Any, V> isNullCondition(property: KProperty1<T, V>): Condition<Unit> =
@@ -36,11 +38,11 @@ class QueryFactory<T : Any> internal constructor(
             Condition<V> = Condition("=?", property)
     }
 
-    private val snakeCaseForProperty =
+    private val dbFieldNameForProperty =
         kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
 
     private val selectPrefix =
-        "select ${snakeCaseForProperty.values.joinToString { it }} from ${table.name} where "
+        "select ${dbFieldNameForProperty.values.joinToString { it }} from ${table.name} where "
     private val deletePrefix = "delete from ${table.name} where "
 
     fun <P1 : Any> createQuery(p1: Condition<P1>): OneParameterQuery<P1> =
@@ -84,7 +86,7 @@ class QueryFactory<T : Any> internal constructor(
     inner class Query internal constructor(vararg conditions: Condition<*>) {
         private val queryString =
             conditions.joinToString(separator = " and ") {
-                "${snakeCaseForProperty[it.prop]} ${it.conditionString}"
+                "${dbFieldNameForProperty[it.prop]} ${it.conditionString}"
             }.toIndexedPlaceholders()
 
         fun with(connection: ConnectionProvider, vararg parameter: Any): QueryWithParameters {

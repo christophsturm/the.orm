@@ -7,6 +7,7 @@ import io.the.orm.ResultMapper
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.IDHandler
 import io.the.orm.internal.Table
+import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.test.TestObjects.Entity
 
 @Test
@@ -14,7 +15,15 @@ class QueryFactoryTest {
     val context = describe(QueryFactory::class) {
         val resultMapper = mock<ResultMapper<Entity>>()
         val queryFactory =
-            QueryFactory(Table("table"), Entity::class, resultMapper, mock(), IDHandler(Entity::class), mock())
+            QueryFactory(
+                Table("table"),
+                Entity::class,
+                resultMapper,
+                mock(),
+                IDHandler(Entity::class),
+                mock(),
+                ClassInfo(Entity::class, IDHandler(Entity::class), setOf())
+            )
         val connection = mock<ConnectionProvider>()
         val condition = Entity::id.isEqualTo()
         test("can create query with one parameter") {

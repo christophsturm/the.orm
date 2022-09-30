@@ -1,5 +1,6 @@
 package io.the.orm.exp
 
+import io.the.orm.PK
 import io.the.orm.Repository
 import io.the.orm.RepositoryImpl
 import io.the.orm.dbio.ConnectionProvider
@@ -13,6 +14,9 @@ class MultiRepo(classes: List<KClass<out Any>>) {
     suspend inline fun <reified T : Any> create(connectionProvider: ConnectionProvider, entity: T): T =
         getRepo(T::class).create(connectionProvider, entity)
 
+    suspend inline fun <reified T : Any> findById(connectionProvider: ConnectionProvider, id: PK): T =
+        getRepo(T::class).findById(connectionProvider, id)
+
     @Suppress("UNCHECKED_CAST")
     inline fun <reified T : Any> getRepo(kClass: KClass<T>) = repos[kClass] as Repository<T>
 
@@ -24,6 +28,7 @@ open class ConnectedMultiRepo internal constructor(
     val repo: MultiRepo
 ) {
     suspend inline fun <reified T : Any> create(entity: T): T = repo.create(connectionProvider, entity)
+    suspend inline fun <reified T : Any> findById(id: PK): T = repo.findById(connectionProvider, id)
 }
 
 class TransactionalMultiRepo(

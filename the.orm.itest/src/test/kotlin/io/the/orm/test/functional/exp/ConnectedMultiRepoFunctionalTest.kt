@@ -1,6 +1,7 @@
 package io.the.orm.test.functional.exp
 
 import failgood.Test
+import io.the.orm.AnyPK
 import io.the.orm.Repository
 import io.the.orm.exp.ConnectedMultiRepo
 import io.the.orm.exp.TransactionalMultiRepo
@@ -74,7 +75,7 @@ object ConnectedMultiRepoFunctionalTest {
     )
     data class Ingredient(val name: String, val id: Long? = null)
 
-    val context = describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA) {
+    val context = describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA, disabled = true) {
         val connection = it()
         val transactionalMultiRepo = TransactionalMultiRepo(
             connection,
@@ -111,7 +112,9 @@ object ConnectedMultiRepoFunctionalTest {
                     )
                 val gurke = findIngredientByName.with(repo.connectionProvider, "gurke")
                     .findOrCreate { Ingredient("Gurke") }
-                repo.create(RecipeIngredient("100g", recipe, gurke))
+                val createdIngredient = repo.create(RecipeIngredient("100g", recipe, gurke))
+                val reloadedIngredient = repo.findById<RecipeIngredient>(AnyPK(createdIngredient.id!!))
+                assert(createdIngredient == reloadedIngredient)
             }
         }
     }
