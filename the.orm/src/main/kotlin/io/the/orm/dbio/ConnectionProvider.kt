@@ -3,31 +3,8 @@ package io.the.orm.dbio
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
 
-class TransactionalConnectionProvider(val DBConnectionFactory: DBConnectionFactory) : TransactionProvider {
-    override suspend fun <T> transaction(function: suspend (ConnectionProvider) -> T): T {
-        val connection = DBConnectionFactory.getConnection()
-        val transaction = connection.beginTransaction()
-        val result = try {
-            function(FixedConnectionProvider(connection))
-        } catch (e: Exception) {
-            transaction.rollbackTransaction()
-            throw e
-        }
-        transaction.commitTransaction()
-        connection.close()
-        return result
-    }
-
-    override suspend fun <T> withConnection(function: suspend (DBConnection) -> T): T {
-        val connection = DBConnectionFactory.getConnection()
-        return try {
-            function(connection)
-        } catch (e: Exception) {
-            throw e
-        } finally {
-            connection.close()
-        }
-    }
+interface ConnectionProvider {
+    suspend fun <T> withConnection(function: suspend (DBConnection) -> T): T
 }
 
 class FixedConnectionProvider(val connection: DBConnection) : ConnectionProvider {
@@ -36,18 +13,6 @@ class FixedConnectionProvider(val connection: DBConnection) : ConnectionProvider
 
 interface TransactionProvider : ConnectionProvider {
     suspend fun <T> transaction(function: suspend (ConnectionProvider) -> T): T
-}
-
-interface ConnectionProvider {
-    suspend fun <T> withConnection(function: suspend (DBConnection) -> T): T
-}
-
-interface DBConnection {
-    fun createStatement(sql: String): Statement
-    fun createInsertStatement(sql: String): Statement
-    suspend fun beginTransaction(): DBTransaction
-    suspend fun close()
-    suspend fun execute(sql: String)
 }
 
 interface Statement {
