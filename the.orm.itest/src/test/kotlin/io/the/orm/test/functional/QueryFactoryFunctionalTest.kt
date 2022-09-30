@@ -70,9 +70,10 @@ class QueryFactoryFunctionalTest {
                         ).find().toCollection(mutableListOf())
                     ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                 }
+                // works on R2DBC psql and vertx psql but not on H2
                 ignore("can query by list parameters with unnest") {
                     fun <T> KProperty1<T, PK?>.`in`(): QueryFactory.Condition<Array<Long>> =
-                        QueryFactory.Condition("in (select unnest(?))", this)
+                        QueryFactory.Condition("in (select unnest((?)::bigint[]))", this)
 
                     val findIdIn = repo.queryFactory.createQuery(User::id.`in`())
 
@@ -83,7 +84,7 @@ class QueryFactoryFunctionalTest {
                         ).find().toCollection(mutableListOf())
                     ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                 }
-                it("can query by list parameters") {
+                it("can query by list parameters with ANY") {
                     fun <T> KProperty1<T, PK?>.`in`(): QueryFactory.Condition<Array<Long>> =
                         QueryFactory.Condition("= ANY(?)", this)
 
