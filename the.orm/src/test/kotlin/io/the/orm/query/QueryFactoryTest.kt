@@ -17,7 +17,6 @@ class QueryFactoryTest {
         val queryFactory =
             QueryFactory(
                 Table("table"),
-                Entity::class,
                 resultMapper,
                 mock(),
                 IDHandler(Entity::class),

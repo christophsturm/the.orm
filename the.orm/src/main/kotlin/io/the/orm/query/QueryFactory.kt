@@ -9,23 +9,19 @@ import io.the.orm.internal.IDHandler
 import io.the.orm.internal.Table
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.util.toIndexedPlaceholders
-import io.the.orm.util.toSnakeCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toCollection
-import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.declaredMemberProperties
 
 class QueryFactory<T : Any> internal constructor(
     table: Table,
-    kClass: KClass<T>,
     private val resultMapper: ResultMapper<T>,
     private val repository: Repository<T>,
     private val idHandler: IDHandler<T>,
     private val idProperty: KProperty1<T, Any>,
-    private val classInfo: ClassInfo<T>
+    classInfo: ClassInfo<T>
 ) {
     companion object {
         fun <T : Any, V> isNullCondition(property: KProperty1<T, V>): Condition<Unit> =
@@ -39,10 +35,10 @@ class QueryFactory<T : Any> internal constructor(
     }
 
     private val dbFieldNameForProperty =
-        kClass.declaredMemberProperties.associateBy({ it }, { it.name.toSnakeCase() })
+        classInfo.fieldInfo.associateBy({ it.property }, { it.dbFieldName })
 
     private val selectPrefix =
-        "select ${dbFieldNameForProperty.values.joinToString { it }} from ${table.name} where "
+        "select ${classInfo.fieldInfo.joinToString { it.dbFieldName }} from ${table.name} where "
     private val deletePrefix = "delete from ${table.name} where "
 
     fun <P1 : Any> createQuery(p1: Condition<P1>): OneParameterQuery<P1> =

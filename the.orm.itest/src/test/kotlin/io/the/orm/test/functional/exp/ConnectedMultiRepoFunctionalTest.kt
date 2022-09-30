@@ -75,7 +75,7 @@ object ConnectedMultiRepoFunctionalTest {
     )
     data class Ingredient(val name: String, val id: Long? = null)
 
-    val context = describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA, disabled = true) {
+    val context = describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA) {
         val connection = it()
         val transactionalMultiRepo = TransactionalMultiRepo(
             connection,
