@@ -44,7 +44,11 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
         )
     }
     fun readId(instance: T): Long {
-        return idField.getter.call(instance) as Long
+        when (val idResult = idField.getter.call(instance)) {
+            is Long -> return idResult
+            null -> throw RuntimeException("id is not yet set for $instance")
+            else -> throw RuntimeException("unknown pk type for $instance")
+        }
     }
 
     fun createId(id: Long): Any = pkConstructor?.call(id) ?: id
