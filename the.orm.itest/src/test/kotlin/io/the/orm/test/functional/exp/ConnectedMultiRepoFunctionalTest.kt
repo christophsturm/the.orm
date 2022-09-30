@@ -66,8 +66,13 @@ object ConnectedMultiRepoFunctionalTest {
     )
 
     data class Recipe(val name: String, val description: String?, val page: BelongsTo<Page>, val id: Long? = null)
-    data class RecipeIngredient(val amount: String, val recipeId: Long, val ingredientId: Long, val id: Long? = null)
-    data class Ingredient(val name: String, val id: Long?)
+    data class RecipeIngredient(
+        val amount: String,
+        val recipe: Recipe,
+        val ingredient: Ingredient,
+        val id: Long? = null
+    )
+    data class Ingredient(val name: String, val id: Long? = null)
 
     val context = describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA) {
         val connection = it()
@@ -105,8 +110,8 @@ object ConnectedMultiRepoFunctionalTest {
                         )
                     )
                 val gurke = findIngredientByName.with(repo.connectionProvider, "gurke")
-                    .findOrCreate { Ingredient("Gurke", null) }
-                repo.create(RecipeIngredient("100g", recipe.id!!, gurke.id!!))
+                    .findOrCreate { Ingredient("Gurke") }
+                repo.create(RecipeIngredient("100g", recipe, gurke))
             }
         }
     }
