@@ -1,16 +1,16 @@
-package io.the.orm
+package io.the.orm.mapper
 
+import io.the.orm.RepositoryException
 import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.LazyResult
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-interface ResultMapper<T : Any> {
-    suspend fun mapQueryResult(queryResult: DBResult): Flow<T>
-}
-
-internal class ResultMapperImpl<T : Any>(
+/**
+ * This mapper does not support fetching relationships, but it avoids having to convert the flow to a list.
+ */
+internal class StreamingResultMapper<T : Any>(
     private val classInfo: ClassInfo<T>
 ) : ResultMapper<T> {
 
