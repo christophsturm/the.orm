@@ -23,16 +23,6 @@ class QueryFactory<T : Any> internal constructor(
     private val idProperty: KProperty1<T, Any>,
     classInfo: ClassInfo<T>
 ) {
-    companion object {
-        fun <T : Any, V> isNullCondition(property: KProperty1<T, V>): Condition<Unit> =
-            Condition("is null", property)
-
-        fun <T : Any> likeCondition(property: KProperty1<T, String?>): Condition<String> =
-            Condition("like(?)", property)
-
-        fun <T : Any, V : Any> isEqualToCondition(property: KProperty1<T, V?>):
-            Condition<V> = Condition("=?", property)
-    }
 
     private val dbFieldNameForProperty =
         classInfo.fieldInfo.associateBy({ it.property }, { it.dbFieldName })

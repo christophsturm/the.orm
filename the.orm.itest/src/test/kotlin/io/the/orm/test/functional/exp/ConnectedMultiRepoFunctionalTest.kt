@@ -73,36 +73,19 @@ object ConnectedMultiRepoFunctionalTest {
         val ingredient: Ingredient,
         val id: Long? = null
     )
+
     data class Ingredient(val name: String, val id: Long? = null)
 
-    val context = describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA) {
-        val connection = it()
-        val transactionalMultiRepo = TransactionalMultiRepo(
-            connection,
-            listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
-        )
-        it("can write Entities that have BelongsTo relations") {
-            transactionalMultiRepo.transaction { repo ->
-                val page = repo.create(Page("url", "pageTitle", "description", "{}", "author"))
-                repo.create(
-                    Recipe(
-                        "Spaghetti Carbonara",
-                        "Wasser Salzen, Speck dazu, fertig",
-                        BelongsTo(page)
-                    )
-                )
-            }
-        }
-        it("can write and query") {
-            val findIngredientByName =
-                Repository.create<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
-
-//                val findPageByUrl = repo.repository.queryFactory.createQuery(Page::url.isEqualTo())
-            transactionalMultiRepo.transaction { repo ->
-                // recipe hasMany RecipeIngredient(s)
-                // recipe hasMany Ingredients through RecipeIngredients
-                val page = repo.create(Page("url", "pageTitle", "description", "{}", "author"))
-                val recipe =
+    val context =
+        describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA, disabled = System.getenv("NEXT") == null) {
+            val connection = it()
+            val transactionalMultiRepo = TransactionalMultiRepo(
+                connection,
+                listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
+            )
+            it("can write Entities that have BelongsTo relations") {
+                transactionalMultiRepo.transaction { repo ->
+                    val page = repo.create(Page("url", "pageTitle", "description", "{}", "author"))
                     repo.create(
                         Recipe(
                             "Spaghetti Carbonara",
@@ -110,12 +93,31 @@ object ConnectedMultiRepoFunctionalTest {
                             BelongsTo(page)
                         )
                     )
-                val gurke = findIngredientByName.with(repo.connectionProvider, "gurke")
-                    .findOrCreate { Ingredient("Gurke") }
-                val createdIngredient = repo.create(RecipeIngredient("100g", recipe, gurke))
-                val reloadedIngredient = repo.findById<RecipeIngredient>(AnyPK(createdIngredient.id!!))
-                assert(createdIngredient == reloadedIngredient)
+                }
+            }
+            it("can write and query") {
+                val findIngredientByName =
+                    Repository.create<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
+
+//                val findPageByUrl = repo.repository.queryFactory.createQuery(Page::url.isEqualTo())
+                transactionalMultiRepo.transaction { repo ->
+                    // recipe hasMany RecipeIngredient(s)
+                    // recipe hasMany Ingredients through RecipeIngredients
+                    val page = repo.create(Page("url", "pageTitle", "description", "{}", "author"))
+                    val recipe =
+                        repo.create(
+                            Recipe(
+                                "Spaghetti Carbonara",
+                                "Wasser Salzen, Speck dazu, fertig",
+                                BelongsTo(page)
+                            )
+                        )
+                    val gurke = findIngredientByName.with(repo.connectionProvider, "gurke")
+                        .findOrCreate { Ingredient("Gurke") }
+                    val createdIngredient = repo.create(RecipeIngredient("100g", recipe, gurke))
+                    val reloadedIngredient = repo.findById<RecipeIngredient>(AnyPK(createdIngredient.id!!))
+                    assert(createdIngredient == reloadedIngredient)
+                }
             }
         }
-    }
 }

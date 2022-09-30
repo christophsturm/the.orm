@@ -8,8 +8,8 @@ import io.the.orm.internal.Inserter
 import io.the.orm.internal.Table
 import io.the.orm.internal.Updater
 import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.query.Conditions.isEqualToCondition
 import io.the.orm.query.QueryFactory
-import io.the.orm.query.QueryFactory.Companion.isEqualToCondition
 import io.vertx.pgclient.PgException
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
