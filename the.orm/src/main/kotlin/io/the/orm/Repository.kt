@@ -8,6 +8,8 @@ import io.the.orm.internal.Inserter
 import io.the.orm.internal.Table
 import io.the.orm.internal.Updater
 import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.mapper.EntityCreator
+import io.the.orm.mapper.ResultResolver
 import io.the.orm.mapper.StreamingResultMapper
 import io.the.orm.query.Conditions.isEqualToCondition
 import io.the.orm.query.QueryFactory
@@ -74,7 +76,14 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
     private val updater = Updater(table, idHandler, idProperty, classInfo)
 
     override val queryFactory: QueryFactory<T> =
-        QueryFactory(table, StreamingResultMapper(classInfo), this, idHandler, idProperty, classInfo)
+        QueryFactory(
+            table,
+            StreamingResultMapper(ResultResolver(classInfo), EntityCreator(classInfo)),
+            this,
+            idHandler,
+            idProperty,
+            classInfo
+        )
 
     /**
      * creates a new record in the database.
