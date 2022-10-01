@@ -15,26 +15,27 @@ internal class StreamingResultMapper<T : Any>(
 ) : ResultMapper<T> {
 
     override suspend fun mapQueryResult(queryResult: DBResult): Flow<T> {
-        data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: LazyResult<Any?>)
+        data class LazyResultPair(val fieldInfo: ClassInfo.FieldInfo, val lazyResult: LazyResult<Any?>)
+        data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: Any?)
 
         val parameters: Flow<List<ResultPair>> = queryResult.map { row ->
-            classInfo.fieldInfo.map { entry ->
+            classInfo.fieldInfo.map { fieldInfo ->
                 val result = try {
-                    row.getLazy(entry.dbFieldName)
+                    row.getLazy(fieldInfo.dbFieldName)
                 } catch (e: Exception) {
-                    throw RepositoryException("error getting value for field ${entry.dbFieldName}", e)
+                    throw RepositoryException("error getting value for field ${fieldInfo.dbFieldName}", e)
                 }
-                ResultPair(entry, result)
+                LazyResultPair(fieldInfo, try {
+                    result
+                } catch (e: Exception) {
+                        throw RepositoryException("error resolving value for field ${fieldInfo.dbFieldName}", e)
+                    }
+                )
             }
-        }
+        }.map { it.map { ResultPair(it.fieldInfo, it.lazyResult.resolve()) } }
         return parameters.map { values ->
             values.associateTo(HashMap()) { (fieldInfo, result) ->
-                val resolvedValue: Any? = try {
-                    result.resolve()
-                } catch (e: Exception) {
-                    throw RepositoryException("error resolving value for field ${fieldInfo.dbFieldName}", e)
-                }
-                val value = fieldInfo.fieldConverter.dbValueToParameter(resolvedValue)
+                val value = fieldInfo.fieldConverter.dbValueToParameter(result)
                 Pair(fieldInfo.constructorParameter, value)
             }
         }.map {
