@@ -29,28 +29,25 @@ class ClassInfoTest {
                 expectThat(names.zip(classInfo.values(Entity("name", null)).toList()))
                     .containsExactlyInAnyOrder(Pair("name", "name"), Pair("id", null))
             }
+            it("know that it has no relations") {
+                assert(!classInfo.hasRelations)
+            }
         }
         describe("belongs to relations") {
+            val classInfo = ClassInfo(UserGroup::class, IDHandler(UserGroup::class), setOf(User::class))
 
             it("knows field names and types for references") {
-                val classInfo = ClassInfo(UserGroup::class, IDHandler(UserGroup::class), setOf(User::class))
                 expectThat(classInfo.fieldInfo.map { Pair(it.dbFieldName, it.type) })
                     .containsExactlyInAnyOrder(Pair("user_id", Long::class.java), Pair("id", Long::class.java))
             }
             it("knows values for references") {
-                val classInfo = ClassInfo(UserGroup::class, IDHandler(UserGroup::class), setOf(User::class))
                 val values = classInfo.values(UserGroup(BelongsTo(User("name", id = 10)), id = 20))
                 val names = classInfo.fieldInfo.map { it.dbFieldName }
                 expectThat(names.zip(values.toList()))
                     .containsExactlyInAnyOrder(Pair("id", 20L), Pair("user_id", 10L))
             }
-            ignore("knows referenced classes") {
-                val classInfo = ClassInfo(
-                    UserGroup::class,
-                    IDHandler(UserGroup::class),
-                    setOf(User::class, UnreferencedClass::class)
-                )
-//                assert(classInfo.referencedClasses.single() == User::class)
+            it("knows if entity has relations") {
+                assert(classInfo.hasRelations)
             }
         }
     }
