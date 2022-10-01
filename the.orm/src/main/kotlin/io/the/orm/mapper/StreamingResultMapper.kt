@@ -28,7 +28,7 @@ internal class StreamingResultMapper<T : Any>(
             }
         }
         return parameters.map { values ->
-            val resolvedParameters = values.associateTo(HashMap()) { (fieldInfo, result) ->
+            values.associateTo(HashMap()) { (fieldInfo, result) ->
                 val resolvedValue: Any? = try {
                     result.resolve()
                 } catch (e: Exception) {
@@ -37,11 +37,12 @@ internal class StreamingResultMapper<T : Any>(
                 val value = fieldInfo.fieldConverter.dbValueToParameter(resolvedValue)
                 Pair(fieldInfo.constructorParameter, value)
             }
+        }.map {
             try {
-                classInfo.constructor.callBy(resolvedParameters)
+                classInfo.constructor.callBy(it)
             } catch (e: IllegalArgumentException) {
                 throw RepositoryException(
-                    "error invoking constructor for ${classInfo.name}. parameters:$resolvedParameters", e
+                    "error invoking constructor for ${classInfo.name}. parameters:$it", e
                 )
             }
         }
