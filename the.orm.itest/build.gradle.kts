@@ -17,7 +17,9 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter") version "3.12.0"
+    id("com.bnorm.power.kotlin-power-assert")
 }
+
 
 
 
@@ -73,4 +75,8 @@ tasks.withType<Test> {
 configure<com.adarshr.gradle.testlogger.TestLoggerExtension> {
     theme = MOCHA_PARALLEL
     showSimpleNames = true
+}
+
+configure<com.bnorm.power.PowerAssertGradleExtension> {
+    functions = listOf("kotlin.assert", "kotlin.test.assertTrue", "kotlin.test.assertNotNull")
 }

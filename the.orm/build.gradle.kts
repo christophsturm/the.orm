@@ -16,6 +16,7 @@ plugins {
     `maven-publish`
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter") version "3.12.0"
+    id("com.bnorm.power.kotlin-power-assert")
 }
 
 
@@ -62,3 +63,6 @@ tasks.check {
     dependsOn(testMain)
 }
 
+configure<com.bnorm.power.PowerAssertGradleExtension> {
+    functions = listOf("kotlin.assert", "kotlin.test.assertTrue", "kotlin.test.assertNotNull")
+}
