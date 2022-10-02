@@ -28,7 +28,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    api("io.r2dbc:r2dbc-spi:0.9.1.RELEASE")
+    api("io.r2dbc:r2dbc-spi:1.0.0.RELEASE")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation("io.r2dbc:r2dbc-pool:0.9.2.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
