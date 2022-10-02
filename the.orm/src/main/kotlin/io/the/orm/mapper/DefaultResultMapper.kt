@@ -18,5 +18,5 @@ internal class DefaultResultMapper<Entity : Any>(
 }
 internal data class LazyResultPair(val fieldInfo: ClassInfo.FieldInfo, val lazyResult: LazyResult<Any?>)
 internal data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val valueFromDb: Any?)
-internal data class LazyResultLine(val fields: List<LazyResultPair>, val relations: List<LazyResultPair>)
-internal data class ResultLine(val fields: List<ResultPair>, val relations: List<ResultPair>)
+internal data class LazyResultLine(val fields: List<LazyResult<*>>, val relations: List<LazyResult<*>>)
+internal data class ResultLine(val fields: List<Any?>, val relations: List<Any?>)
