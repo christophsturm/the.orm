@@ -5,11 +5,11 @@ package io.the.orm.test.functional
 import failgood.Test
 import io.the.orm.ConnectedRepository
 import io.the.orm.NotFoundException
-import io.the.orm.PK
 import io.the.orm.Repository
 import io.the.orm.query.QueryFactory
 import io.the.orm.query.between
 import io.the.orm.query.isEqualTo
+import io.the.orm.query.isIn
 import io.the.orm.query.isNull
 import io.the.orm.query.like
 import io.the.orm.test.DBS
@@ -72,7 +72,7 @@ class QueryFactoryFunctionalTest {
                 }
                 // works on R2DBC psql and vertx psql but not on H2
                 ignore("can query by list parameters with unnest") {
-                    fun <T> KProperty1<T, PK?>.`in`(): QueryFactory.Condition<Array<Long>> =
+                    fun <T> KProperty1<T, Long?>.`in`(): QueryFactory.Condition<Array<Long>> =
                         QueryFactory.Condition("in (select unnest((?)::bigint[]))", this)
 
                     val findIdIn = repo.queryFactory.createQuery(User::id.`in`())
@@ -80,20 +80,18 @@ class QueryFactoryFunctionalTest {
                     expectThat(
                         findIdIn.with(
                             connectionProvider,
-                            arrayOf(usersPerMonth[4].id!!.id, usersPerMonth[5].id!!.id)
+                            arrayOf(usersPerMonth[4].id!!, usersPerMonth[5].id!!)
                         ).find().toCollection(mutableListOf())
                     ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                 }
                 it("can query by list parameters with ANY") {
-                    fun <T> KProperty1<T, PK?>.`in`(): QueryFactory.Condition<Array<Long>> =
-                        QueryFactory.Condition("= ANY(?)", this)
 
-                    val findIdIn = repo.queryFactory.createQuery(User::id.`in`())
+                    val findIdIn = repo.queryFactory.createQuery(User::id.isIn())
 
                     expectThat(
                         findIdIn.with(
                             connectionProvider,
-                            arrayOf(usersPerMonth[4].id!!.id, usersPerMonth[5].id!!.id)
+                            arrayOf(usersPerMonth[4].id!!, usersPerMonth[5].id!!)
                         ).find().toCollection(mutableListOf())
                     ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                 }

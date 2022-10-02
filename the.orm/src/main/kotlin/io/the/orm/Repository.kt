@@ -14,15 +14,13 @@ import io.the.orm.mapper.StreamingEntityCreator
 import io.the.orm.query.Conditions.isEqualToCondition
 import io.the.orm.query.QueryFactory
 import io.vertx.pgclient.PgException
+import kotlinx.coroutines.flow.Flow
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
-interface PK {
-    val id: Long
-}
+typealias PK = Long
 
-data class AnyPK(override val id: Long) : PK
 interface Repository<T : Any> {
     companion object {
         /** creates a Repo for the entity <T> */
@@ -52,6 +50,13 @@ interface Repository<T : Any> {
      * @param id the primary key of the object to load
      */
     suspend fun findById(connectionProvider: ConnectionProvider, id: PK): T
+
+    /**
+     * loads an objects by id
+     *
+     * @param id the primary key of the object to load
+     */
+    suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<Long>): Flow<T>
 }
 
 class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> = emptySet()) : Repository<T> {
@@ -114,6 +119,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
     }
 
     private val byIdQuery = queryFactory.createQuery(isEqualToCondition(idProperty))
+//    private val byIdsQuery = queryFactory.createQuery(isInCondition(idProperty))
 
     /**
      * loads an object from the database
@@ -122,9 +128,13 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
      */
     override suspend fun findById(connectionProvider: ConnectionProvider, id: PK): T {
         return try {
-            byIdQuery.with(connectionProvider, id.id).findSingle()
+            byIdQuery.with(connectionProvider, id).findSingle()
         } catch (e: NoSuchElementException) {
-            throw NotFoundException("No ${table.name} found for id ${id.id}")
+            throw NotFoundException("No ${table.name} found for id $id")
         }
+    }
+
+    override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<Long>): Flow<T> {
+        TODO("Not yet implemented")
     }
 }

@@ -1,10 +1,8 @@
 package io.the.orm.test.functional
 
-import io.the.orm.PK
 import java.math.BigDecimal
 import java.time.LocalDate
 
-data class UserPK(override val id: Long) : PK
 enum class Color {
     RED,
 
@@ -13,7 +11,7 @@ enum class Color {
 }
 
 data class User(
-    val id: UserPK? = null,
+    val id: Long? = null,
     val name: String,
     val email: String?,
     val isCool: Boolean? = false,

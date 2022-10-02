@@ -12,6 +12,9 @@ fun <T : Any> KProperty1<T, String?>.like(): QueryFactory.Condition<String> =
 fun <T : Any, V : Any> KProperty1<T, V?>.isEqualTo(): QueryFactory.Condition<V> =
     Conditions.isEqualToCondition(this)
 
+fun <T : Any, V : Any> KProperty1<T, V?>.isIn(): QueryFactory.Condition<Array<V>> =
+    QueryFactory.Condition("= ANY(?)", this)
+
 fun <T : Any> KProperty1<T, LocalDate?>.between(): QueryFactory.Condition<Pair<LocalDate, LocalDate>> =
     QueryFactory.Condition("between ? and ?", this)
 

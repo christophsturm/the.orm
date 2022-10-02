@@ -34,9 +34,7 @@ class ConnectedRepositoryTest {
                 verify(repo) { update(connection, entity) }
             }
             test("findById call") {
-                data class MyPK(override val id: Long) : PK
-
-                val id = MyPK(1)
+                val id = 1L
                 subject.findById(id)
                 verify(repo) { findById(connection, id) }
             }

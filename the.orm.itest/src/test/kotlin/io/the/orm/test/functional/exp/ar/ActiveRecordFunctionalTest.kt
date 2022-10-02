@@ -1,13 +1,13 @@
 package io.the.orm.test.functional.exp.ar
 
 import failgood.Test
+import io.the.orm.PK
 import io.the.orm.RepositoryImpl
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 import io.the.orm.test.functional.Color
 import io.the.orm.test.functional.USERS_SCHEMA
-import io.the.orm.test.functional.UserPK
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -15,7 +15,7 @@ import java.time.LocalDate
 lay out how an active record api could look like
  */
 data class User(
-    val id: UserPK? = null,
+    val id: PK? = null,
     val name: String,
     val email: String?,
     val isCool: Boolean? = false,

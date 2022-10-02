@@ -20,15 +20,6 @@ object RepositoryTest {
             expectThat(queryFactory).isA<QueryFactory<Entity>>()
         }
         context("fail fast error handling") {
-            test("fails fast if PK has more than one field") {
-                data class MismatchPK(override val id: Long, val blah: String) : PK
-                data class Mismatch(val id: MismatchPK)
-                expectCatching { Repository.create<Mismatch>() }.isFailure()
-                    .isA<RepositoryException>()
-                    .message
-                    .isNotNull()
-                    .contains("PK classes must have a single field of type long")
-            }
             test("fails if class contains unsupported fields") {
                 data class Unsupported(val field: String)
                 data class ClassWithUnsupportedType(val id: Long, val unsupported: Unsupported)

@@ -1,7 +1,6 @@
 package io.the.orm.test.functional.exp
 
 import failgood.Test
-import io.the.orm.AnyPK
 import io.the.orm.Repository
 import io.the.orm.exp.ConnectedMultiRepo
 import io.the.orm.exp.TransactionalMultiRepo
@@ -115,7 +114,7 @@ object ConnectedMultiRepoFunctionalTest {
                     val gurke = findIngredientByName.with(repo.connectionProvider, "gurke")
                         .findOrCreate { Ingredient("Gurke") }
                     val createdIngredient = repo.create(RecipeIngredient("100g", recipe, gurke))
-                    val reloadedIngredient = repo.findById<RecipeIngredient>(AnyPK(createdIngredient.id!!))
+                    val reloadedIngredient = repo.findById<RecipeIngredient>(createdIngredient.id!!)
                     assert(createdIngredient == reloadedIngredient)
                 }
             }

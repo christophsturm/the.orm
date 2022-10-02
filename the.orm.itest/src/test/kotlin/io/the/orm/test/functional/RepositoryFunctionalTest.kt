@@ -21,11 +21,8 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @Serializable
-data class SerializableUserPK(override val id: Long) : PK
-
-@Serializable
 data class SerializableUser(
-    val id: SerializableUserPK? = null,
+    val id: PK? = null,
     val name: String,
     val email: String?
 )
@@ -69,7 +66,7 @@ class RepositoryFunctionalTest {
                             )
                         )
                     expectThat(user) {
-                        get { id }.isEqualTo(UserPK(1))
+                        get { id }.isEqualTo(1L)
                         get { name }.isEqualTo("chris")
                         get { email }.isEqualTo("my email")
                         get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
@@ -88,7 +85,7 @@ class RepositoryFunctionalTest {
                             )
                         )
                     expectThat(user) {
-                        get { id }.isEqualTo(UserPK(1))
+                        get { id }.isEqualTo(1L)
                         get { name }.isEqualTo("chris")
                         get { email }.isNull()
                     }
@@ -135,7 +132,7 @@ class RepositoryFunctionalTest {
                 }
 
                 test("throws NotFoundException when id does not exist") {
-                    expectCatching { repo.findById(connection, UserPK(1)) }.isFailure()
+                    expectCatching { repo.findById(connection, 1) }.isFailure()
                         .isA<io.the.orm.NotFoundException>()
                         .message
                         .isNotNull()
@@ -185,7 +182,7 @@ class RepositoryFunctionalTest {
                     val color =
                         connection.withConnection { connection ->
                             connection.createStatement("select * from Users where id = $1")
-                                .execute(listOf(Long::class.java), sequenceOf(id.id))
+                                .execute(listOf(Long::class.java), sequenceOf(id))
                                 .map { row ->
                                     row.get(
                                         "favorite_color",
@@ -207,7 +204,7 @@ class RepositoryFunctionalTest {
                         SerializableUser(name = "chris", email = "my email")
                     )
                 expectThat(user) {
-                    get { id }.isEqualTo(SerializableUserPK(1))
+                    get { id }.isEqualTo(1L)
                     get { name }.isEqualTo("chris")
                     get { email }.isEqualTo("my email")
                 }
