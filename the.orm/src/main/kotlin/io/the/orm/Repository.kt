@@ -13,8 +13,8 @@ import io.the.orm.mapper.ResultResolver
 import io.the.orm.mapper.StreamingEntityCreator
 import io.the.orm.query.Conditions.isEqualToCondition
 import io.the.orm.query.QueryFactory
+import io.the.orm.query.isIn
 import io.vertx.pgclient.PgException
-import kotlinx.coroutines.flow.Flow
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -56,7 +56,7 @@ interface Repository<T : Any> {
      *
      * @param id the primary key of the object to load
      */
-    suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<Long>): Flow<T>
+    suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<Long>): List<T>
 }
 
 class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> = emptySet()) : Repository<T> {
@@ -69,7 +69,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
     private val idProperty =
         (properties["id"]
             ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")) as
-            KProperty1<T, Any>
+            KProperty1<T, PK>
 
     private val idHandler = IDHandler(kClass)
     private val classInfo = ClassInfo(kClass, idHandler, hasRelationsTo)
@@ -119,7 +119,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
     }
 
     private val byIdQuery = queryFactory.createQuery(isEqualToCondition(idProperty))
-//    private val byIdsQuery = queryFactory.createQuery(isInCondition(idProperty))
+    private val byIdsQuery: QueryFactory<T>.OneParameterQuery<Array<PK>> = queryFactory.createQuery(idProperty.isIn())
 
     /**
      * loads an object from the database
@@ -134,7 +134,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
         }
     }
 
-    override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<Long>): Flow<T> {
-        TODO("Not yet implemented")
+    override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<Long>): List<T> {
+        return byIdsQuery.with(connectionProvider, ids.toTypedArray()).find()
     }
 }
