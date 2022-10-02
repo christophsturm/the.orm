@@ -96,7 +96,7 @@ internal class ClassInfo<T : Any>(
         return if (otherClasses.contains(kotlinClass)) {
             FieldInfo(
                 parameter, property, fieldName + "_id",
-                BelongsToConverter(IDHandler(kotlinClass)), Long::class.java, true
+                BelongsToConverter(IDHandler(kotlinClass)), Long::class.java, kotlinClass
             )
         } else when {
             javaClass.isEnum -> FieldInfo(
@@ -126,11 +126,11 @@ internal class ClassInfo<T : Any>(
     }
 
     val propertyToFieldInfo = fieldInfo.associateBy { it.property }
-    val partitions = fieldInfo.partition { it.isRelation }
+    private val partitions = fieldInfo.partition { it.isRelation != null }
     val fields = partitions.second
     val relations = partitions.first
 
-    val hasRelations = fieldInfo.any { it.isRelation }
+    val hasRelations = relations.isNotEmpty()
     fun values(instance: T): Sequence<Any?> {
         return fieldInfo.asSequence().map { it.valueForDb(instance) }
     }
@@ -141,7 +141,7 @@ internal class ClassInfo<T : Any>(
         val dbFieldName: String,
         val fieldConverter: FieldConverter,
         val type: Class<*>,
-        val isRelation: Boolean = false
+        val isRelation: KClass<*>? = null
     ) {
         fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
     }

@@ -4,7 +4,6 @@ import failgood.Test
 import io.the.orm.Repository
 import io.the.orm.exp.ConnectedMultiRepo
 import io.the.orm.exp.TransactionalMultiRepo
-import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -65,7 +64,7 @@ object ConnectedMultiRepoFunctionalTest {
         val id: Long? = null
     )
 
-    data class Recipe(val name: String, val description: String?, val page: BelongsTo<Page>, val id: Long? = null)
+    data class Recipe(val name: String, val description: String?, val page: Page, val id: Long? = null)
     data class RecipeIngredient(
         val amount: String,
         val recipe: Recipe,
@@ -89,7 +88,7 @@ object ConnectedMultiRepoFunctionalTest {
                         Recipe(
                             "Spaghetti Carbonara",
                             "Wasser Salzen, Speck dazu, fertig",
-                            BelongsTo(page)
+                            page
                         )
                     )
                 }
@@ -108,7 +107,7 @@ object ConnectedMultiRepoFunctionalTest {
                             Recipe(
                                 "Spaghetti Carbonara",
                                 "Wasser Salzen, Speck dazu, fertig",
-                                BelongsTo(page)
+                                page
                             )
                         )
                     val gurke = findIngredientByName.with(repo.connectionProvider, "gurke")

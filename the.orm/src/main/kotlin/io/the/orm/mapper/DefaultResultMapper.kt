@@ -16,6 +16,17 @@ internal class DefaultResultMapper<Entity : Any>(
         return entityCreator.toEntities(parameters, listOf())
     }
 }
+internal class RelationFetchingResultMapper<Entity : Any>(
+    private val resultResolver: ResultResolver<Entity>,
+    private val relationFetchingEntityCreator: RelationFetchingEntityCreator<Entity>
+) : ResultMapper<Entity> {
+
+    override suspend fun mapQueryResult(queryResult: DBResult, connectionProvider: ConnectionProvider): Flow<Entity> {
+        val parameters: Flow<ResultLine> = resultResolver.getResolvedValues(queryResult)
+        return relationFetchingEntityCreator.toEntities(parameters, connectionProvider)
+    }
+}
+
 internal data class LazyResultPair(val fieldInfo: ClassInfo.FieldInfo, val lazyResult: LazyResult<Any?>)
 internal data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val valueFromDb: Any?)
 internal data class LazyResultLine(val fields: List<LazyResult<*>>, val relations: List<LazyResult<*>>)

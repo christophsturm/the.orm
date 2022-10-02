@@ -9,6 +9,8 @@ import io.the.orm.internal.Table
 import io.the.orm.internal.Updater
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.mapper.DefaultResultMapper
+import io.the.orm.mapper.RelationFetchingEntityCreator
+import io.the.orm.mapper.RelationFetchingResultMapper
 import io.the.orm.mapper.ResultResolver
 import io.the.orm.mapper.StreamingEntityCreator
 import io.the.orm.query.Conditions.isEqualToCondition
@@ -60,7 +62,6 @@ interface Repository<T : Any> {
 }
 
 class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> = emptySet()) : Repository<T> {
-
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
 
     private val table = Table(kClass)
@@ -83,7 +84,14 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
     override val queryFactory: QueryFactory<T> =
         QueryFactory(
             table,
-            DefaultResultMapper(ResultResolver(classInfo), StreamingEntityCreator(classInfo)),
+            if (classInfo.hasRelations) RelationFetchingResultMapper(
+                ResultResolver(classInfo),
+                RelationFetchingEntityCreator(
+                    classInfo.relations.map { RepositoryImpl(it.isRelation!!, hasRelationsTo + kClass) },
+                    StreamingEntityCreator(classInfo)
+                ))
+            else DefaultResultMapper(ResultResolver(classInfo), StreamingEntityCreator(classInfo)
+            ),
             this,
             idHandler,
             idProperty,
