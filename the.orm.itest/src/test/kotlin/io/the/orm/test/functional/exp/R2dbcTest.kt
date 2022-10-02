@@ -46,7 +46,7 @@ class R2dbcTest {
         DBS.databases.filterNot { it is DBTestUtil.VertxPSQLTestDatabase }, SCHEMA) { createConnectionProvider ->
         it("can batch insert values and select result") {
             val connection = createConnectionProvider()
-            val dbConnectionFactory = (connection as TransactionalConnectionProvider).DBConnectionFactory
+            val dbConnectionFactory = (connection as TransactionalConnectionProvider).dbConnectionFactory
             val conn = (dbConnectionFactory.getConnection() as R2dbcConnection).connection
             autoClose(conn) { it.close().awaitFirstOrNull() }
             val (firstId, secondId) = conn.createStatement("insert into users(name) values($1)")

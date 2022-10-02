@@ -4,6 +4,7 @@ import failgood.Test
 import failgood.describe
 import failgood.mock.mock
 import io.the.orm.Repository
+import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.IDHandler
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.Flow
@@ -20,7 +21,9 @@ object RelationEntityCreatorTest {
 
     val tests = describe<RelationEntityCreator<Entity>> {
         it("resolves entities") {
-            val repository = mock<Repository<*>>()
+            val repository = mock<Repository<*>> {
+//                method { findById() }
+            }
             val creator = RelationEntityCreator<Entity>(mapOf(Entity.ReferencedEntity::class to repository))
             val classInfo = ClassInfo(Entity::class, IDHandler(Entity::class), setOf(Entity.ReferencedEntity::class))
             creator.toEntities(
@@ -31,14 +34,15 @@ object RelationEntityCreatorTest {
                             10L
                         )
                     )
-                )
+                ),
+                mock()
             )
         }
     }
 }
 
 internal class RelationEntityCreator<Entity : Any>(mapOf: Map<KClass<*>, Repository<*>>) : EntityCreator<Entity> {
-    override fun toEntities(parameters: Flow<List<ResultPair>>): Flow<Entity> {
+    override fun toEntities(parameters: Flow<List<ResultPair>>, connectionProvider: ConnectionProvider): Flow<Entity> {
         return flow {
             val parameterList = parameters.toList()
         }

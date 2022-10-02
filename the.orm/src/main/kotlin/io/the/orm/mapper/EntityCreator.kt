@@ -1,17 +1,18 @@
 package io.the.orm.mapper
 
 import io.the.orm.RepositoryException
+import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.reflect.KParameter
 
 internal interface EntityCreator<Entity : Any> {
-    fun toEntities(parameters: Flow<List<ResultPair>>): Flow<Entity>
+    fun toEntities(parameters: Flow<List<ResultPair>>, connectionProvider: ConnectionProvider): Flow<Entity>
 }
 
 internal class StreamingEntityCreator<Entity : Any>(private val classInfo: ClassInfo<Entity>) : EntityCreator<Entity> {
-    override fun toEntities(parameters: Flow<List<ResultPair>>): Flow<Entity> {
+    override fun toEntities(parameters: Flow<List<ResultPair>>, connectionProvider: ConnectionProvider): Flow<Entity> {
         return parameters.map { values ->
             values.associateTo(HashMap()) { (fieldInfo, result) ->
                 val value = fieldInfo.fieldConverter.dbValueToParameter(result)

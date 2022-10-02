@@ -98,22 +98,22 @@ class QueryFactory<T : Any> internal constructor(
 
         suspend fun find(): List<T> {
             return connectionProvider.withConnection { connection ->
-                find(connection).toCollection(mutableListOf())
+                find(connection, connectionProvider).toCollection(mutableListOf())
             }
         }
 
         suspend fun findSingle(): T {
             return connectionProvider.withConnection { connection ->
-                find(connection).single()
+                find(connection, connectionProvider).single()
             }
         }
 
-        private suspend fun find(connection: DBConnection): Flow<T> {
+        private suspend fun find(connection: DBConnection, connectionProvider: ConnectionProvider): Flow<T> {
             val queryResult = connection.executeSelect(
                 parameterValues,
                 selectPrefix + queryString
             )
-            return resultMapper.mapQueryResult(queryResult)
+            return resultMapper.mapQueryResult(queryResult, connectionProvider)
         }
 
         suspend fun delete(): Int =
@@ -131,7 +131,8 @@ class QueryFactory<T : Any> internal constructor(
                         connection.executeSelect(
                             parameterValues,
                             selectPrefix + queryString
-                        )
+                        ),
+                        connectionProvider
                     )
                         .singleOrNull()
                 existing ?: repository.create(connectionProvider, creator())
@@ -146,7 +147,8 @@ class QueryFactory<T : Any> internal constructor(
                         connection.executeSelect(
                             parameterValues,
                             selectPrefix + queryString
-                        )
+                        ),
+                        connectionProvider
                     )
                         .singleOrNull()
                 if (existing == null) {
