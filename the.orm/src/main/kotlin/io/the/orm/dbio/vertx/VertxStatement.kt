@@ -1,8 +1,10 @@
 package io.the.orm.dbio.vertx
 
+import io.the.orm.RepositoryException
 import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.Statement
 import io.vertx.kotlin.coroutines.await
+import io.vertx.pgclient.PgException
 import io.vertx.sqlclient.PreparedQuery
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
@@ -10,10 +12,17 @@ import io.vertx.sqlclient.Tuple
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class VertxStatement(private val preparedQuery: PreparedQuery<RowSet<Row>>) :
+class VertxStatement(private val preparedQuery: PreparedQuery<RowSet<Row>>, private val sql: String) :
     Statement {
     override suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult {
-        val rowSet = preparedQuery.execute(Tuple.from(values.toList())).await()
+        val parameterList = values.toList()
+        val rowSet = try {
+            preparedQuery.execute(Tuple.from(parameterList)).await()
+        } catch (e: PgException) {
+            if (e.errorMessage.contains("unique"))
+                throw e // don't wrap the exception if it's about unique constraints because we catch that later
+            throw RepositoryException("error executing query $sql with parameters $parameterList", e)
+        }
         return VertxResult(rowSet)
     }
 

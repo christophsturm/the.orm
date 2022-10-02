@@ -81,7 +81,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
 
     private val updater = Updater(table, idHandler, idProperty, classInfo)
 
-    override val queryFactory: QueryFactory<T> =
+    override val queryFactory: QueryFactory<T> by lazy {
         QueryFactory(
             table,
             if (classInfo.hasRelations) RelationFetchingResultMapper(
@@ -89,14 +89,17 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
                 RelationFetchingEntityCreator(
                     classInfo.relations.map { RepositoryImpl(it.isRelation!!, hasRelationsTo + kClass) },
                     StreamingEntityCreator(classInfo)
-                ))
-            else DefaultResultMapper(ResultResolver(classInfo), StreamingEntityCreator(classInfo)
+                )
+            )
+            else DefaultResultMapper(
+                ResultResolver(classInfo), StreamingEntityCreator(classInfo)
             ),
             this,
             idHandler,
             idProperty,
             classInfo
         )
+    }
 
     /**
      * creates a new record in the database.
@@ -112,6 +115,8 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
                 throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
             } catch (e: PgException) {
                 throw exceptionInspector.pgException(e, instance)
+            } catch (e: Exception) {
+                throw RepositoryException("error creating instance: $instance", e)
             }
         }
 
@@ -126,8 +131,9 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
         }
     }
 
-    private val byIdQuery = queryFactory.createQuery(isEqualToCondition(idProperty))
-    private val byIdsQuery: QueryFactory<T>.OneParameterQuery<Array<PK>> = queryFactory.createQuery(idProperty.isIn())
+    private val byIdQuery by lazy { queryFactory.createQuery(isEqualToCondition(idProperty)) }
+    private val byIdsQuery: QueryFactory<T>.OneParameterQuery<Array<PK>>
+        by lazy { queryFactory.createQuery(idProperty.isIn()) }
 
     /**
      * loads an object from the database

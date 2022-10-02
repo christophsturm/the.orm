@@ -1,19 +1,25 @@
 package io.the.orm.dbio.r2dbc
 
+import io.the.orm.RepositoryException
 import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.Statement
+import io.vertx.pgclient.PgException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 
-class R2dbcStatement(private val statement: io.r2dbc.spi.Statement) : Statement {
+class R2dbcStatement(private val statement: io.r2dbc.spi.Statement, private val sql: String) : Statement {
     override suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult {
         values.forEachIndexed { index, o ->
-            if (o == null) {
-                statement.bindNull(index, types[index])
-            } else
-                statement.bind(index, o)
+            try {
+                if (o == null) {
+                    statement.bindNull(index, types[index])
+                } else
+                    statement.bind(index, o)
+            } catch (e: PgException) {
+                throw RepositoryException("error binding parameter with value $o and index $index to statement $sql")
+            }
         }
         return R2dbcResult(statement.execute().awaitSingle())
     }

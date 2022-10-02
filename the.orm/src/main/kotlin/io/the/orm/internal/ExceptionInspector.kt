@@ -35,9 +35,9 @@ internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KCl
         return fieldNamesProperties[fieldString?.lowercase(Locale.getDefault())]
     }
 
-    fun pgException(e: PgException, instance: T): DataIntegrityViolationException {
-        val field = computeAffectedField(e.errorMessage)
-        val value = field?.invoke(instance)
+    fun pgException(e: PgException, instance: T): Exception {
+        val field = computeAffectedField(e.errorMessage) ?: return e
+        val value = field.invoke(instance)
         return UniqueConstraintViolatedException(e.errorMessage, e.cause, field, value)
     }
 }

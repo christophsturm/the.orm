@@ -23,11 +23,11 @@ class R2dbcConnection(val connection: Connection) : DBConnection {
     }
 
     override fun createStatement(sql: String): Statement {
-        return R2dbcStatement(connection.createStatement(sql))
+        return R2dbcStatement(connection.createStatement(sql), sql)
     }
 
     override fun createInsertStatement(sql: String): Statement {
-        return R2dbcStatement(connection.createStatement(sql).returnGeneratedValues())
+        return R2dbcStatement(connection.createStatement(sql).returnGeneratedValues(), sql)
     }
 }
 

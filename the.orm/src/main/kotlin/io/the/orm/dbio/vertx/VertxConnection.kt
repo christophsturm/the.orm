@@ -8,7 +8,7 @@ import io.vertx.sqlclient.SqlConnection
 
 class VertxConnection(private val client: SqlConnection) : DBConnection {
     override fun createStatement(sql: String): Statement {
-        return VertxStatement(client.preparedQuery(sql))
+        return VertxStatement(client.preparedQuery(sql), sql)
     }
 
     override fun createInsertStatement(sql: String): Statement {
