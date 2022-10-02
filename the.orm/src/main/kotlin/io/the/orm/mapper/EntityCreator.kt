@@ -15,9 +15,9 @@ internal class EntityCreator<Entity : Any>(private val classInfo: ClassInfo<Enti
         }.map {
             try {
                 classInfo.constructor.callBy(it)
-            } catch (e: IllegalArgumentException) {
+            } catch (e: Exception) {
                 throw RepositoryException(
-                    "error invoking constructor for ${classInfo.name}. parameters:$it", e
+                    "error invoking constructor for ${classInfo.name}.\n parameters:${it.entries.joinToString { it.key.name+"=>"+it.value }}", e
                 )
             }
         }
