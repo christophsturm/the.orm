@@ -31,15 +31,16 @@ object RelationEntityCreatorTest {
             val classInfo = ClassInfo(Entity::class, IDHandler(Entity::class), setOf(Entity.ReferencedEntity::class))
             val result = creator.toEntities(
                 flowOf(
-                    listOf(
-                        ResultPair(
-                            classInfo.propertyToFieldInfo[Entity::referencedEntity]!!,
-                            10L
-                        ),
-                        ResultPair(classInfo.propertyToFieldInfo[Entity::id]!!, 99)
+                    ResultLine(
+                        listOf(
+                            ResultPair(
+                                classInfo.propertyToFieldInfo[Entity::referencedEntity]!!,
+                                10L
+
+                            )
+                        ), listOf(ResultPair(classInfo.propertyToFieldInfo[Entity::id]!!, 99))
                     )
-                ),
-                connectionProvider
+                ), connectionProvider
             )
             assert(result.single() == Entity(referencedEntity, 99))
         }
@@ -47,7 +48,7 @@ object RelationEntityCreatorTest {
 }
 
 internal class RelationEntityCreator<Entity : Any>(mapOf: Map<KClass<*>, Repository<*>>) : EntityCreator<Entity> {
-    override fun toEntities(results: Flow<List<ResultPair>>, connectionProvider: ConnectionProvider): Flow<Entity> {
+    override fun toEntities(results: Flow<ResultLine>, connectionProvider: ConnectionProvider): Flow<Entity> {
         return flow {
             results.toList().forEach {
             }
