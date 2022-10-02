@@ -8,12 +8,12 @@ import kotlinx.coroutines.flow.map
 import kotlin.reflect.KParameter
 
 internal interface EntityCreator<Entity : Any> {
-    fun toEntities(parameters: Flow<List<ResultPair>>, connectionProvider: ConnectionProvider): Flow<Entity>
+    fun toEntities(results: Flow<List<ResultPair>>, connectionProvider: ConnectionProvider): Flow<Entity>
 }
 
 internal class StreamingEntityCreator<Entity : Any>(private val classInfo: ClassInfo<Entity>) : EntityCreator<Entity> {
-    override fun toEntities(parameters: Flow<List<ResultPair>>, connectionProvider: ConnectionProvider): Flow<Entity> {
-        return parameters.map { values ->
+    override fun toEntities(results: Flow<List<ResultPair>>, connectionProvider: ConnectionProvider): Flow<Entity> {
+        return results.map { values ->
             values.associateTo(HashMap()) { (fieldInfo, result) ->
                 val value = fieldInfo.fieldConverter.dbValueToParameter(result)
                 Pair(fieldInfo.constructorParameter, value)
