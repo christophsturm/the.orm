@@ -29,7 +29,7 @@ internal class ResultResolver<Entity : Any>(private val classInfo: ClassInfo<Ent
 
     private fun lazyResult(
         row: DBRow,
-        fieldInfo: ClassInfo.FieldInfo
+        fieldInfo: ClassInfo.LocalFieldInfo
     ): LazyResult<*> {
         return try {
             row.getLazy(fieldInfo.dbFieldName)

@@ -4,6 +4,7 @@ import failgood.Test
 import io.the.orm.Repository
 import io.the.orm.exp.ConnectedMultiRepo
 import io.the.orm.exp.TransactionalMultiRepo
+import io.the.orm.exp.relations.HasMany
 import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -68,7 +69,7 @@ object ConnectedMultiRepoFunctionalTest {
         val name: String,
         val description: String?,
         val page: Page,
-//        val ingredients: HasMany<RecipeIngredient>? = null,
+        val ingredients: HasMany<RecipeIngredient>? = null,
         val id: Long? = null
     )
 

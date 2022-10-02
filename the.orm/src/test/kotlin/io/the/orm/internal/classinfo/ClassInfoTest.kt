@@ -22,11 +22,11 @@ class ClassInfoTest {
                 expectThat(classInfo.name).isEqualTo("Entity")
             }
             it("knows the field names and types") {
-                expectThat(classInfo.fieldInfo.map { Pair(it.dbFieldName, it.type) })
+                expectThat(classInfo.localFieldInfo.map { Pair(it.dbFieldName, it.type) })
                     .containsExactlyInAnyOrder(Pair("name", String::class.java), Pair("id", Long::class.java))
             }
             it("can get field values") {
-                val names = classInfo.fieldInfo.map { it.dbFieldName }
+                val names = classInfo.localFieldInfo.map { it.dbFieldName }
                 expectThat(names.zip(classInfo.values(Entity("name", null)).toList()))
                     .containsExactlyInAnyOrder(Pair("name", "name"), Pair("id", null))
             }
@@ -38,12 +38,12 @@ class ClassInfoTest {
             val classInfo = ClassInfo(UserGroup::class, IDHandler(UserGroup::class), setOf(User::class))
 
             it("knows field names and types for references") {
-                assert(classInfo.fieldInfo.map { Pair(it.dbFieldName, it.type) }
+                assert(classInfo.localFieldInfo.map { Pair(it.dbFieldName, it.type) }
                     .containsExactlyInAnyOrder(Pair("user_id", Long::class.java), Pair("id", Long::class.java)))
             }
             it("knows values for references") {
                 val values = classInfo.values(UserGroup(BelongsTo(User("name", id = 10)), id = 20))
-                val names = classInfo.fieldInfo.map { it.dbFieldName }
+                val names = classInfo.localFieldInfo.map { it.dbFieldName }
                 assert(names.zip(values.toList()).containsExactlyInAnyOrder(Pair("id", 20L), Pair("user_id", 10L)))
             }
             it("knows if entity has relations") {
@@ -61,4 +61,3 @@ class ClassInfoTest {
 
 data class UserGroup(val user: BelongsTo<User>, val id: Long? = null)
 data class User(val name: String, val groups: HasMany<UserGroup>? = null, val id: Long? = null)
-data class UnreferencedClass(val name: String, val id: Long? = null)

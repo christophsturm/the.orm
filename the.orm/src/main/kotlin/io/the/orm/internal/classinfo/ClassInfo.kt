@@ -74,6 +74,7 @@ internal class ClassInfo<T : Any>(
     val fieldInfo: List<FieldInfo> = constructor.parameters.map { parameter ->
         fieldInfo(parameter, otherClasses, idHandler)
     }
+    val localFieldInfo = fieldInfo.filterIsInstance<LocalFieldInfo>()
 
     private fun fieldInfo(
         parameter: KParameter,
@@ -86,7 +87,8 @@ internal class ClassInfo<T : Any>(
             is ParameterizedType -> t.actualTypeArguments.single() as Class<*>
             else -> throw RuntimeException("unsupported type: ${t.typeName}")
         }
-        val kotlinClass = when (val kc = type.classifier as KClass<*>) {
+        val kc = type.classifier as KClass<*>
+        val kotlinClass = when (kc) {
             BelongsTo::class, HasMany::class -> type.arguments.single().type!!.classifier as KClass<*>
             else -> kc
         }
@@ -94,12 +96,18 @@ internal class ClassInfo<T : Any>(
         val property = properties[parameter.name]!!
 
         return if (otherClasses.contains(kotlinClass)) {
-            FieldInfo(
-                parameter, property, fieldName + "_id",
-                BelongsToConverter(IDHandler(kotlinClass)), Long::class.java, kotlinClass
-            )
+            if (kc == HasMany::class)
+                RemoteFieldInfo(
+                    parameter, property,
+                    BelongsToConverter(IDHandler(kotlinClass)), Long::class.java, kotlinClass
+                ) else
+
+                LocalFieldInfo(
+                    parameter, property, fieldName + "_id",
+                    BelongsToConverter(IDHandler(kotlinClass)), Long::class.java, kotlinClass
+                )
         } else when {
-            javaClass.isEnum -> FieldInfo(
+            javaClass.isEnum -> LocalFieldInfo(
                 parameter,
                 property,
                 fieldName,
@@ -109,7 +117,7 @@ internal class ClassInfo<T : Any>(
 
             else -> {
                 val isPK = parameter.name == "id"
-                if (isPK) FieldInfo(
+                if (isPK) LocalFieldInfo(
                     parameter,
                     property,
                     fieldName,
@@ -119,30 +127,45 @@ internal class ClassInfo<T : Any>(
                 else {
                     val fieldConverter = fieldConverters[kotlinClass]
                         ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
-                    FieldInfo(parameter, property, fieldName, fieldConverter, javaClass)
+                    LocalFieldInfo(parameter, property, fieldName, fieldConverter, javaClass)
                 }
             }
         }
     }
 
-    val propertyToFieldInfo = fieldInfo.associateBy { it.property }
-    private val partitions = fieldInfo.partition { it.isRelation != null }
+    private val partitions = localFieldInfo.partition { it.isRelation != null }
     val fields = partitions.second
     val relations = partitions.first
 
     val hasRelations = relations.isNotEmpty()
     fun values(instance: T): Sequence<Any?> {
-        return fieldInfo.asSequence().map { it.valueForDb(instance) }
+        return localFieldInfo.asSequence().map { it.valueForDb(instance) }
     }
 
-    data class FieldInfo(
-        val constructorParameter: KParameter,
-        val property: KProperty1<*, *>,
+    sealed interface FieldInfo {
+        val constructorParameter: KParameter
+        val property: KProperty1<*, *>
+        val fieldConverter: FieldConverter
+        val type: Class<*>
+        val isRelation: KClass<*>?
+    }
+
+    class RemoteFieldInfo(
+        override val constructorParameter: KParameter,
+        override val property: KProperty1<*, *>,
+        override val fieldConverter: FieldConverter,
+        override val type: Class<*>,
+        override val isRelation: KClass<*>? = null
+    ) : FieldInfo
+
+    class LocalFieldInfo(
+        override val constructorParameter: KParameter,
+        override val property: KProperty1<*, *>,
         val dbFieldName: String,
-        val fieldConverter: FieldConverter,
-        val type: Class<*>,
-        val isRelation: KClass<*>? = null
-    ) {
+        override val fieldConverter: FieldConverter,
+        override val type: Class<*>,
+        override val isRelation: KClass<*>? = null
+    ) : FieldInfo {
         fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
     }
 }
