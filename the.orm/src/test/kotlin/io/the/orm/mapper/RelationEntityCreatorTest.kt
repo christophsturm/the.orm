@@ -49,7 +49,8 @@ object RelationEntityCreatorTest {
 internal class RelationEntityCreator<Entity : Any>(mapOf: Map<KClass<*>, Repository<*>>) : EntityCreator<Entity> {
     override fun toEntities(results: Flow<List<ResultPair>>, connectionProvider: ConnectionProvider): Flow<Entity> {
         return flow {
-            val resultList = results.toList()
+            results.toList().forEach {
+            }
         }
     }
 }

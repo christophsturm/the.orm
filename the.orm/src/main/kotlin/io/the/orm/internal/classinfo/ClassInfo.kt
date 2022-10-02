@@ -72,6 +72,14 @@ internal class ClassInfo<T : Any>(
             ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
     val fieldInfo: List<FieldInfo> = constructor.parameters.map { parameter ->
+        fieldInfo(parameter, otherClasses, idHandler)
+    }
+
+    private fun fieldInfo(
+        parameter: KParameter,
+        otherClasses: Set<KClass<*>>,
+        idHandler: IDHandler<T>
+    ): FieldInfo {
         val type = parameter.type
         val javaClass = when (val t = type.javaType) {
             is Class<*> -> t
@@ -85,7 +93,7 @@ internal class ClassInfo<T : Any>(
         val fieldName = parameter.name!!.toSnakeCase()
         val property = properties[parameter.name]!!
 
-        if (otherClasses.contains(kotlinClass)) {
+        return if (otherClasses.contains(kotlinClass)) {
             FieldInfo(
                 parameter, property, fieldName + "_id",
                 BelongsToConverter(IDHandler(kotlinClass)), Long::class.java, true
@@ -116,7 +124,11 @@ internal class ClassInfo<T : Any>(
             }
         }
     }
+
     val propertyToFieldInfo = fieldInfo.associateBy { it.property }
+    val partitions = fieldInfo.partition { it.isRelation }
+    val fields = partitions.first
+    val relations = partitions.second
 
     val hasRelations = fieldInfo.any { it.isRelation }
     fun values(instance: T): Sequence<Any?> {
