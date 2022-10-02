@@ -31,17 +31,7 @@ object RelationEntityCreatorTest {
             val classInfo = ClassInfo(Entity::class, IDHandler(Entity::class), setOf(Entity.ReferencedEntity::class))
             val creator = RelationEntityCreator(listOf(repository), StreamingEntityCreator(classInfo))
             val result = creator.toEntities(
-                flowOf(
-                    ResultLine(
-                        listOf(
-                            ResultPair(
-                                classInfo.propertyToFieldInfo[Entity::referencedEntity]!!,
-                                10L
-
-                            )
-                        ), listOf(ResultPair(classInfo.propertyToFieldInfo[Entity::id]!!, 99))
-                    )
-                ), connectionProvider
+                flowOf(ResultLine(listOf(99L), listOf(10L))), connectionProvider
             )
             assert(result.single() == Entity(referencedEntity, 99))
         }
@@ -65,7 +55,9 @@ internal class RelationEntityCreator<Entity : Any>(
                 idLists.mapIndexed { index, longs ->
                     repos[index].findByIds(connectionProvider, longs.toList())
                 }
-            creator.toEntities(resultsList.asFlow())
+            creator.toEntities(resultsList.asFlow(), relations).collect {
+                emit(it)
+            }
         }
     }
 }
