@@ -116,6 +116,7 @@ internal class ClassInfo<T : Any>(
             }
         }
     }
+    val propertyToFieldInfo = fieldInfo.associateBy { it.property }
 
     val hasRelations = fieldInfo.any { it.isRelation }
     fun values(instance: T): Sequence<Any?> {

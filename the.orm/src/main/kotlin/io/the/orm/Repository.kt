@@ -8,9 +8,9 @@ import io.the.orm.internal.Inserter
 import io.the.orm.internal.Table
 import io.the.orm.internal.Updater
 import io.the.orm.internal.classinfo.ClassInfo
-import io.the.orm.mapper.EntityCreator
+import io.the.orm.mapper.DefaultResultMapper
 import io.the.orm.mapper.ResultResolver
-import io.the.orm.mapper.StreamingResultMapper
+import io.the.orm.mapper.StreamingEntityCreator
 import io.the.orm.query.Conditions.isEqualToCondition
 import io.the.orm.query.QueryFactory
 import io.vertx.pgclient.PgException
@@ -78,7 +78,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
     override val queryFactory: QueryFactory<T> =
         QueryFactory(
             table,
-            StreamingResultMapper(ResultResolver(classInfo), EntityCreator(classInfo)),
+            DefaultResultMapper(ResultResolver(classInfo), StreamingEntityCreator(classInfo)),
             this,
             idHandler,
             idProperty,

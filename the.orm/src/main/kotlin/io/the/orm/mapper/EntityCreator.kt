@@ -6,8 +6,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.reflect.KParameter
 
-internal class EntityCreator<Entity : Any>(private val classInfo: ClassInfo<Entity>) {
-    fun toEntities(parameters: Flow<List<ResultPair>>): Flow<Entity> {
+internal interface EntityCreator<Entity : Any> {
+    fun toEntities(parameters: Flow<List<ResultPair>>): Flow<Entity>
+}
+
+internal class StreamingEntityCreator<Entity : Any>(private val classInfo: ClassInfo<Entity>) : EntityCreator<Entity> {
+    override fun toEntities(parameters: Flow<List<ResultPair>>): Flow<Entity> {
         return parameters.map { values ->
             values.associateTo(HashMap()) { (fieldInfo, result) ->
                 val value = fieldInfo.fieldConverter.dbValueToParameter(result)
@@ -23,7 +27,6 @@ internal class EntityCreator<Entity : Any>(private val classInfo: ClassInfo<Enti
             }
         }
     }
-
-    private fun Map<KParameter, Any?>.friendlyString() =
-        entries.joinToString { it.key.name + "=>" + it.value }
 }
+private fun Map<KParameter, Any?>.friendlyString() =
+    entries.joinToString { it.key.name + "=>" + it.value }

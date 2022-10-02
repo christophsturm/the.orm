@@ -5,10 +5,7 @@ import io.the.orm.dbio.LazyResult
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.Flow
 
-/**
- * This mapper does not support fetching relationships, but it avoids having to convert the flow to a list.
- */
-internal class StreamingResultMapper<Entity : Any>(
+internal class DefaultResultMapper<Entity : Any>(
     private val resultResolver: ResultResolver<Entity>,
     private val entityCreator: EntityCreator<Entity>
 ) : ResultMapper<Entity> {
@@ -19,4 +16,4 @@ internal class StreamingResultMapper<Entity : Any>(
     }
 }
 internal data class LazyResultPair(val fieldInfo: ClassInfo.FieldInfo, val lazyResult: LazyResult<Any?>)
-internal data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val result: Any?)
+internal data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val valueFromDb: Any?)
