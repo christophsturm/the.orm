@@ -13,7 +13,7 @@ internal class DefaultResultMapper<Entity : Any>(
 
     override suspend fun mapQueryResult(queryResult: DBResult, connectionProvider: ConnectionProvider): Flow<Entity> {
         val parameters: Flow<ResultLine> = resultResolver.getResolvedValues(queryResult)
-        return entityCreator.toEntities(parameters, connectionProvider)
+        return entityCreator.toEntities(parameters)
     }
 }
 internal data class LazyResultPair(val fieldInfo: ClassInfo.FieldInfo, val lazyResult: LazyResult<Any?>)

@@ -52,11 +52,11 @@ interface Repository<T : Any> {
     suspend fun findById(connectionProvider: ConnectionProvider, id: PK): T
 
     /**
-     * loads an objects by id
+     * loads objects by id
      *
-     * @param id the primary key of the object to load
+     * @param [ids] the primary key of the objects to load
      */
-    suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<Long>): List<T>
+    suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<Long>): Map<PK, T>
 }
 
 class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> = emptySet()) : Repository<T> {
@@ -134,7 +134,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
         }
     }
 
-    override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<Long>): List<T> {
-        return byIdsQuery.with(connectionProvider, ids.toTypedArray()).find()
+    override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<Long>): Map<PK, T> {
+        return byIdsQuery.with(connectionProvider, ids.toTypedArray()).find().associateBy(idProperty)
     }
 }

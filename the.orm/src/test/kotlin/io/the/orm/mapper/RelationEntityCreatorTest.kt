@@ -3,16 +3,17 @@ package io.the.orm.mapper
 import failgood.Test
 import failgood.describe
 import failgood.mock.mock
+import io.the.orm.PK
 import io.the.orm.Repository
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.IDHandler
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toList
-import kotlin.reflect.KClass
 
 @Test
 object RelationEntityCreatorTest {
@@ -25,10 +26,10 @@ object RelationEntityCreatorTest {
             val connectionProvider = mock<ConnectionProvider>()
             val referencedEntity = Entity.ReferencedEntity("blah", 10)
             val repository = mock<Repository<Entity.ReferencedEntity>> {
-                method { findByIds(connectionProvider, listOf(10)) }.returns(listOf(referencedEntity))
+                method { findByIds(any(), any()) }.returns(mapOf(10L to referencedEntity))
             }
-            val creator = RelationEntityCreator<Entity>(mapOf(Entity.ReferencedEntity::class to repository))
             val classInfo = ClassInfo(Entity::class, IDHandler(Entity::class), setOf(Entity.ReferencedEntity::class))
+            val creator = RelationEntityCreator(listOf(repository), StreamingEntityCreator(classInfo))
             val result = creator.toEntities(
                 flowOf(
                     ResultLine(
@@ -47,11 +48,24 @@ object RelationEntityCreatorTest {
     }
 }
 
-internal class RelationEntityCreator<Entity : Any>(val repos: Map<KClass<*>, Repository<*>>) : EntityCreator<Entity> {
-    override fun toEntities(results: Flow<ResultLine>, connectionProvider: ConnectionProvider): Flow<Entity> {
+internal class RelationEntityCreator<Entity : Any>(
+    private val repos: List<Repository<*>>,
+    val creator: EntityCreator<Entity>
+) {
+    fun toEntities(results: Flow<ResultLine>, connectionProvider: ConnectionProvider): Flow<Entity> {
         return flow {
-            results.toList().forEach {
+            val idLists = Array(repos.size) { mutableSetOf<PK>() }
+            val resultsList = results.toList()
+            resultsList.forEach { resultLine ->
+                resultLine.relations.forEachIndexed { idx, v ->
+                    idLists[idx].add(v as PK)
+                }
             }
+            val relations =
+                idLists.mapIndexed { index, longs ->
+                    repos[index].findByIds(connectionProvider, longs.toList())
+                }
+            creator.toEntities(resultsList.asFlow())
         }
     }
 }
