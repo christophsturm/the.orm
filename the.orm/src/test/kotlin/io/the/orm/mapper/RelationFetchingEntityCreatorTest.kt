@@ -16,7 +16,7 @@ object RelationFetchingEntityCreatorTest {
         data class ReferencedEntity(val name: String, val id: Long? = null)
     }
 
-    val tests = describe<RelationFetchingEntityCreator<Entity>>(disabled = System.getenv("NEXT") == null) {
+    val tests = describe<RelationFetchingEntityCreator<Entity>> {
         it("resolves entities") {
             val connectionProvider = mock<ConnectionProvider>()
             val referencedEntity = Entity.ReferencedEntity("blah", 10)

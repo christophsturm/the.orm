@@ -64,7 +64,14 @@ object ConnectedMultiRepoFunctionalTest {
         val id: Long? = null
     )
 
-    data class Recipe(val name: String, val description: String?, val page: Page, val id: Long? = null)
+    data class Recipe(
+        val name: String,
+        val description: String?,
+        val page: Page,
+//        val ingredients: HasMany<RecipeIngredient>? = null,
+        val id: Long? = null
+    )
+
     data class RecipeIngredient(
         val amount: String,
         val recipe: Recipe,
@@ -75,7 +82,7 @@ object ConnectedMultiRepoFunctionalTest {
     data class Ingredient(val name: String, val id: Long? = null)
 
     val context =
-        describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA, disabled = System.getenv("NEXT") == null) {
+        describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA) {
             val connection = it()
             val transactionalMultiRepo = TransactionalMultiRepo(
                 connection,
