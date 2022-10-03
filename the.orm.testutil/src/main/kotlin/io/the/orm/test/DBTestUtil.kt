@@ -1,6 +1,7 @@
 package io.the.orm.test
 
 import failgood.ContextDSL
+import failgood.Ignored
 import failgood.RootContext
 import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
@@ -44,7 +45,7 @@ class DBTestUtil(val databaseName: String) {
     val databases = if (TestUtilConfig.H2_ONLY) {
         listOf(h2)
     } else listOf(h2, psql14R2DBC, psql14Vertx) +
-        postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
+            postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
 
     @Suppress("unused")
     val unstableDatabases: List<TestDatabase> = listOf()
@@ -202,19 +203,19 @@ fun describeOnAllDbs(
     subject: KClass<*>,
     databases: List<DBTestUtil.TestDatabase>,
     schema: String,
-    disabled: Boolean = false,
+    ignored: Ignored? = null,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
-) = describeOnAllDbs("the ${subject.simpleName!!}", databases, schema, disabled, tests)
+) = describeOnAllDbs("the ${subject.simpleName!!}", databases, schema, ignored, tests)
 
 fun describeOnAllDbs(
     contextName: String,
     databases: List<DBTestUtil.TestDatabase>,
     schema: String,
-    disabled: Boolean = false,
+    ignored: Ignored? = null,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ): List<RootContext> {
     return databases.mapIndexed { index, testDB ->
-        RootContext("$contextName on ${testDB.name}", disabled, order = index) {
+        RootContext("$contextName on ${testDB.name}", ignored, order = index) {
             withDbInternal(testDB, schema, tests)
         }
     }

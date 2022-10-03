@@ -1,5 +1,6 @@
 package io.the.orm.test.functional.exp
 
+import failgood.Ignored
 import failgood.Test
 import io.the.orm.Repository
 import io.the.orm.exp.ConnectedMultiRepo
@@ -8,6 +9,7 @@ import io.the.orm.exp.relations.HasMany
 import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
+import kotlin.test.assertNotNull
 
 private const val SCHEMA = """
     create sequence pages_id_seq no maxvalue;
@@ -83,7 +85,7 @@ object ConnectedMultiRepoFunctionalTest {
     data class Ingredient(val name: String, val id: Long? = null)
 
     val context =
-        describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA) {
+        describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA, ignored = ExceptEnv("NEXT")) {
             val connection = it()
             val transactionalMultiRepo = TransactionalMultiRepo(
                 connection,
@@ -122,8 +124,22 @@ object ConnectedMultiRepoFunctionalTest {
                         .findOrCreate { Ingredient("Gurke") }
                     val createdIngredient = repo.create(RecipeIngredient("100g", recipe, gurke))
                     val reloadedIngredient = repo.findById<RecipeIngredient>(createdIngredient.id!!)
+                    val recipeIngredient = repo.create(RecipeIngredient("2", recipe, gurke))
                     assert(createdIngredient == reloadedIngredient)
+                    val reloadedRecipe = repo.findById<Recipe>(recipe.id!!)
+                    with(assertNotNull(reloadedRecipe.ingredients)) {
+                        assert(contains(recipeIngredient))
+                    }
                 }
             }
         }
+}
+
+class ExceptEnv(val s: String) : Ignored {
+    override fun isIgnored(): String? {
+        return if (System.getenv(s) == null)
+            "Ignored because env var $s is not set"
+        else null
+    }
+
 }
