@@ -133,7 +133,7 @@ internal class ClassInfo<T : Any>(
         }
     }
 
-    private val partitions = localFieldInfo.partition { it.isRelation != null }
+    private val partitions = localFieldInfo.partition { it.relatedClass != null }
     val fields = partitions.second
     val relations = partitions.first
 
@@ -146,8 +146,13 @@ internal class ClassInfo<T : Any>(
         val constructorParameter: KParameter
         val property: KProperty1<*, *>
         val fieldConverter: FieldConverter
+
+        /**
+         * then type that we request from the database.
+         * Usually the same type as the field, but for relations it will be the PK type
+         */
         val type: Class<*>
-        val isRelation: KClass<*>?
+        val relatedClass: KClass<*>?
     }
 
     class RemoteFieldInfo(
@@ -155,7 +160,7 @@ internal class ClassInfo<T : Any>(
         override val property: KProperty1<*, *>,
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
-        override val isRelation: KClass<*>? = null
+        override val relatedClass: KClass<*>? = null
     ) : FieldInfo
 
     class LocalFieldInfo(
@@ -164,7 +169,7 @@ internal class ClassInfo<T : Any>(
         val dbFieldName: String,
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
-        override val isRelation: KClass<*>? = null
+        override val relatedClass: KClass<*>? = null
     ) : FieldInfo {
         fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
     }

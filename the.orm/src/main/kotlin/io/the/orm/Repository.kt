@@ -87,7 +87,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
             if (classInfo.hasRelations) RelationFetchingResultMapper(
                 ResultResolver(classInfo),
                 RelationFetchingEntityCreator(
-                    classInfo.relations.map { RepositoryImpl(it.isRelation!!, hasRelationsTo + kClass) },
+                    classInfo.relations.map { RepositoryImpl(it.relatedClass!!, hasRelationsTo + kClass) },
                     StreamingEntityCreator(classInfo)
                 )
             )
