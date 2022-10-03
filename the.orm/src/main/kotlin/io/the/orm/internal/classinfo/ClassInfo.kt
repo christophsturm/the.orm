@@ -58,90 +58,14 @@ object DoubleConverter : FieldConverter {
     }
 }
 
-internal class ClassInfo<T : Any>(
-    kClass: KClass<T>,
-    idHandler: IDHandler<T>,
-    otherClasses: Set<KClass<*>>
+internal data class ClassInfo<T : Any>(
+    val name: String,
+    val constructor: KFunction<T>,
+    val localFieldInfo: List<LocalFieldInfo>,
+    val fields: List<LocalFieldInfo>,
+    val relations: List<LocalFieldInfo>
 ) {
-    private val properties: Map<String, KProperty1<T, *>> =
-        kClass.declaredMemberProperties.associateBy({ it.name }, { it })
-
-    val name = kClass.simpleName
-    val constructor: KFunction<T> =
-        kClass.primaryConstructor
-            ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
-
-    val fieldInfo: List<FieldInfo> = constructor.parameters.map { parameter ->
-        fieldInfo(parameter, otherClasses, idHandler)
-    }
-    val localFieldInfo = fieldInfo.filterIsInstance<LocalFieldInfo>()
-
-    private fun fieldInfo(
-        parameter: KParameter,
-        otherClasses: Set<KClass<*>>,
-        idHandler: IDHandler<T>
-    ): FieldInfo {
-        val type = parameter.type
-        val javaClass = when (val t = type.javaType) {
-            is Class<*> -> t
-            is ParameterizedType -> t.actualTypeArguments.single() as Class<*>
-            else -> throw RuntimeException("unsupported type: ${t.typeName}")
-        }
-        val kc = type.classifier as KClass<*>
-        val kotlinClass = when (kc) {
-            BelongsTo::class, HasMany::class -> type.arguments.single().type!!.classifier as KClass<*>
-            else -> kc
-        }
-        val fieldName = parameter.name!!.toSnakeCase()
-        val property = properties[parameter.name]!!
-
-        return if (otherClasses.contains(kotlinClass)) {
-            if (kc == HasMany::class)
-                RemoteFieldInfo(
-                    parameter, property,
-                    BelongsToConverter(IDHandler(kotlinClass)), Long::class.java, kotlinClass
-                ) else
-
-                LocalFieldInfo(
-                    parameter, property, fieldName + "_id",
-                    BelongsToConverter(IDHandler(kotlinClass)), Long::class.java, kotlinClass
-                )
-        } else when {
-            javaClass.isEnum -> LocalFieldInfo(
-                parameter,
-                property,
-                fieldName,
-                EnumConverter(javaClass),
-                String::class.java
-            )
-
-            else -> {
-                val isPK = parameter.name == "id"
-                if (isPK) LocalFieldInfo(
-                    parameter,
-                    property,
-                    fieldName,
-                    PKFieldConverter(idHandler),
-                    Long::class.java
-                )
-                else {
-                    val fieldConverter = fieldConverters[kotlinClass]
-                        ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
-                    LocalFieldInfo(parameter, property, fieldName, fieldConverter, javaClass)
-                }
-            }
-        }
-    }
-
-    private val partitions = localFieldInfo.partition { it.relatedClass != null }
-    val fields = partitions.second
-    val relations = partitions.first
-
     val hasRelations = relations.isNotEmpty()
-    fun values(instance: T): Sequence<Any?> {
-        return localFieldInfo.asSequence().map { it.valueForDb(instance) }
-    }
-
     sealed interface FieldInfo {
         val constructorParameter: KParameter
         val property: KProperty1<*, *>
@@ -172,6 +96,89 @@ internal class ClassInfo<T : Any>(
         override val relatedClass: KClass<*>? = null
     ) : FieldInfo {
         fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
+    }
+    fun values(instance: T): Sequence<Any?> {
+        return localFieldInfo.asSequence().map { it.valueForDb(instance) }
+    }
+
+    companion object {
+        internal operator fun <T : Any> invoke(
+            kClass: KClass<T>,
+            idHandler: IDHandler<T>,
+            otherClasses: Set<KClass<*>>
+        ): ClassInfo<T> {
+            val properties: Map<String, KProperty1<T, *>> =
+                kClass.declaredMemberProperties.associateBy({ it.name }, { it })
+
+            val name = kClass.simpleName
+            val constructor: KFunction<T> =
+                kClass.primaryConstructor
+                    ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
+
+            val fieldInfo: List<FieldInfo> =
+                constructor.parameters.map { parameter ->
+                    val type = parameter.type
+                    val javaClass = when (val t = type.javaType) {
+                        is Class<*> -> t
+                        is ParameterizedType -> t.actualTypeArguments.single() as Class<*>
+                        else -> throw RuntimeException("unsupported type: ${t.typeName}")
+                    }
+                    val kc = type.classifier as KClass<*>
+                    val kotlinClass = when (kc) {
+                        BelongsTo::class, HasMany::class -> type.arguments.single().type!!.classifier as KClass<*>
+                        else -> kc
+                    }
+                    val fieldName = parameter.name!!.toSnakeCase()
+                    val property = properties[parameter.name]!!
+                    if (otherClasses.contains(kotlinClass)) {
+                        if (kc == HasMany::class)
+                            RemoteFieldInfo(
+                                parameter, property,
+                                BelongsToConverter(IDHandler(kotlinClass)), Long::class.java, kotlinClass
+                            ) else
+
+                            LocalFieldInfo(
+                                parameter, property, fieldName + "_id",
+                                BelongsToConverter(IDHandler(kotlinClass)), Long::class.java, kotlinClass
+                            )
+                    } else when {
+                        javaClass.isEnum -> LocalFieldInfo(
+                            parameter,
+                            property,
+                            fieldName,
+                            EnumConverter(javaClass),
+                            String::class.java
+                        )
+
+                        else -> {
+                            val isPK = parameter.name == "id"
+                            if (isPK) LocalFieldInfo(
+                                parameter,
+                                property,
+                                fieldName,
+                                PKFieldConverter(idHandler),
+                                Long::class.java
+                            )
+                            else {
+                                val fieldConverter = fieldConverters[kotlinClass]
+                                    ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
+                                LocalFieldInfo(
+                                    parameter,
+                                    property,
+                                    fieldName,
+                                    fieldConverter,
+                                    javaClass
+                                )
+                            }
+                        }
+                    }
+                }
+            val localFieldInfo = fieldInfo.filterIsInstance<LocalFieldInfo>()
+            val partitions = localFieldInfo.partition { it.relatedClass != null }
+            val fields = partitions.second
+            val relations = partitions.first
+            return ClassInfo(name!!, constructor, localFieldInfo, fields, relations)
+        }
     }
 }
 
