@@ -21,7 +21,7 @@ create table users
 
 @Test
 class DBConnectionTest {
-    val context = describeOnAllDbs("DBConnection::class", DBS.databases, SCHEMA) { createConnectionProvider ->
+    val context = describeOnAllDbs<DBConnection>(DBS.databases, SCHEMA) { createConnectionProvider ->
         it("can insert with autoincrement") {
             val result =
                 createConnectionProvider().withConnection { connection ->

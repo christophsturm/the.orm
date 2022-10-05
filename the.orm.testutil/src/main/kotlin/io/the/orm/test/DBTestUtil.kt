@@ -198,7 +198,12 @@ private suspend fun ContextDSL<Unit>.withDbInternal(
         }
     tests(connectionFactory)
 }
-
+inline fun <reified Subject> describeOnAllDbs(
+    databases: List<DBTestUtil.TestDatabase>,
+    schema: String,
+    ignored: Ignored? = null,
+    noinline tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
+) = describeOnAllDbs(Subject::class, databases, schema, ignored, tests)
 fun describeOnAllDbs(
     subject: KClass<*>,
     databases: List<DBTestUtil.TestDatabase>,
