@@ -45,7 +45,7 @@ class DBTestUtil(val databaseName: String) {
     val databases = if (TestUtilConfig.H2_ONLY) {
         listOf(h2)
     } else listOf(h2, psql14R2DBC, psql14Vertx) +
-            postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
+        postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
 
     @Suppress("unused")
     val unstableDatabases: List<TestDatabase> = listOf()

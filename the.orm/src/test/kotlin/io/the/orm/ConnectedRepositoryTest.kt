@@ -34,7 +34,7 @@ class ConnectedRepositoryTest {
                 verify(repo) { update(connection, entity) }
             }
             test("findById call") {
-                val id = 1L
+                val id = 123L
                 subject.findById(id)
                 verify(repo) { findById(connection, id) }
             }

@@ -1,5 +1,6 @@
 package io.the.orm.test.functional
 
+import io.the.orm.PK
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -11,7 +12,7 @@ enum class Color {
 }
 
 data class User(
-    val id: Long? = null,
+    val id: PK? = null,
     val name: String,
     val email: String?,
     val isCool: Boolean? = false,

@@ -2,6 +2,7 @@ package io.the.orm.internal.classinfo
 
 import io.r2dbc.spi.Blob
 import io.r2dbc.spi.Clob
+import io.the.orm.PK
 import io.the.orm.RepositoryException
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
@@ -183,7 +184,7 @@ internal data class ClassInfo<T : Any>(
 }
 
 private class PKFieldConverter(val idHandler: IDHandler<*>) : FieldConverter {
-    override fun dbValueToParameter(value: Any?) = idHandler.createId(value as Long)
+    override fun dbValueToParameter(value: Any?) = idHandler.createId(value as PK)
 
     override fun propertyToDBValue(value: Any?): Any? = value?.let { idHandler.getId(it) }
 }

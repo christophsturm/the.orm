@@ -22,6 +22,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
 typealias PK = Long
+internal val pKClass = Long::class
 
 interface Repository<T : Any> {
     companion object {
@@ -58,7 +59,7 @@ interface Repository<T : Any> {
      *
      * @param [ids] the primary key of the objects to load
      */
-    suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<Long>): Map<PK, T>
+    suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, T>
 }
 
 class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> = emptySet()) : Repository<T> {
@@ -148,7 +149,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
         }
     }
 
-    override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<Long>): Map<PK, T> {
+    override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, T> {
         return byIdsQuery.with(connectionProvider, ids.toTypedArray()).find().associateBy(idProperty)
     }
 }

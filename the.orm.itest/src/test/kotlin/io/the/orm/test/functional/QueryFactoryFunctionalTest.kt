@@ -72,7 +72,7 @@ class QueryFactoryFunctionalTest {
                 }
                 // works on R2DBC psql and vertx psql but not on H2
                 ignore("can query by list parameters with unnest") {
-                    fun <T> KProperty1<T, Long?>.`in`(): QueryFactory.Condition<Array<Long>> =
+                    fun <T, V> KProperty1<T, V>.`in`(): QueryFactory.Condition<Array<V>> =
                         QueryFactory.Condition("in (select unnest((?)::bigint[]))", this)
 
                     val findIdIn = repo.queryFactory.createQuery(User::id.`in`())

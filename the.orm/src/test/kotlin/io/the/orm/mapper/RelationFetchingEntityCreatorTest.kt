@@ -3,6 +3,7 @@ package io.the.orm.mapper
 import failgood.Test
 import failgood.describe
 import failgood.mock.mock
+import io.the.orm.PK
 import io.the.orm.Repository
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.IDHandler
@@ -12,8 +13,8 @@ import kotlinx.coroutines.flow.single
 
 @Test
 object RelationFetchingEntityCreatorTest {
-    data class Entity(val referencedEntity: ReferencedEntity, val id: Long? = null) {
-        data class ReferencedEntity(val name: String, val id: Long? = null)
+    data class Entity(val referencedEntity: ReferencedEntity, val id: PK? = null) {
+        data class ReferencedEntity(val name: String, val id: PK? = null)
     }
 
     val tests = describe<RelationFetchingEntityCreator<Entity>> {

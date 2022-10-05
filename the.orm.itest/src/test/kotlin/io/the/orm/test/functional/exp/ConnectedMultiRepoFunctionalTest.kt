@@ -2,6 +2,7 @@ package io.the.orm.test.functional.exp
 
 import failgood.Ignored
 import failgood.Test
+import io.the.orm.PK
 import io.the.orm.Repository
 import io.the.orm.exp.ConnectedMultiRepo
 import io.the.orm.exp.TransactionalMultiRepo
@@ -64,7 +65,7 @@ object ConnectedMultiRepoFunctionalTest {
         val description: String?,
         val ldJson: String?,
         val author: String?,
-        val id: Long? = null
+        val id: PK? = null
     )
 
     data class Recipe(
@@ -72,14 +73,14 @@ object ConnectedMultiRepoFunctionalTest {
         val description: String?,
         val page: Page,
         val ingredients: HasMany<RecipeIngredient>? = null,
-        val id: Long? = null
+        val id: PK? = null
     )
 
     data class RecipeIngredient(
         val amount: String,
         val recipe: Recipe,
         val ingredient: Ingredient,
-        val id: Long? = null
+        val id: PK? = null
     )
 
     data class Ingredient(val name: String, val id: Long? = null)
@@ -141,5 +142,4 @@ class ExceptEnv(val s: String) : Ignored {
             "Ignored because env var $s is not set"
         else null
     }
-
 }

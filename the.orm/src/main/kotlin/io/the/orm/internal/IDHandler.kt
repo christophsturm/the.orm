@@ -1,6 +1,9 @@
 package io.the.orm.internal
 
+import io.the.orm.PK
 import io.the.orm.RepositoryException
+import io.the.orm.mapper.friendlyString
+import io.the.orm.pKClass
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty1
@@ -26,11 +29,12 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
 
     init {
         val pkClass = idParameter.type.classifier as KClass<*>
-        if (pkClass != Long::class) {
+        if (pkClass != pKClass) {
             pkConstructor = pkClass.primaryConstructor!!
             val parameters = pkConstructor.parameters
-            if (parameters.singleOrNull()?.type?.classifier as? KClass<*> != Long::class)
-                throw RepositoryException("PK classes must have a single field of type long")
+            if (parameters.singleOrNull()?.type?.classifier as? KClass<*> != pKClass)
+                throw RepositoryException("PK classes must have a single field of type ${pKClass.simpleName}." +
+                    "$parameters")
             pkIdGetter = pkClass.memberProperties.single().getter
         } else {
             pkConstructor = null
@@ -38,19 +42,22 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
         }
     }
 
-    fun assignId(instance: T, id: Long): T {
-        return copyFunction.callBy(
-            mapOf(idParameter to createId(id), instanceParameter to instance)
-        )
+    fun assignId(instance: T, id: PK): T {
+        val args = mapOf(idParameter to createId(id), instanceParameter to instance)
+        return try {
+            copyFunction.callBy(args)
+        } catch (e: IllegalArgumentException) {
+            throw RepositoryException("Error assigning ID. args:${args.friendlyString()}")
+        }
     }
-    fun readId(instance: T): Long {
+    fun readId(instance: T): PK {
         when (val idResult = idField.getter.call(instance)) {
-            is Long -> return idResult
+            is PK -> return idResult
             null -> throw RuntimeException("id is not yet set for $instance")
             else -> throw RuntimeException("unknown pk type for $instance")
         }
     }
 
-    fun createId(id: Long): Any = pkConstructor?.call(id) ?: id
-    fun getId(id: Any): Long = (pkIdGetter?.call(id) ?: id) as Long
+    fun createId(id: PK): Any = pkConstructor?.call(id) ?: id
+    fun getId(id: Any): PK = (pkIdGetter?.call(id) ?: id) as PK
 }

@@ -66,7 +66,7 @@ class RepositoryFunctionalTest {
                             )
                         )
                     expectThat(user) {
-                        get { id }.isEqualTo(1L)
+                        get { id }.isEqualTo(1)
                         get { name }.isEqualTo("chris")
                         get { email }.isEqualTo("my email")
                         get { birthday }.isEqualTo(LocalDate.parse("2020-06-20"))
@@ -85,7 +85,7 @@ class RepositoryFunctionalTest {
                             )
                         )
                     expectThat(user) {
-                        get { id }.isEqualTo(1L)
+                        get { id }.isEqualTo(1)
                         get { name }.isEqualTo("chris")
                         get { email }.isNull()
                     }
@@ -204,7 +204,7 @@ class RepositoryFunctionalTest {
                         SerializableUser(name = "chris", email = "my email")
                     )
                 expectThat(user) {
-                    get { id }.isEqualTo(1L)
+                    get { id }.isEqualTo(1)
                     get { name }.isEqualTo("chris")
                     get { email }.isEqualTo("my email")
                 }
