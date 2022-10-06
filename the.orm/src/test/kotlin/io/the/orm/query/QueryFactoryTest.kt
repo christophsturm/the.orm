@@ -21,7 +21,7 @@ class QueryFactoryTest {
                 mock(),
                 IDHandler(Entity::class),
                 mock(),
-                ClassInfo(Entity::class, IDHandler(Entity::class), setOf())
+                ClassInfo(Entity::class, setOf())
             )
         val connection = mock<ConnectionProvider>()
         val condition = Entity::id.isEqualTo()

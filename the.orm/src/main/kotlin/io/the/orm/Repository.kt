@@ -74,7 +74,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
             KProperty1<T, PK>
 
     private val idHandler = IDHandler(kClass)
-    private val classInfo = ClassInfo(kClass, idHandler, hasRelationsTo)
+    private val classInfo = ClassInfo(kClass, hasRelationsTo)
 
     private val exceptionInspector = ExceptionInspector(table, kClass)
 

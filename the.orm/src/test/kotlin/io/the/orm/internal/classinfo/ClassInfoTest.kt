@@ -5,7 +5,6 @@ import failgood.assert.containsExactlyInAnyOrder
 import failgood.describe
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
-import io.the.orm.internal.IDHandler
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
@@ -17,7 +16,7 @@ class ClassInfoTest {
         describe("for a single class") {
             data class Entity(val name: String, val id: Long? = null)
 
-            val classInfo = ClassInfo(Entity::class, IDHandler(Entity::class), setOf())
+            val classInfo = ClassInfo(Entity::class, setOf())
             it("knows the class name") {
                 expectThat(classInfo.name).isEqualTo("Entity")
             }
@@ -35,7 +34,7 @@ class ClassInfoTest {
             }
         }
         describe("belongs to relations") {
-            val classInfo = ClassInfo(UserGroup::class, IDHandler(UserGroup::class), setOf(User::class))
+            val classInfo = ClassInfo(UserGroup::class, setOf(User::class))
 
             it("knows field names and types for references") {
                 assert(classInfo.localFieldInfo.map { Pair(it.dbFieldName, it.type) }

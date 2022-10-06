@@ -36,4 +36,4 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
     }
 }
 fun Map<KParameter, Any?>.friendlyString() =
-    entries.joinToString { it.key.name + "=>" + it.value }
+    entries.joinToString { """${it.key.name}=>${it.value}(${it.key.type})""" }

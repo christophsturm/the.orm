@@ -5,13 +5,28 @@ import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.LazyResult
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.Flow
+import kotlin.reflect.KClass
 
-internal class DefaultResultMapper<Entity : Any>(
+interface SimpleResultMapper<Entity : Any> {
+    companion object {
+        fun <T : Any> forClass(entity: KClass<T>): SimpleResultMapper<T> {
+            val classInfo = ClassInfo(entity)
+            return DefaultResultMapper(ResultResolver(classInfo), StreamingEntityCreator(classInfo))
+        }
+    }
+    suspend fun mapQueryResult(queryResult: DBResult): Flow<Entity>
+}
+
+class DefaultResultMapper<Entity : Any> internal constructor(
     private val resultResolver: ResultResolver<Entity>,
     private val entityCreator: EntityCreator<Entity>
-) : ResultMapper<Entity> {
+) : ResultMapper<Entity>, SimpleResultMapper<Entity> {
 
     override suspend fun mapQueryResult(queryResult: DBResult, connectionProvider: ConnectionProvider): Flow<Entity> {
+        return mapQueryResult(queryResult)
+    }
+
+    override suspend fun mapQueryResult(queryResult: DBResult): Flow<Entity> {
         val parameters: Flow<ResultLine> = resultResolver.getResolvedValues(queryResult)
         return entityCreator.toEntities(parameters, listOf())
     }
@@ -27,7 +42,5 @@ internal class RelationFetchingResultMapper<Entity : Any>(
     }
 }
 
-internal data class LazyResultPair(val fieldInfo: ClassInfo.FieldInfo, val lazyResult: LazyResult<Any?>)
-internal data class ResultPair(val fieldInfo: ClassInfo.FieldInfo, val valueFromDb: Any?)
 internal data class LazyResultLine(val fields: List<LazyResult<*>>, val relations: List<LazyResult<*>>)
 internal data class ResultLine(val fields: List<Any?>, val relations: List<Any?>)
