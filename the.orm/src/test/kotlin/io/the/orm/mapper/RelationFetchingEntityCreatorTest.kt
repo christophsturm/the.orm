@@ -4,7 +4,7 @@ import failgood.Test
 import failgood.describe
 import failgood.mock.mock
 import io.the.orm.PK
-import io.the.orm.Repository
+import io.the.orm.SingleEntityRepo
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.flowOf
@@ -20,7 +20,7 @@ object RelationFetchingEntityCreatorTest {
         it("resolves entities") {
             val connectionProvider = mock<ConnectionProvider>()
             val referencedEntity = Entity.ReferencedEntity("blah", 10)
-            val repository = mock<Repository<Entity.ReferencedEntity>> {
+            val repository = mock<SingleEntityRepo<Entity.ReferencedEntity>> {
                 method { findByIds(any(), any()) }.returns(mapOf(10L to referencedEntity))
             }
             val classInfo = ClassInfo(Entity::class, setOf(Entity.ReferencedEntity::class))

@@ -1,7 +1,7 @@
 package io.the.orm.test.functional
 
 import failgood.Test
-import io.the.orm.Repository
+import io.the.orm.SingleEntityRepo
 import io.the.orm.query.like
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -11,7 +11,7 @@ import strikt.assertions.isEqualTo
 @Test
 class TransactionFunctionalTest {
     val context = describeOnAllDbs("Transaction handling", DBS.databases, USERS_SCHEMA) { createConnectionProvider ->
-        val repo = Repository.create<User>()
+        val repo = SingleEntityRepo.create<User>()
         val userNameLike = repo.queryFactory.createQuery(User::name.like())
 
         val connectionProvider by dependency({ createConnectionProvider() })

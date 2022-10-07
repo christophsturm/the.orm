@@ -6,7 +6,7 @@ import failgood.Ignored
 import failgood.Test
 import io.the.orm.ConnectedRepository
 import io.the.orm.NotFoundException
-import io.the.orm.Repository
+import io.the.orm.SingleEntityRepo
 import io.the.orm.query.QueryFactory
 import io.the.orm.query.between
 import io.the.orm.query.isEqualTo
@@ -42,7 +42,7 @@ class QueryFactoryFunctionalTest {
     val context = describeOnAllDbs("support for querying data", DBS.databases, SCHEMA) { createConnectionProvider ->
         val connectionProvider by dependency({ createConnectionProvider() })
 
-        val repo = Repository.create<User>()
+        val repo = SingleEntityRepo.create<User>()
         suspend fun create(instance: User) = repo.create(connectionProvider, instance)
 
         val user = User(

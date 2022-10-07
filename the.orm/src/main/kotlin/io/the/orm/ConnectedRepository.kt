@@ -4,12 +4,12 @@ import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.TransactionProvider
 
 open class ConnectedRepository<T : Any>(
-    val repository: Repository<T>,
+    val repository: SingleEntityRepo<T>,
     open val connectionProvider: ConnectionProvider
 ) {
     companion object {
         inline fun <reified T : Any> create(connection: ConnectionProvider): ConnectedRepository<T> =
-            ConnectedRepository(RepositoryImpl(T::class), connection)
+            ConnectedRepository(SingleEntityRepoImpl(T::class), connection)
     }
 
     suspend fun create(entity: T): T = repository.create(connectionProvider, entity)
@@ -18,12 +18,12 @@ open class ConnectedRepository<T : Any>(
 }
 
 class TransactionalRepository<T : Any>(
-    repository: Repository<T>,
+    repository: SingleEntityRepo<T>,
     override val connectionProvider: TransactionProvider
 ) : ConnectedRepository<T>(repository, connectionProvider) {
     companion object {
         inline fun <reified T : Any> create(connection: TransactionProvider): TransactionalRepository<T> =
-            TransactionalRepository(RepositoryImpl(T::class), connection)
+            TransactionalRepository(SingleEntityRepoImpl(T::class), connection)
     }
 
     suspend fun <R> transaction(function: suspend (ConnectedRepository<T>) -> R): R =

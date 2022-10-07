@@ -22,12 +22,13 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
 typealias PK = Long
+
 internal val pKClass = Long::class
 
-interface Repository<T : Any> {
+interface SingleEntityRepo<T : Any> {
     companion object {
         /** creates a Repo for the entity <T> */
-        inline fun <reified T : Any> create(): Repository<T> = RepositoryImpl(T::class)
+        inline fun <reified T : Any> create(): SingleEntityRepo<T> = SingleEntityRepoImpl(T::class)
     }
 
     val queryFactory: QueryFactory<T>
@@ -62,7 +63,8 @@ interface Repository<T : Any> {
     suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, T>
 }
 
-class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> = emptySet()) : Repository<T> {
+class SingleEntityRepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptySet()) :
+    SingleEntityRepo<T> {
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
 
     private val table = Table(kClass)
@@ -74,7 +76,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
             KProperty1<T, PK>
 
     private val idHandler = IDHandler(kClass)
-    private val classInfo = ClassInfo(kClass, hasRelationsTo)
+    private val classInfo = ClassInfo(kClass, otherClasses)
 
     private val exceptionInspector = ExceptionInspector(table, kClass)
 
@@ -88,7 +90,7 @@ class RepositoryImpl<T : Any>(kClass: KClass<T>, hasRelationsTo: Set<KClass<*>> 
             if (classInfo.hasRelations) RelationFetchingResultMapper(
                 ResultResolver(classInfo),
                 RelationFetchingEntityCreator(
-                    classInfo.relations.map { RepositoryImpl(it.relatedClass!!, hasRelationsTo + kClass) },
+                    classInfo.relations.map { SingleEntityRepoImpl(it.relatedClass!!, otherClasses + kClass) },
                     StreamingEntityCreator(classInfo)
                 )
             )

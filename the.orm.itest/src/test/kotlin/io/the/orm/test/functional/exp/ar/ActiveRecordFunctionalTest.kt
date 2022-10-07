@@ -2,7 +2,7 @@ package io.the.orm.test.functional.exp.ar
 
 import failgood.Test
 import io.the.orm.PK
-import io.the.orm.RepositoryImpl
+import io.the.orm.SingleEntityRepoImpl
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -45,4 +45,4 @@ class ActiveRecordFunctionalTest {
 }
 
 suspend inline fun <reified T : ActiveRecord> T.create(connection: ConnectionProvider): T =
-    RepositoryImpl(T::class).create(connection, this)
+    SingleEntityRepoImpl(T::class).create(connection, this)

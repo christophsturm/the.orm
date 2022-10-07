@@ -14,23 +14,23 @@ import strikt.assertions.message
 
 @Test
 object RepositoryTest {
-    val context = describe(Repository::class) {
+    val context = describe(SingleEntityRepo::class) {
         test("returns a query factory") {
-            val queryFactory = Repository.create<Entity>().queryFactory
+            val queryFactory = SingleEntityRepo.create<Entity>().queryFactory
             expectThat(queryFactory).isA<QueryFactory<Entity>>()
         }
         context("fail fast error handling") {
             test("fails if class contains unsupported fields") {
                 data class Unsupported(val field: String)
                 data class ClassWithUnsupportedType(val id: Long, val unsupported: Unsupported)
-                expectCatching { Repository.create<ClassWithUnsupportedType>() }.isFailure()
+                expectCatching { SingleEntityRepo.create<ClassWithUnsupportedType>() }.isFailure()
                     .isA<RepositoryException>()
                     .message
                     .isNotNull()
                     .contains("type Unsupported not supported")
             }
             test("fails if class has no id field") {
-                expectCatching { Repository.create<Any>() }.isFailure()
+                expectCatching { SingleEntityRepo.create<Any>() }.isFailure()
                     .isA<RepositoryException>()
                     .message
                     .isNotNull()
