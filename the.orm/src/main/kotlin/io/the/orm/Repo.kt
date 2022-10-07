@@ -1,8 +1,5 @@
-package io.the.orm.exp
+package io.the.orm
 
-import io.the.orm.PK
-import io.the.orm.SingleEntityRepo
-import io.the.orm.SingleEntityRepoImpl
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.TransactionProvider
 import kotlin.reflect.KClass
