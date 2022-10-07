@@ -4,8 +4,8 @@ import failgood.Ignored
 import failgood.Test
 import io.the.orm.PK
 import io.the.orm.SingleEntityRepo
-import io.the.orm.exp.ConnectedMultiRepo
-import io.the.orm.exp.TransactionalMultiRepo
+import io.the.orm.exp.ConnectedRepo
+import io.the.orm.exp.TransactionalRepo
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
@@ -86,9 +86,9 @@ object ConnectedMultiRepoFunctionalTest {
     data class Ingredient(val name: String, val id: Long? = null)
 
     val context =
-        describeOnAllDbs(ConnectedMultiRepo::class, DBS.databases, SCHEMA, ignored = ExceptEnv("NEXT")) {
+        describeOnAllDbs(ConnectedRepo::class, DBS.databases, SCHEMA, ignored = ExceptEnv("NEXT")) {
             val connection = it()
-            val transactionalMultiRepo = TransactionalMultiRepo(
+            val transactionalMultiRepo = TransactionalRepo(
                 connection,
                 listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
             )

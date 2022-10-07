@@ -2,12 +2,12 @@ package io.the.orm
 
 import failgood.Test
 import failgood.describe
-import io.the.orm.exp.MultiRepo
+import io.the.orm.exp.Repo
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
 
 @Test
-class MultiRepoTest {
+class RepoTest {
     data class Page(
         val id: Long?,
         val url: String,
@@ -20,12 +20,12 @@ class MultiRepoTest {
 
     data class Recipe(val id: Long?, val name: String, val description: String?, val page: BelongsTo<Page>)
 
-    val context = describe<MultiRepo> {
+    val context = describe<Repo> {
         it("can be created with classes that reference each other") {
-            MultiRepo(listOf(Page::class, Recipe::class))
+            Repo(listOf(Page::class, Recipe::class))
         }
         it("can return a query factory for a class") {
-            MultiRepo(listOf(Page::class, Recipe::class)).queryFactory<Page>()
+            Repo(listOf(Page::class, Recipe::class)).queryFactory<Page>()
         }
     }
 }
