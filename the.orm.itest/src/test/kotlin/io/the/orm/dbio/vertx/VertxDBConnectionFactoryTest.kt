@@ -3,7 +3,6 @@ package io.the.orm.dbio.vertx
 import failgood.Ignored
 import failgood.Test
 import failgood.describe
-import io.the.orm.dbio.DBConnection
 import io.the.orm.test.DBS
 import io.the.orm.test.TestUtilConfig
 import io.vertx.kotlin.coroutines.await
@@ -27,8 +26,7 @@ class VertxDBConnectionFactoryTest {
 
             val pool = autoClose(PgPool.pool(connectOptions, PoolOptions().setMaxSize(5))) { it.close().await() }
 
-            @Suppress("UNUSED_VARIABLE")
-            val connection: DBConnection = VertxDBConnectionFactory(pool).getConnection()
+            VertxDBConnectionFactory(pool).getConnection()
         }
     }
 }

@@ -17,7 +17,7 @@ import strikt.assertions.isTrue
 class TransactionTest {
     val context = describe("transaction handling") {
         val transaction = mock<DBTransaction>()
-        val r2dbcConnection = mock<DBConnection>() { method { beginTransaction() }.returns(transaction) }
+        val r2dbcConnection = mock<DBConnection> { method { beginTransaction() }.returns(transaction) }
         val connectionFactory = mock<DBConnectionFactory> { method { getConnection() }.returns(r2dbcConnection) }
         val connectionProvider = TransactionalConnectionProvider(connectionFactory)
         it("calls block") {

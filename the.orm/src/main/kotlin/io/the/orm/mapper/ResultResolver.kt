@@ -20,10 +20,10 @@ internal class ResultResolver<Entity : Any>(private val classInfo: ClassInfo<Ent
             )
         }
 
-        return map.map {
+        return map.map { resultLine ->
             ResultLine(
-                it.fields.map { it.resolve() },
-                it.relations.map { it.resolve() })
+                resultLine.fields.map { it.resolve() },
+                resultLine.relations.map { it.resolve() })
         }
     }
 

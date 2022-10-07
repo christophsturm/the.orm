@@ -140,10 +140,10 @@ object ConnectedMultiRepoFunctionalTest {
         }
 }
 
-class ExceptEnv(val s: String) : Ignored {
+class ExceptEnv(private val envVar: String) : Ignored {
     override fun isIgnored(): String? {
-        return if (System.getenv(s) == null)
-            "Ignored because env var $s is not set"
+        return if (System.getenv(envVar) == null)
+            "Ignored because env var $envVar is not set"
         else null
     }
 }

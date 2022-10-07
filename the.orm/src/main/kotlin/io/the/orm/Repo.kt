@@ -9,7 +9,6 @@ interface Repo {
         operator fun invoke(classes: List<KClass<out Any>>) = RepoImpl(classes)
     }
 
-    @Suppress("UNCHECKED_CAST")
     fun <T : Any> getRepo(kClass: KClass<T>): SingleEntityRepo<T>
 }
 

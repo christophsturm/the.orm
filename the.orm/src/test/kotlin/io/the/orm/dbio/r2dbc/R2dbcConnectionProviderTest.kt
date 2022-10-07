@@ -5,7 +5,6 @@ import failgood.describe
 import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
 import io.r2dbc.spi.ConnectionFactories
-import io.the.orm.dbio.DBConnection
 import java.time.Duration
 
 @Test
@@ -20,8 +19,7 @@ class R2dbcConnectionProviderTest {
                     .build()
             )
 
-            @Suppress("UNUSED_VARIABLE")
-            val connection: DBConnection = R2DbcDBConnectionFactory(pool).getConnection()
+            R2DbcDBConnectionFactory(pool).getConnection()
         }
     }
 }
