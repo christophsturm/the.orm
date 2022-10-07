@@ -1,5 +1,6 @@
 package io.the.orm.vertx
 
+import failgood.Ignored
 import failgood.Test
 import failgood.describe
 import io.the.orm.test.DBS
@@ -23,7 +24,11 @@ how things work.
 @Suppress("SqlNoDataSourceInspection", "SqlResolve")
 @Test
 class VertxTest {
-    val context = describe("vertx sql client api", disabled = TestUtilConfig.H2_ONLY) {
+    @Suppress("NAME_SHADOWING")
+    val context = describe(
+        "vertx sql client api",
+        ignored = if (TestUtilConfig.H2_ONLY) Ignored.Because("Running in h2 only mode") else null
+    ) {
         val db by dependency({ DBS.psql14.preparePostgresDB() }) { it.close() }
 
         val client: SqlClient by dependency({
@@ -34,7 +39,9 @@ class VertxTest {
                     .setDatabase(db.databaseName)
                     .setUser("test")
                     .setPassword("test"), PoolOptions().setMaxSize(5)
-            ).also { it.query("""create sequence users_id_seq no maxvalue;
+            ).also {
+                it.query(
+                    """create sequence users_id_seq no maxvalue;
                 create table users
 (
     id             bigint       not null default nextval('users_id_seq') primary key,
@@ -47,7 +54,9 @@ class VertxTest {
     weight         decimal(5, 2),
     balance        decimal(5, 2)
 );
-""").execute().await() }
+"""
+                ).execute().await()
+            }
         }) { it.close() }
         it("can run sql queries") {
             val result: RowSet<Row> = client.query("SELECT * FROM users WHERE id=1").execute().await()

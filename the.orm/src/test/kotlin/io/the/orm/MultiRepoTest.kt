@@ -20,7 +20,7 @@ class MultiRepoTest {
 
     data class Recipe(val id: Long?, val name: String, val description: String?, val page: BelongsTo<Page>)
 
-    val context = describe<MultiRepo>(disabled = System.getenv("NEXT") == null) {
+    val context = describe<MultiRepo> {
         it("can be created with classes that reference each other") {
             MultiRepo(listOf(Page::class, Recipe::class))
         }

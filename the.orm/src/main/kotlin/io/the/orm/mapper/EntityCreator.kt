@@ -14,15 +14,14 @@ internal interface EntityCreator<Entity : Any> {
 internal class StreamingEntityCreator<Entity : Any>(private val classInfo: ClassInfo<Entity>) : EntityCreator<Entity> {
     override fun toEntities(results: Flow<ResultLine>, relations: List<Map<PK, Any>>): Flow<Entity> {
         return results.map { values ->
-            val v = values.fields // no need to handle relations here because this is only used if we have none
-            val map = v.withIndex().associateTo(HashMap()) { (index, value) ->
+            val map = values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
                 val fieldInfo = classInfo.fields[index]
-                val v = fieldInfo.fieldConverter.dbValueToParameter(value)
-                Pair(fieldInfo.constructorParameter, v)
+                val parameterValue = fieldInfo.fieldConverter.dbValueToParameter(value)
+                Pair(fieldInfo.constructorParameter, parameterValue)
             }
             values.relations.withIndex().associateTo(map) { (index, value) ->
                 val fieldInfo = classInfo.relations[index]
-                Pair(fieldInfo.constructorParameter, relations[index].get(value as PK))
+                Pair(fieldInfo.constructorParameter, relations[index][value as PK])
             }
         }.map {
             try {

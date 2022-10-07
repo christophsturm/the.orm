@@ -1,4 +1,4 @@
-@file:Suppress("SqlResolve", "SqlNoDataSourceInspection")
+@file:Suppress("SqlResolve", "SqlNoDataSourceInspection", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 
 package io.the.orm.test.functional.exp
 

@@ -29,8 +29,6 @@ class IDHandlerTest {
                 val instance = ClassWithPkId(10, "string")
                 assert(IDHandler(ClassWithPkId::class).readId(instance) == 10L)
             }
-            ignore("reads a PK Long id") {
-            }
         }
     }
 }

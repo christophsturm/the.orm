@@ -2,6 +2,7 @@
 
 package io.the.orm.test.functional
 
+import failgood.Ignored
 import failgood.Test
 import io.the.orm.ConnectedRepository
 import io.the.orm.NotFoundException
@@ -71,7 +72,10 @@ class QueryFactoryFunctionalTest {
                     ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                 }
                 // works on R2DBC psql and vertx psql but not on H2
-                ignore("can query by list parameters with unnest") {
+                it(
+                    "can query by list parameters with unnest",
+                    ignored = Ignored.Because("just here for demo purposes")
+                ) {
                     fun <T, V> KProperty1<T, V>.`in`(): QueryFactory.Condition<Array<V>> =
                         QueryFactory.Condition("in (select unnest((?)::bigint[]))", this)
 

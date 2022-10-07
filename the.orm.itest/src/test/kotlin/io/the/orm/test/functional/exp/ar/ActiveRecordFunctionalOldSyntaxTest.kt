@@ -1,5 +1,6 @@
 package io.the.orm.test.functional.exp.ar
 
+import failgood.Ignored
 import failgood.describe
 import io.the.orm.test.DBS
 import io.the.orm.test.forAllDatabases
@@ -11,8 +12,7 @@ import java.time.LocalDate
  */
 
 object ActiveRecordFunctionalOldSyntaxTest {
-
-    val context = describe("Active Record API", disabled = true) {
+    val context = describe("Active Record API", ignored = Ignored.Because("just an example")) {
         forAllDatabases(DBS.databases, USERS_SCHEMA) { connectionProvider ->
             val connection = connectionProvider()
             it("just works") {
