@@ -15,7 +15,6 @@ import io.the.orm.test.TestUtilConfig.TEST_POOL_SIZE
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
-import io.vertx.sqlclient.SqlClient
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import java.time.Duration
 import java.util.UUID
@@ -102,17 +101,16 @@ class DBTestUtil(val databaseName: String) {
 
 class VertxConnectionProviderFactory(private val poolOptions: PgConnectOptions, private val db: AutoCloseable) :
     ConnectionProviderFactory {
-    private val clients = mutableListOf<SqlClient>()
+    private val pools = mutableListOf<PgPool>()
     override suspend fun create(): TransactionProvider {
         val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(TEST_POOL_SIZE))
-        clients.add(client)
-        val connectionProvider = TransactionalConnectionProvider(VertxDBConnectionFactory(client))
+        pools.add(client)
 
-        return connectionProvider
+        return TransactionalConnectionProvider(VertxDBConnectionFactory(client))
     }
 
     override suspend fun close() {
-        clients.forEach {
+        pools.forEach {
             it.close()
         }
         db.close()
@@ -133,20 +131,19 @@ class R2dbcConnectionProviderFactory(
         )
         pools.add(pool)
         val dbConnectionFactory = R2DbcDBConnectionFactory(pool)
-        val connectionProvider = TransactionalConnectionProvider(dbConnectionFactory)
-        return connectionProvider
+        return TransactionalConnectionProvider(dbConnectionFactory)
     }
 
     override suspend fun close() {
         val poolMetrics = buildString {
             pools.forEach {
                 val metrics = it.metrics.get()
-                append("allocatedSize: ${metrics.allocatedSize()}")
-                append(" acquiredSize: ${metrics.acquiredSize()}")
+                append("before close: [allocatedSize: ${metrics.allocatedSize()}")
+                append(" acquiredSize: ${metrics.acquiredSize()}]")
                 it.disposeLater().awaitFirstOrNull()
-                append("\nallocatedSize: ${metrics.allocatedSize()}")
+                append("\nafter close:[allocatedSize: ${metrics.allocatedSize()}")
                 append(" acquiredSize: ${metrics.acquiredSize()}")
-                append(" disposed: ${it.isDisposed}")
+                append(" disposed: ${it.isDisposed}]")
             }
         }
         try {

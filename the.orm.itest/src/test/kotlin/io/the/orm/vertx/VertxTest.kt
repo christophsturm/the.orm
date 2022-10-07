@@ -1,4 +1,4 @@
-package io.the.orm.test.vertx
+package io.the.orm.vertx
 
 import failgood.Test
 import failgood.describe
