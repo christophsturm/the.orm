@@ -26,16 +26,20 @@ class RepoImpl(classes: List<KClass<out Any>>) : Repo {
     override fun <T : Any> getRepo(kClass: KClass<T>) = entityRepos[kClass] as SingleEntityRepo<T>
 }
 
-open class ConnectedRepo internal constructor(
-    open val connectionProvider: ConnectionProvider,
+interface ConnectedRepo {
+    val connectionProvider: ConnectionProvider
     val repo: Repo
-) {
-    suspend inline fun <reified T : Any> create(entity: T): T = repo.create(connectionProvider, entity)
-    suspend inline fun <reified T : Any> findById(id: PK): T = repo.findById(connectionProvider, id)
 }
+suspend inline fun <reified T : Any> ConnectedRepo.create(entity: T): T = repo.create(connectionProvider, entity)
+suspend inline fun <reified T : Any> ConnectedRepo.findById(id: PK): T = repo.findById(connectionProvider, id)
 
-class TransactionalRepo(override val connectionProvider: TransactionProvider, repo: Repo) :
-    ConnectedRepo(connectionProvider, repo) {
+open class ConnectedRepoImpl internal constructor(
+    override val connectionProvider: ConnectionProvider,
+    override val repo: Repo
+) : ConnectedRepo
+
+class TransactionalRepo(override val connectionProvider: TransactionProvider, override val repo: Repo) :
+    ConnectedRepo {
     constructor(connectionProvider: TransactionProvider, classes: List<KClass<out Any>>) : this(
         connectionProvider,
         Repo(classes)
@@ -43,6 +47,6 @@ class TransactionalRepo(override val connectionProvider: TransactionProvider, re
 
     suspend fun <R> transaction(function: suspend (ConnectedRepo) -> R): R =
         connectionProvider.transaction { transactionConnectionProvider ->
-            function(ConnectedRepo(transactionConnectionProvider, repo))
+            function(ConnectedRepoImpl(transactionConnectionProvider, repo))
         }
 }

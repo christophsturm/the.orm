@@ -6,7 +6,9 @@ import io.the.orm.ConnectedRepo
 import io.the.orm.PK
 import io.the.orm.SingleEntityRepo
 import io.the.orm.TransactionalRepo
+import io.the.orm.create
 import io.the.orm.exp.relations.HasMany
+import io.the.orm.findById
 import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
