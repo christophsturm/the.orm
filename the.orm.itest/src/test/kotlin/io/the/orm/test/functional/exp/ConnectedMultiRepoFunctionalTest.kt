@@ -88,7 +88,7 @@ object ConnectedMultiRepoFunctionalTest {
     data class Ingredient(val name: String, val id: Long? = null)
 
     val context =
-        describeOnAllDbs(ConnectedRepo::class, DBS.databases, SCHEMA, ignored = ExceptEnv("NEXT")) {
+        describeOnAllDbs(ConnectedRepo::class, DBS.databases, SCHEMA) {
             val connection = it()
             val transactionalMultiRepo = TransactionalRepo(
                 connection,
@@ -130,8 +130,10 @@ object ConnectedMultiRepoFunctionalTest {
                     val recipeIngredient = repo.create(RecipeIngredient("2", recipe, gurke))
                     assert(createdIngredient == reloadedIngredient)
                     val reloadedRecipe = repo.findById<Recipe>(recipe.id!!)
-                    with(assertNotNull(reloadedRecipe.ingredients)) {
-                        assert(contains(recipeIngredient))
+                    if (System.getenv("NEXT") != null) {
+                        with(assertNotNull(reloadedRecipe.ingredients)) {
+                            assert(contains(recipeIngredient))
+                        }
                     }
                 }
             }

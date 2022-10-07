@@ -12,10 +12,13 @@ interface Repo {
     @Suppress("UNCHECKED_CAST")
     fun <T : Any> getRepo(kClass: KClass<T>): SingleEntityRepo<T>
 }
+
 suspend inline fun <reified T : Any> Repo.create(connectionProvider: ConnectionProvider, entity: T): T =
     getRepo(T::class).create(connectionProvider, entity)
+
 suspend inline fun <reified T : Any> Repo.findById(connectionProvider: ConnectionProvider, id: PK): T =
     getRepo(T::class).findById(connectionProvider, id)
+
 inline fun <reified T : Any> Repo.queryFactory() = getRepo(T::class).queryFactory
 
 class RepoImpl(classes: List<KClass<out Any>>) : Repo {
@@ -30,22 +33,34 @@ interface ConnectedRepo {
     val connectionProvider: ConnectionProvider
     val repo: Repo
 }
+
 suspend inline fun <reified T : Any> ConnectedRepo.create(entity: T): T = repo.create(connectionProvider, entity)
 suspend inline fun <reified T : Any> ConnectedRepo.findById(id: PK): T = repo.findById(connectionProvider, id)
 
-open class ConnectedRepoImpl internal constructor(
+class ConnectedRepoImpl internal constructor(
     override val connectionProvider: ConnectionProvider,
     override val repo: Repo
 ) : ConnectedRepo
 
-class TransactionalRepo(override val connectionProvider: TransactionProvider, override val repo: Repo) :
-    ConnectedRepo {
-    constructor(connectionProvider: TransactionProvider, classes: List<KClass<out Any>>) : this(
-        connectionProvider,
-        Repo(classes)
-    )
+interface TransactionalRepo : ConnectedRepo {
+    companion object {
+        operator fun invoke(connectionProvider: TransactionProvider, repo: Repo) =
+            TransactionalRepoImpl(connectionProvider, repo)
 
-    suspend fun <R> transaction(function: suspend (ConnectedRepo) -> R): R =
+        operator fun invoke(connectionProvider: TransactionProvider, classes: List<KClass<out Any>>) =
+            TransactionalRepoImpl(
+                connectionProvider,
+                Repo(classes)
+            )
+    }
+
+    suspend fun <R> transaction(function: suspend (ConnectedRepo) -> R): R
+}
+
+class TransactionalRepoImpl(override val connectionProvider: TransactionProvider, override val repo: Repo) :
+    TransactionalRepo {
+
+    override suspend fun <R> transaction(function: suspend (ConnectedRepo) -> R): R =
         connectionProvider.transaction { transactionConnectionProvider ->
             function(ConnectedRepoImpl(transactionConnectionProvider, repo))
         }
