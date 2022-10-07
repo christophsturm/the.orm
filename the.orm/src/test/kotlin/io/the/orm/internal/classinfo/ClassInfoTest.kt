@@ -41,7 +41,7 @@ class ClassInfoTest {
                     .containsExactlyInAnyOrder(Pair("user_id", Long::class.java), Pair("id", Long::class.java)))
             }
             it("knows values for references") {
-                val values = classInfo.values(UserGroup(BelongsTo(User("name", id = 10)), id = 20))
+                val values = classInfo.values(UserGroup(User("name", id = 10), id = 20))
                 val names = classInfo.localFieldInfo.map { it.dbFieldName }
                 assert(names.zip(values.toList()).containsExactlyInAnyOrder(Pair("id", 20L), Pair("user_id", 10L)))
             }
@@ -58,5 +58,5 @@ class ClassInfoTest {
     }
 }
 
-data class UserGroup(val user: BelongsTo<User>, val id: Long? = null)
+data class UserGroup(val user: User, val id: Long? = null)
 data class User(val name: String, val groups: HasMany<UserGroup>? = null, val id: Long? = null)

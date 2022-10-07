@@ -17,7 +17,7 @@ class RepoTest {
         val recipes: HasMany<Recipe>
     )
 
-    data class Recipe(val id: Long?, val name: String, val description: String?, val page: BelongsTo<Page>)
+    data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
 
     val context = describe<Repo> {
         it("can be created with classes that reference each other") {
