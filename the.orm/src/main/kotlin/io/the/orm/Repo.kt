@@ -15,7 +15,7 @@ class Repo(classes: List<KClass<out Any>>) {
         getRepo(T::class).findById(connectionProvider, id)
 
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T : Any> getRepo(kClass: KClass<T>) = entityRepos[kClass] as SingleEntityRepo<T>
+    fun <T : Any> getRepo(kClass: KClass<T>) = entityRepos[kClass] as SingleEntityRepo<T>
 
     inline fun <reified T : Any> queryFactory() = getRepo(T::class).queryFactory
 }
