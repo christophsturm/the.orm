@@ -3,7 +3,6 @@ package io.the.orm.internal.classinfo
 import failgood.Test
 import failgood.assert.containsExactlyInAnyOrder
 import failgood.describe
-import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder

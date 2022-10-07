@@ -4,20 +4,26 @@ import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.TransactionProvider
 import kotlin.reflect.KClass
 
-class Repo(classes: List<KClass<out Any>>) {
-    val entityRepos: Map<KClass<out Any>, SingleEntityRepo<out Any>> =
-        classes.associateBy({ it }, { SingleEntityRepoImpl(it, classes.toSet()) })
-
-    suspend inline fun <reified T : Any> create(connectionProvider: ConnectionProvider, entity: T): T =
-        getRepo(T::class).create(connectionProvider, entity)
-
-    suspend inline fun <reified T : Any> findById(connectionProvider: ConnectionProvider, id: PK): T =
-        getRepo(T::class).findById(connectionProvider, id)
+interface Repo {
+    companion object {
+        operator fun invoke(classes: List<KClass<out Any>>) = RepoImpl(classes)
+    }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> getRepo(kClass: KClass<T>) = entityRepos[kClass] as SingleEntityRepo<T>
+    fun <T : Any> getRepo(kClass: KClass<T>): SingleEntityRepo<T>
+}
+suspend inline fun <reified T : Any> Repo.create(connectionProvider: ConnectionProvider, entity: T): T =
+    getRepo(T::class).create(connectionProvider, entity)
+suspend inline fun <reified T : Any> Repo.findById(connectionProvider: ConnectionProvider, id: PK): T =
+    getRepo(T::class).findById(connectionProvider, id)
+inline fun <reified T : Any> Repo.queryFactory() = getRepo(T::class).queryFactory
 
-    inline fun <reified T : Any> queryFactory() = getRepo(T::class).queryFactory
+class RepoImpl(classes: List<KClass<out Any>>) : Repo {
+    private val entityRepos: Map<KClass<out Any>, SingleEntityRepo<out Any>> =
+        classes.associateBy({ it }, { SingleEntityRepoImpl(it, classes.toSet()) })
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : Any> getRepo(kClass: KClass<T>) = entityRepos[kClass] as SingleEntityRepo<T>
 }
 
 open class ConnectedRepo internal constructor(

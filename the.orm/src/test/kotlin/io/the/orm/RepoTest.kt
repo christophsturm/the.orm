@@ -2,7 +2,6 @@ package io.the.orm
 
 import failgood.Test
 import failgood.describe
-import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
 
 @Test
