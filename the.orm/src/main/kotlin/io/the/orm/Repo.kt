@@ -3,10 +3,13 @@ package io.the.orm
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.TransactionProvider
 import kotlin.reflect.KClass
+inline operator fun <reified Entity : Any> Repo.Companion.invoke(): SingleEntityRepo<Entity> = invoke(Entity::class)
 
 interface Repo {
     companion object {
         operator fun invoke(classes: List<KClass<out Any>>) = RepoImpl(classes)
+        operator fun <Entity : Any> invoke(entity: KClass<Entity>): SingleEntityRepo<Entity> =
+            SingleEntityRepoImpl(entity)
     }
 
     fun <T : Any> getRepo(kClass: KClass<T>): SingleEntityRepo<T>

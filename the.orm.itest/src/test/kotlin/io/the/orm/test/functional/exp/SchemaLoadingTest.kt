@@ -17,7 +17,7 @@ object SchemaLoadingTest {
             "detecting the table structure",
             DBS.databases,
             USERS_SCHEMA,
-            ignored = ExceptEnv("NEXT")
+            ignored = UnlessEnv("NEXT")
         ) { createConnectionProvider ->
             it("can get the table structure") {
                 val connectionProvider = createConnectionProvider()
