@@ -2,7 +2,6 @@ package io.the.orm.test.functional.exp
 
 import failgood.Ignored
 import failgood.Test
-import io.the.orm.ConnectedRepo
 import io.the.orm.PK
 import io.the.orm.SingleEntityRepo
 import io.the.orm.TransactionalRepo
@@ -60,7 +59,7 @@ private const val SCHEMA = """
 """
 
 @Test
-object ConnectedMultiRepoFunctionalTest {
+object TransactionalRepoFunctionalTest {
     data class Page(
         val url: String,
         val title: String?,
@@ -88,7 +87,7 @@ object ConnectedMultiRepoFunctionalTest {
     data class Ingredient(val name: String, val id: Long? = null)
 
     val context =
-        describeOnAllDbs(ConnectedRepo::class, DBS.databases, SCHEMA) {
+        describeOnAllDbs(TransactionalRepo::class, DBS.databases, SCHEMA) {
             val connection = it()
             val transactionalMultiRepo = TransactionalRepo(
                 connection,
@@ -130,6 +129,8 @@ object ConnectedMultiRepoFunctionalTest {
                     val recipeIngredient = repo.create(RecipeIngredient("2", recipe, gurke))
                     assert(createdIngredient == reloadedIngredient)
                     val reloadedRecipe = repo.findById<Recipe>(recipe.id!!)
+
+                    // HasMany side of 1:N relations is not yet fetched.
                     if (System.getenv("NEXT") != null) {
                         with(assertNotNull(reloadedRecipe.ingredients)) {
                             assert(contains(recipeIngredient))
