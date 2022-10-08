@@ -45,12 +45,11 @@ class MockStatement(val sql: String) : Statement {
     }
 }
 
-data class MockDBResult(val rows: List<DBRow> = listOf(), val rowsUpdated: Int = 0) : DBResult {
-    override suspend fun rowsUpdated(): Int {
-        TODO("Not yet implemented")
-    }
+data class MockDBResult(val rows: List<DBRow> = listOf(), val rowsUpdated: Int = 0, val id: Long = 0) : DBResult {
+    override suspend fun rowsUpdated(): Int = rowsUpdated
+    override suspend fun getId(): Long = id
 
     override suspend fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T> {
-        TODO("Not yet implemented")
+        return flowOf()
     }
 }

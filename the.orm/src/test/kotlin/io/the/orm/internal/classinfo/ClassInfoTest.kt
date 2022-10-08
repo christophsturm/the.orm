@@ -3,6 +3,7 @@ package io.the.orm.internal.classinfo
 import failgood.Test
 import failgood.assert.containsExactlyInAnyOrder
 import failgood.describe
+import io.the.orm.PK
 import io.the.orm.exp.relations.HasMany
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
@@ -52,6 +53,19 @@ class ClassInfoTest {
                     .containsExactlyInAnyOrder(Pair("id", Long::class.java)))
                 assert(classInfo.relations.map { Pair(it.dbFieldName, it.type) }
                     .containsExactlyInAnyOrder(Pair("user_id", Long::class.java)))
+            }
+        }
+        describe("has many relations") {
+            describe("local has many relations") {
+                data class NestedEntity(val name: String)
+                data class HolderOfNestedEntity(
+                    val name: String,
+                    val nestedEntities: HasMany<NestedEntity>,
+                    val id: PK? = null
+                )
+                it("works without specifying the nested entity as referenced class") {
+                    ClassInfo(HolderOfNestedEntity::class)
+                }
             }
         }
     }

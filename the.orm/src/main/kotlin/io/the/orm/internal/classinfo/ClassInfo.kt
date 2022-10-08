@@ -129,31 +129,32 @@ internal data class ClassInfo<T : Any>(
 
             val fieldInfo: List<FieldInfo> = constructor.parameters.map { parameter ->
                 val type = parameter.type
-                val javaClass = when (val t = type.javaType) {
-                    is Class<*> -> t
-                    is ParameterizedType -> t.actualTypeArguments.single() as Class<*>
-                    else -> throw RuntimeException("unsupported type: ${t.typeName}")
-                }
                 val kc = type.classifier as KClass<*>
                 val kotlinClass = when (kc) {
                     BelongsTo::class, HasMany::class -> type.arguments.single().type!!.classifier as KClass<*>
                     else -> kc
                 }
+                val javaClass = when (val t = type.javaType) {
+                    is Class<*> -> t
+                    is ParameterizedType -> t.actualTypeArguments.single() as Class<*>
+                    else -> throw RuntimeException("unsupported type: ${t.typeName}")
+                }
+
                 val fieldName = parameter.name!!.toSnakeCase()
                 val property = properties[parameter.name]!!
-                if (otherClasses.contains(kotlinClass)) {
-                    if (kc == HasMany::class) RemoteFieldInfo(
-                        parameter, property, BelongsToConverter(IDHandler(kotlinClass)), Long::class.java, kotlinClass
-                    ) else
-
-                        LocalFieldInfo(
-                            parameter,
-                            property,
-                            fieldName + "_id",
-                            BelongsToConverter(IDHandler(kotlinClass)),
-                            Long::class.java,
-                            kotlinClass
-                        )
+                if (kc == HasMany::class)
+                    RemoteFieldInfo(
+                        parameter, property, HasManyConverter(), Long::class.java, kotlinClass
+                    )
+                else if (otherClasses.contains(kotlinClass)) {
+                    LocalFieldInfo(
+                        parameter,
+                        property,
+                        fieldName + "_id",
+                        BelongsToConverter(IDHandler(kotlinClass)),
+                        Long::class.java,
+                        kotlinClass
+                    )
                 } else when {
                     javaClass.isEnum -> LocalFieldInfo(
                         parameter, property, fieldName, EnumConverter(javaClass), String::class.java
