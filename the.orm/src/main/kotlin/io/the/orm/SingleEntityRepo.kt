@@ -87,10 +87,10 @@ class SingleEntityRepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<
     override val queryFactory: QueryFactory<T> by lazy {
         QueryFactory(
             table,
-            if (classInfo.hasRelations) RelationFetchingResultMapper(
+            if (classInfo.hasBelongsToRelations) RelationFetchingResultMapper(
                 ResultResolver(classInfo),
                 RelationFetchingEntityCreator(
-                    classInfo.relations.map { SingleEntityRepoImpl(it.relatedClass!!, otherClasses + kClass) },
+                    classInfo.belongsToRelations.map { SingleEntityRepoImpl(it.relatedClass!!, otherClasses + kClass) },
                     StreamingEntityCreator(classInfo)
                 )
             )

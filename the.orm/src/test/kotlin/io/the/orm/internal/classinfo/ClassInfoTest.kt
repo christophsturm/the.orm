@@ -30,7 +30,7 @@ class ClassInfoTest {
                     .containsExactlyInAnyOrder(Pair("name", "name"), Pair("id", null))
             }
             it("know that it has no relations") {
-                assert(!classInfo.hasRelations)
+                assert(!classInfo.hasBelongsToRelations)
             }
         }
         describe("belongs to relations") {
@@ -46,12 +46,12 @@ class ClassInfoTest {
                 assert(names.zip(values.toList()).containsExactlyInAnyOrder(Pair("id", 20L), Pair("user_id", 10L)))
             }
             it("knows if entity has relations") {
-                assert(classInfo.hasRelations)
+                assert(classInfo.hasBelongsToRelations)
             }
             it("separates fields and relations") {
                 assert(classInfo.fields.map { Pair(it.dbFieldName, it.type) }
                     .containsExactlyInAnyOrder(Pair("id", Long::class.java)))
-                assert(classInfo.relations.map { Pair(it.dbFieldName, it.type) }
+                assert(classInfo.belongsToRelations.map { Pair(it.dbFieldName, it.type) }
                     .containsExactlyInAnyOrder(Pair("user_id", Long::class.java)))
             }
         }

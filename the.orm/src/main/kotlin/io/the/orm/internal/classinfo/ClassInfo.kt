@@ -75,10 +75,10 @@ internal data class ClassInfo<T : Any>(
     val constructor: KFunction<T>,
     val localFieldInfo: List<LocalFieldInfo>,
     val fields: List<LocalFieldInfo>,
-    val relations: List<LocalFieldInfo>,
+    val belongsToRelations: List<LocalFieldInfo>,
     val hasManyRelations: List<RemoteFieldInfo>
 ) {
-    val hasRelations = relations.isNotEmpty()
+    val hasBelongsToRelations = belongsToRelations.isNotEmpty()
     val hasHasManyRelations = hasManyRelations.isNotEmpty()
 
     sealed interface FieldInfo {

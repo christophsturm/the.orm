@@ -20,7 +20,7 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
                 Pair(fieldInfo.constructorParameter, parameterValue)
             }
             values.relations.withIndex().associateTo(map) { (index, value) ->
-                val fieldInfo = classInfo.relations[index]
+                val fieldInfo = classInfo.belongsToRelations[index]
                 Pair(fieldInfo.constructorParameter, relations[index][value as PK])
             }
         }.map {

@@ -14,7 +14,7 @@ internal class ResultResolver<Entity : Any>(private val classInfo: ClassInfo<Ent
             LazyResultLine(classInfo.fields.map { fieldInfo ->
                 lazyResult(row, fieldInfo)
             },
-                classInfo.relations.map { fieldInfo ->
+                classInfo.belongsToRelations.map { fieldInfo ->
                     lazyResult(row, fieldInfo)
                 }
             )
