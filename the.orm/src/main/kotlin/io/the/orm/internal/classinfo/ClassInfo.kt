@@ -75,9 +75,11 @@ internal data class ClassInfo<T : Any>(
     val constructor: KFunction<T>,
     val localFieldInfo: List<LocalFieldInfo>,
     val fields: List<LocalFieldInfo>,
-    val relations: List<LocalFieldInfo>
+    val relations: List<LocalFieldInfo>,
+    val hasManyRelations: List<RemoteFieldInfo>
 ) {
     val hasRelations = relations.isNotEmpty()
+    val hasHasManyRelations = hasManyRelations.isNotEmpty()
 
     sealed interface FieldInfo {
         val constructorParameter: KParameter
@@ -180,7 +182,14 @@ internal data class ClassInfo<T : Any>(
             val partitions = localFieldInfo.partition { it.relatedClass != null }
             val fields = partitions.second
             val relations = partitions.first
-            return ClassInfo(name!!, constructor, localFieldInfo, fields, relations)
+            return ClassInfo(
+                name!!,
+                constructor,
+                localFieldInfo,
+                fields,
+                relations,
+                fieldInfo.filterIsInstance<RemoteFieldInfo>()
+            )
         }
     }
 }

@@ -12,18 +12,17 @@ import kotlinx.coroutines.flow.single
 
 @Test
 object RelationFetchingEntityCreatorTest {
-    data class Entity(val referencedEntity: ReferencedEntity, val id: PK? = null) {
-        data class ReferencedEntity(val name: String, val id: PK? = null)
-    }
-
+    class Entity
     val tests = describe<RelationFetchingEntityCreator<Entity>> {
-        it("resolves entities") {
-            val connectionProvider = mock<ConnectionProvider>()
-            val referencedEntity = Entity.ReferencedEntity("blah", 10)
-            val repository = mock<SingleEntityRepo<Entity.ReferencedEntity>> {
+        val connectionProvider = mock<ConnectionProvider>()
+        it("resolves belongs to entities") {
+            data class ReferencedEntity(val name: String, val id: PK? = null)
+            data class Entity(val referencedEntity: ReferencedEntity, val id: PK? = null)
+            val referencedEntity = ReferencedEntity("blah", 10)
+            val repository = mock<SingleEntityRepo<ReferencedEntity>> {
                 method { findByIds(any(), any()) }.returns(mapOf(10L to referencedEntity))
             }
-            val classInfo = ClassInfo(Entity::class, setOf(Entity.ReferencedEntity::class))
+            val classInfo = ClassInfo(Entity::class, setOf(ReferencedEntity::class))
             val creator = RelationFetchingEntityCreator(listOf(repository), StreamingEntityCreator(classInfo))
             val result = creator.toEntities(
                 flowOf(ResultLine(listOf(99L), listOf(10L))), connectionProvider

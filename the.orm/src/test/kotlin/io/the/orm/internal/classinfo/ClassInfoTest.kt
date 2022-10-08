@@ -66,6 +66,9 @@ class ClassInfoTest {
                 it("works without specifying the nested entity as referenced class") {
                     ClassInfo(HolderOfNestedEntity::class)
                 }
+                it("knows if entity has hasMany relations") {
+                    assert(ClassInfo(HolderOfNestedEntity::class).hasHasManyRelations)
+                }
             }
         }
     }
