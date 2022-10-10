@@ -152,6 +152,12 @@ class SingleEntityRepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<
     }
 
     override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, T> {
-        return byIdsQuery.with(connectionProvider, ids.toTypedArray()).find().associateBy(idProperty)
+        return byIdsQuery.with(connectionProvider, ids.toTypedArray()).findAndTransform { flow ->
+            val result = mutableMapOf<PK, T>()
+            flow.collect {
+                result[idProperty(it)] = it
+            }
+            result
+        }
     }
 }

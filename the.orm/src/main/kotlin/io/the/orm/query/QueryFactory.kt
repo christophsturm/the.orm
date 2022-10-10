@@ -12,7 +12,7 @@ import io.the.orm.util.toIndexedPlaceholders
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.coroutines.flow.toCollection
+import kotlinx.coroutines.flow.toList
 import kotlin.reflect.KProperty1
 
 class QueryFactory<T : Any> internal constructor(
@@ -97,8 +97,12 @@ class QueryFactory<T : Any> internal constructor(
     ) {
 
         suspend fun find(): List<T> {
+            return findAndTransform { it.toList(mutableListOf()) }
+        }
+
+        suspend fun <R> findAndTransform(transform: suspend (Flow<T>) -> R): R {
             return connectionProvider.withConnection { connection ->
-                find(connection, connectionProvider).toCollection(mutableListOf())
+                transform(find(connection, connectionProvider))
             }
         }
 
