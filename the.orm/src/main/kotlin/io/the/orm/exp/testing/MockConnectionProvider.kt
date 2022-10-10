@@ -29,11 +29,9 @@ class MockDbConnection : DBConnection {
 
 class MockTransaction : DBTransaction {
     override suspend fun rollbackTransaction() {
-        TODO("Not yet implemented")
     }
 
     override suspend fun commitTransaction() {
-        TODO("Not yet implemented")
     }
 }
 
