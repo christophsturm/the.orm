@@ -16,7 +16,7 @@ object HasManyTest {
         return NewHasMany(list)
     }
 
-    val context = describe<HasMany<NestedEntity>>(ignored = UnlessEnv("NEXT")) {
+    val context = describe<HasMany<NestedEntity>> {
         it("can create an entity with nested entities") {
             val holder = HolderOfNestedEntity(
                 "name",
