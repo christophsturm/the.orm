@@ -102,23 +102,15 @@ class QueryFactory<T : Any> internal constructor(
 
         suspend fun <R> findAndTransform(transform: suspend (Flow<T>) -> R): R {
             return connectionProvider.withConnection { connection ->
-                transform(find(connection, connectionProvider))
+                val queryResult = connection.executeSelect(
+                    parameterValues,
+                    selectPrefix + queryString
+                )
+                transform(resultMapper.mapQueryResult(queryResult, connectionProvider))
             }
         }
 
-        suspend fun findSingle(): T {
-            return connectionProvider.withConnection { connection ->
-                find(connection, connectionProvider).single()
-            }
-        }
-
-        private suspend fun find(connection: DBConnection, connectionProvider: ConnectionProvider): Flow<T> {
-            val queryResult = connection.executeSelect(
-                parameterValues,
-                selectPrefix + queryString
-            )
-            return resultMapper.mapQueryResult(queryResult, connectionProvider)
-        }
+        suspend fun findSingle(): T = findAndTransform { it.single() }
 
         suspend fun delete(): Int =
             connectionProvider.withConnection { connection ->
