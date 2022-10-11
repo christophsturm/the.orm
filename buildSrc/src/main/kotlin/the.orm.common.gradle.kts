@@ -19,8 +19,8 @@ tasks {
         kotlinOptions {
             jvmTarget = "1.8"
             freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
-            languageVersion = "1.5"
-            apiVersion = "1.5"
+            languageVersion = "1.6"
+            apiVersion = "1.6"
         }
     }
 }

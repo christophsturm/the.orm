@@ -7,6 +7,7 @@ import io.the.orm.versions.vertxVersion
 
 
 plugins {
+    id("the.orm.common")
     java
     kotlin("jvm")
     id("org.jmailen.kotlinter") version "3.12.0"
