@@ -32,6 +32,9 @@ class RepoImpl(classes: List<KClass<out Any>>) : Repo {
 }
 
 interface ConnectedRepo {
+    companion object {
+        operator fun invoke(connectionProvider: ConnectionProvider, repo: Repo) = ConnectedRepoImpl(connectionProvider, repo)
+    }
     val connectionProvider: ConnectionProvider
     val repo: Repo
 }
@@ -39,7 +42,7 @@ interface ConnectedRepo {
 suspend inline fun <reified T : Any> ConnectedRepo.create(entity: T): T = repo.create(connectionProvider, entity)
 suspend inline fun <reified T : Any> ConnectedRepo.findById(id: PK): T = repo.findById(connectionProvider, id)
 
-class ConnectedRepoImpl internal constructor(
+data class ConnectedRepoImpl internal constructor(
     override val connectionProvider: ConnectionProvider,
     override val repo: Repo
 ) : ConnectedRepo
