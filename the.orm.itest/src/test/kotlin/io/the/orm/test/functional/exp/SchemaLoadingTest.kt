@@ -21,8 +21,8 @@ object SchemaLoadingTest {
         ) { createConnectionProvider ->
             it("can get the table structure") {
                 val connectionProvider = createConnectionProvider()
-                connectionProvider.withConnection {
-                    val columns = it.createStatement(
+                connectionProvider.withConnection { conn ->
+                    val columns = conn.createStatement(
                         "select column_name, data_type, character_maximum_length, column_default, is_nullable\n" +
                             "from INFORMATION_SCHEMA.COLUMNS where lower(table_name) = 'users'"
                     ).execute().mapToList<Columns>().toList()
