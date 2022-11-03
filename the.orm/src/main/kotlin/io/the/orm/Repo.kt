@@ -3,6 +3,7 @@ package io.the.orm
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.TransactionProvider
 import kotlin.reflect.KClass
+
 inline operator fun <reified Entity : Any> Repo.Companion.invoke(): SingleEntityRepo<Entity> = invoke(Entity::class)
 
 interface Repo {
@@ -33,8 +34,10 @@ class RepoImpl(classes: List<KClass<out Any>>) : Repo {
 
 interface ConnectedRepo {
     companion object {
-        operator fun invoke(connectionProvider: ConnectionProvider, repo: Repo) = ConnectedRepoImpl(connectionProvider, repo)
+        operator fun invoke(connectionProvider: ConnectionProvider, repo: Repo) =
+            ConnectedRepoImpl(connectionProvider, repo)
     }
+
     val connectionProvider: ConnectionProvider
     val repo: Repo
 }
