@@ -2,6 +2,9 @@ image:https://github.com/christophsturm/the.orm/workflows/CI/badge.svg[link="htt
 
 == the.orm
 
+=== under construction. this readme is outdated. check back later.
+
+
 a simple non-blocking ORM for kotlin.Supports H2 and postgres.
 
 features:
@@ -9,13 +12,7 @@ features:
 * automatically map data classes to database tables
 * coroutines based api
 * no annotations
-
-status:
-It can map a data class to a database table, and it has a type safe query language.
-
-planned:
-
-* relations (1:n, n:m)
+* relations
 
 toc::[]
 
