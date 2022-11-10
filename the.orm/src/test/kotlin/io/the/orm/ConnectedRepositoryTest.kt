@@ -16,7 +16,7 @@ class ConnectedRepositoryTest {
         val connection = mock<ConnectionProvider>()
         test("exposes Repository and Connection") {
             expectThat(ConnectedRepo.create<Entity>(connection)) {
-                get { repository }.isA<Repo<Entity>>()
+                get { repo }.isA<Repo<Entity>>()
                 get { this.connectionProvider }.isSameInstanceAs(connection)
             }
         }

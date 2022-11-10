@@ -142,7 +142,7 @@ class QueryFactoryFunctionalTest {
             describe("findOrCreate") {
                 val repo = ConnectedRepo.create<Vegetable>(connectionProvider)
                 val carrot = repo.create(Vegetable(name = "carrot"))
-                val queryByName = repo.repository.queryFactory.createQuery(Vegetable::name.isEqualTo())
+                val queryByName = repo.repo.queryFactory.createQuery(Vegetable::name.isEqualTo())
                 it("finds an existing entity") {
                     expectThat(
                         queryByName.with(connectionProvider, "carrot")
@@ -161,7 +161,7 @@ class QueryFactoryFunctionalTest {
             }
             describe("createOrUpdate") {
                 val repo = ConnectedRepo.create<Vegetable>(connectionProvider)
-                val queryByName = repo.repository.queryFactory.createQuery(Vegetable::name.isEqualTo())
+                val queryByName = repo.repo.queryFactory.createQuery(Vegetable::name.isEqualTo())
                 it("creates a new entity if it does not yet exist") {
                     expectThat(
                         queryByName.with(connectionProvider, "tomato").createOrUpdate(Vegetable(name = "tomato"))

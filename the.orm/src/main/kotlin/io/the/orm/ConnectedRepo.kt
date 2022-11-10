@@ -3,31 +3,54 @@ package io.the.orm
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.TransactionProvider
 
-open class ConnectedRepo<T : Any>(
-    val repository: Repo<T>,
-    open val connectionProvider: ConnectionProvider
-) {
+interface ConnectedRepo<T : Any> {
+    val repo: Repo<T>
+    val connectionProvider: ConnectionProvider
+
     companion object {
         inline fun <reified T : Any> create(connection: ConnectionProvider): ConnectedRepo<T> =
-            ConnectedRepo(RepoImpl(T::class), connection)
+            ConnectedRepoImpl(RepoImpl(T::class), connection)
+        operator fun <T : Any> invoke(repo: Repo<T>, connectionProvider: ConnectionProvider) =
+            ConnectedRepoImpl(repo, connectionProvider)
     }
 
-    suspend fun create(entity: T): T = repository.create(connectionProvider, entity)
-    suspend fun update(entity: T): Unit = repository.update(connectionProvider, entity)
-    suspend fun findById(pk: PK): T = repository.findById(connectionProvider, pk)
+    suspend fun create(entity: T): T
+
+    suspend fun update(entity: T)
+
+    suspend fun findById(pk: PK): T
 }
 
-class TransactionalRepo<T : Any>(
-    repository: Repo<T>,
-    override val connectionProvider: TransactionProvider
-) : ConnectedRepo<T>(repository, connectionProvider) {
+open class ConnectedRepoImpl<T : Any>(override val repo: Repo<T>, override val connectionProvider: ConnectionProvider) :
+    ConnectedRepo<T> {
+
+    override suspend fun create(entity: T): T = repo.create(connectionProvider, entity)
+    override suspend fun update(entity: T): Unit = repo.update(connectionProvider, entity)
+    override suspend fun findById(pk: PK): T = repo.findById(connectionProvider, pk)
+}
+
+interface TransactionalRepo<T : Any> : ConnectedRepo<T> {
     companion object {
         inline fun <reified T : Any> create(connection: TransactionProvider): TransactionalRepo<T> =
-            TransactionalRepo(RepoImpl(T::class), connection)
+            TransactionalRepoImpl(RepoImpl(T::class), connection)
+        operator fun <T : Any> invoke(repo: Repo<T>, connection: TransactionProvider): TransactionalRepo<T> =
+            TransactionalRepoImpl(repo, connection)
     }
+    override val repo: Repo<T>
+    override val connectionProvider: TransactionProvider
+    suspend fun <R> transaction(function: suspend (ConnectedRepo<T>) -> R): R
+}
 
-    suspend fun <R> transaction(function: suspend (ConnectedRepo<T>) -> R): R =
+class TransactionalRepoImpl<T : Any>(
+    override val repo: Repo<T>,
+    override val connectionProvider: TransactionProvider
+) : TransactionalRepo<T> {
+    override suspend fun create(entity: T): T = repo.create(connectionProvider, entity)
+    override suspend fun update(entity: T): Unit = repo.update(connectionProvider, entity)
+    override suspend fun findById(pk: PK): T = repo.findById(connectionProvider, pk)
+
+    override suspend fun <R> transaction(function: suspend (ConnectedRepo<T>) -> R): R =
         connectionProvider.transaction { transactionConnectionProvider ->
-            function(ConnectedRepo(repository, transactionConnectionProvider))
+            function(ConnectedRepoImpl(repo, transactionConnectionProvider))
         }
 }

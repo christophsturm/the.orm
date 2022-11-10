@@ -43,7 +43,8 @@ interface ConnectedMultiRepo {
     val multiRepo: MultiRepo
 }
 
-suspend inline fun <reified T : Any> ConnectedMultiRepo.create(entity: T): T = multiRepo.create(connectionProvider, entity)
+suspend inline fun <reified T : Any> ConnectedMultiRepo.create(entity: T): T =
+    multiRepo.create(connectionProvider, entity)
 suspend inline fun <reified T : Any> ConnectedMultiRepo.findById(id: PK): T = multiRepo.findById(connectionProvider, id)
 
 data class ConnectedMultiRepoImpl internal constructor(
@@ -66,7 +67,10 @@ interface TransactionalMultiRepo : ConnectedMultiRepo {
     suspend fun <R> transaction(function: suspend (ConnectedMultiRepo) -> R): R
 }
 
-class TransactionalMultiRepoImpl(override val connectionProvider: TransactionProvider, override val multiRepo: MultiRepo) :
+class TransactionalMultiRepoImpl(
+    override val connectionProvider: TransactionProvider,
+    override val multiRepo: MultiRepo
+) :
     TransactionalMultiRepo {
 
     override suspend fun <R> transaction(function: suspend (ConnectedMultiRepo) -> R): R =
