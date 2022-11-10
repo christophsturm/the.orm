@@ -44,7 +44,7 @@ dependencies {
     testImplementation("com.christophsturm:randolf:0.2.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-    testRuntimeOnly("io.r2dbc:r2dbc-h2:0.9.1.RELEASE")
+    testRuntimeOnly("io.r2dbc:r2dbc-h2:1.0.0.RELEASE")
     testImplementation(kotlin("test"))
 }
 val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal

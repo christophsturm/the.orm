@@ -44,7 +44,7 @@ dependencies {
     testImplementation("dev.failgood:failgood:$failgoodVersion")
 
 
-    testRuntimeOnly("io.r2dbc:r2dbc-h2:0.9.1.RELEASE")
+    testRuntimeOnly("io.r2dbc:r2dbc-h2:1.0.0.RELEASE")
     testRuntimeOnly("com.h2database:h2:2.1.214")
     testRuntimeOnly("org.postgresql:postgresql:42.5.0")
     testRuntimeOnly("org.postgresql:r2dbc-postgresql:0.9.2.RELEASE")
