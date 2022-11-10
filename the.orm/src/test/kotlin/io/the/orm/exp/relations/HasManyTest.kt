@@ -3,8 +3,8 @@ package io.the.orm.exp.relations
 import failgood.Ignored
 import failgood.Test
 import failgood.describe
+import io.the.orm.MultiRepo
 import io.the.orm.PK
-import io.the.orm.Repo
 import io.the.orm.exp.testing.MockConnectionProvider
 
 @Test
@@ -22,8 +22,8 @@ object HasManyTest {
                 "name",
                 hasMany(setOf(NestedEntity("nested entity 1"), NestedEntity("nested entity 2")))
             )
-            val repo = Repo(HolderOfNestedEntity::class)
-            repo.create(MockConnectionProvider(), holder)
+            val multiRepo = MultiRepo(HolderOfNestedEntity::class)
+            multiRepo.create(MockConnectionProvider(), holder)
         }
     }
 }

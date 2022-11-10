@@ -58,7 +58,7 @@ private const val SCHEMA = """
 """
 
 @Test
-object TransactionalRepoFunctionalTest {
+object TransactionalMultiRepoFunctionalTest {
     data class Page(
         val url: String,
         val title: String?,
