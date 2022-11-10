@@ -1,6 +1,6 @@
 package io.the.orm.query
 
-import io.the.orm.SingleEntityRepo
+import io.the.orm.Repo
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.DBConnection
 import io.the.orm.dbio.DBResult
@@ -18,7 +18,7 @@ import kotlin.reflect.KProperty1
 class QueryFactory<T : Any> internal constructor(
     table: Table,
     private val resultMapper: ResultMapper<T>,
-    private val repository: SingleEntityRepo<T>,
+    private val repository: Repo<T>,
     private val idHandler: IDHandler<T>,
     private val idProperty: KProperty1<T, Any>,
     classInfo: ClassInfo<T>

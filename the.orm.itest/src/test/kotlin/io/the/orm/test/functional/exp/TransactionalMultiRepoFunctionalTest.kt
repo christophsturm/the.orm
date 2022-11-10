@@ -2,7 +2,7 @@ package io.the.orm.test.functional.exp
 
 import failgood.Test
 import io.the.orm.PK
-import io.the.orm.SingleEntityRepo
+import io.the.orm.Repo
 import io.the.orm.TransactionalRepo
 import io.the.orm.create
 import io.the.orm.exp.relations.HasMany
@@ -106,7 +106,7 @@ object TransactionalMultiRepoFunctionalTest {
             }
             it("can write and query") {
                 val findIngredientByName =
-                    SingleEntityRepo.create<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
+                    Repo.create<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
 
 //                val findPageByUrl = repo.repository.queryFactory.createQuery(Page::url.isEqualTo())
                 transactionalMultiRepo.transaction { repo ->

@@ -25,10 +25,10 @@ typealias PK = Long
 
 internal val pKClass = Long::class
 
-interface SingleEntityRepo<T : Any> {
+interface Repo<T : Any> {
     companion object {
         /** creates a Repo for the entity <T> */
-        inline fun <reified T : Any> create(): SingleEntityRepo<T> = SingleEntityRepoImpl(T::class)
+        inline fun <reified T : Any> create(): Repo<T> = RepoImpl(T::class)
     }
 
     val queryFactory: QueryFactory<T>
@@ -63,8 +63,8 @@ interface SingleEntityRepo<T : Any> {
     suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, T>
 }
 
-class SingleEntityRepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptySet()) :
-    SingleEntityRepo<T> {
+class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptySet()) :
+    Repo<T> {
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
 
     private val table = Table(kClass)
@@ -90,7 +90,7 @@ class SingleEntityRepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<
             if (classInfo.hasBelongsToRelations) RelationFetchingResultMapper(
                 ResultResolver(classInfo),
                 RelationFetchingEntityCreator(
-                    classInfo.belongsToRelations.map { SingleEntityRepoImpl(it.relatedClass!!, otherClasses + kClass) },
+                    classInfo.belongsToRelations.map { RepoImpl(it.relatedClass!!, otherClasses + kClass) },
                     StreamingEntityCreator(classInfo)
                 )
             )

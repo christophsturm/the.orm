@@ -4,17 +4,17 @@ import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.TransactionProvider
 import kotlin.reflect.KClass
 
-inline operator fun <reified Entity : Any> MultiRepo.Companion.invoke(): SingleEntityRepo<Entity> =
+inline operator fun <reified Entity : Any> MultiRepo.Companion.invoke(): Repo<Entity> =
     invoke(Entity::class)
 
 interface MultiRepo {
     companion object {
         operator fun invoke(classes: List<KClass<out Any>>) = MultiRepoImpl(classes)
-        operator fun <Entity : Any> invoke(entity: KClass<Entity>): SingleEntityRepo<Entity> =
-            SingleEntityRepoImpl(entity)
+        operator fun <Entity : Any> invoke(entity: KClass<Entity>): Repo<Entity> =
+            RepoImpl(entity)
     }
 
-    fun <T : Any> getRepo(kClass: KClass<T>): SingleEntityRepo<T>
+    fun <T : Any> getRepo(kClass: KClass<T>): Repo<T>
 }
 
 suspend inline fun <reified T : Any> MultiRepo.create(connectionProvider: ConnectionProvider, entity: T): T =
@@ -26,11 +26,11 @@ suspend inline fun <reified T : Any> MultiRepo.findById(connectionProvider: Conn
 inline fun <reified T : Any> MultiRepo.queryFactory() = getRepo(T::class).queryFactory
 
 class MultiRepoImpl(classes: List<KClass<out Any>>) : MultiRepo {
-    private val entityRepos: Map<KClass<out Any>, SingleEntityRepo<out Any>> =
-        classes.associateBy({ it }, { SingleEntityRepoImpl(it, classes.toSet()) })
+    private val entityRepos: Map<KClass<out Any>, Repo<out Any>> =
+        classes.associateBy({ it }, { RepoImpl(it, classes.toSet()) })
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> getRepo(kClass: KClass<T>) = entityRepos[kClass] as SingleEntityRepo<T>
+    override fun <T : Any> getRepo(kClass: KClass<T>) = entityRepos[kClass] as Repo<T>
 }
 
 interface ConnectedRepo {

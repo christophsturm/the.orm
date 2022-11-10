@@ -1,7 +1,7 @@
 package io.the.orm.mapper
 
 import io.the.orm.PK
-import io.the.orm.SingleEntityRepo
+import io.the.orm.Repo
 import io.the.orm.dbio.ConnectionProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 
 internal class RelationFetchingEntityCreator<Entity : Any>(
-    private val repos: List<SingleEntityRepo<*>>,
+    private val repos: List<Repo<*>>,
     private val creator: EntityCreator<Entity>
 ) {
     fun toEntities(results: Flow<ResultLine>, connectionProvider: ConnectionProvider): Flow<Entity> {

@@ -2,7 +2,7 @@ package io.the.orm.test.functional
 
 import failgood.Test
 import io.the.orm.PK
-import io.the.orm.SingleEntityRepo
+import io.the.orm.Repo
 import io.the.orm.dbio.TransactionProvider
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -49,7 +49,7 @@ class RepositoryFunctionalTest {
     ) { createConnectionProvider ->
         val connection: TransactionProvider by dependency({ createConnectionProvider() })
         context("with a user class") {
-            val repo = SingleEntityRepo.create<User>()
+            val repo = Repo.create<User>()
             context("Creating Rows") {
                 test("can insert data class and return primary key") {
                     val user =
@@ -195,7 +195,7 @@ class RepositoryFunctionalTest {
             }
         }
         context("interop with kotlinx.serializable") {
-            val repo = SingleEntityRepo.create<SerializableUser>()
+            val repo = Repo.create<SerializableUser>()
 
             test("can insert data class and return primary key") {
                 val user =
