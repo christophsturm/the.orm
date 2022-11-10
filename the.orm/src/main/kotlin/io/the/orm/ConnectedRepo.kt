@@ -21,7 +21,7 @@ interface ConnectedRepo<T : Any> {
     suspend fun findById(pk: PK): T
 }
 
-open class ConnectedRepoImpl<T : Any>(override val repo: Repo<T>, override val connectionProvider: ConnectionProvider) :
+class ConnectedRepoImpl<T : Any>(override val repo: Repo<T>, override val connectionProvider: ConnectionProvider) :
     ConnectedRepo<T> {
 
     override suspend fun create(entity: T): T = repo.create(connectionProvider, entity)
