@@ -12,10 +12,10 @@ import strikt.assertions.isSameInstanceAs
 
 @Test
 class ConnectedRepositoryTest {
-    val context = describe(ConnectedRepository::class) {
+    val context = describe(ConnectedRepo::class) {
         val connection = mock<ConnectionProvider>()
         test("exposes Repository and Connection") {
-            expectThat(ConnectedRepository.create<Entity>(connection)) {
+            expectThat(ConnectedRepo.create<Entity>(connection)) {
                 get { repository }.isA<Repo<Entity>>()
                 get { this.connectionProvider }.isSameInstanceAs(connection)
             }
@@ -23,7 +23,7 @@ class ConnectedRepositoryTest {
 
         context("forwarding calls") {
             val repo = mock<Repo<Entity>>()
-            val subject = ConnectedRepository(repo, connection)
+            val subject = ConnectedRepo(repo, connection)
             val entity = Entity()
             test("create call") {
                 subject.create(entity)

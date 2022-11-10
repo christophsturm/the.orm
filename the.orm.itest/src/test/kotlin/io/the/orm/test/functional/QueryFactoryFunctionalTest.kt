@@ -4,7 +4,7 @@ package io.the.orm.test.functional
 
 import failgood.Ignored
 import failgood.Test
-import io.the.orm.ConnectedRepository
+import io.the.orm.ConnectedRepo
 import io.the.orm.NotFoundException
 import io.the.orm.Repo
 import io.the.orm.query.QueryFactory
@@ -140,7 +140,7 @@ class QueryFactoryFunctionalTest {
                 repo.findById(connectionProvider, freddi.id!!)
             }
             describe("findOrCreate") {
-                val repo = ConnectedRepository.create<Vegetable>(connectionProvider)
+                val repo = ConnectedRepo.create<Vegetable>(connectionProvider)
                 val carrot = repo.create(Vegetable(name = "carrot"))
                 val queryByName = repo.repository.queryFactory.createQuery(Vegetable::name.isEqualTo())
                 it("finds an existing entity") {
@@ -160,7 +160,7 @@ class QueryFactoryFunctionalTest {
                 }
             }
             describe("createOrUpdate") {
-                val repo = ConnectedRepository.create<Vegetable>(connectionProvider)
+                val repo = ConnectedRepo.create<Vegetable>(connectionProvider)
                 val queryByName = repo.repository.queryFactory.createQuery(Vegetable::name.isEqualTo())
                 it("creates a new entity if it does not yet exist") {
                     expectThat(

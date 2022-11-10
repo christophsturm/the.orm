@@ -16,7 +16,7 @@ class TransactionFunctionalTest {
 
         val connectionProvider by dependency({ createConnectionProvider() })
         describe("a transaction started with the repository class") {
-            val outerRepo = io.the.orm.TransactionalRepository(repo, connectionProvider)
+            val outerRepo = io.the.orm.TransactionalRepo(repo, connectionProvider)
             it("has transaction isolation") {
                 val user = outerRepo.transaction { transactionRepo ->
                     val user =

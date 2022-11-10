@@ -1,7 +1,7 @@
 package io.the.orm.test.functional
 
 import failgood.Test
-import io.the.orm.ConnectedRepository
+import io.the.orm.ConnectedRepo
 import io.the.orm.UniqueConstraintViolatedException
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -16,7 +16,7 @@ class ConstraintViolationFunctionalTest {
     val context =
         describeOnAllDbs("constraint error handling", DBS.databases, USERS_SCHEMA) { createConnectionProvider ->
 
-            val repo by dependency({ ConnectedRepository.create<User>(createConnectionProvider()) })
+            val repo by dependency({ ConnectedRepo.create<User>(createConnectionProvider()) })
 
             it("throws DataIntegrityViolationException exception on constraint violation") {
                 val user = User(
