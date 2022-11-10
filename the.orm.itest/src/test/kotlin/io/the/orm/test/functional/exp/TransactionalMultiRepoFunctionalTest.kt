@@ -3,7 +3,7 @@ package io.the.orm.test.functional.exp
 import failgood.Test
 import io.the.orm.PK
 import io.the.orm.Repo
-import io.the.orm.TransactionalRepo
+import io.the.orm.TransactionalMultiRepo
 import io.the.orm.create
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.findById
@@ -86,9 +86,9 @@ object TransactionalMultiRepoFunctionalTest {
     data class Ingredient(val name: String, val id: Long? = null)
 
     val context =
-        describeOnAllDbs(TransactionalRepo::class, DBS.databases, SCHEMA) {
+        describeOnAllDbs(TransactionalMultiRepo::class, DBS.databases, SCHEMA) {
             val connection = it()
-            val transactionalMultiRepo = TransactionalRepo(
+            val transactionalMultiRepo = TransactionalMultiRepo(
                 connection,
                 listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
             )
