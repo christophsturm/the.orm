@@ -2,9 +2,11 @@ package io.the.orm
 
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.TransactionProvider
+import io.the.orm.query.QueryFactory
 
 interface ConnectedRepo<T : Any> {
     val repo: Repo<T>
+    val queryFactory: QueryFactory<T>
     val connectionProvider: ConnectionProvider
 
     companion object {
@@ -24,6 +26,8 @@ interface ConnectedRepo<T : Any> {
 
         override suspend fun create(entity: T): T = repo.create(connectionProvider, entity)
         override suspend fun update(entity: T): Unit = repo.update(connectionProvider, entity)
+        override val queryFactory: QueryFactory<T> = repo.queryFactory
+
         override suspend fun findById(pk: PK): T = repo.findById(connectionProvider, pk)
     }
 }
