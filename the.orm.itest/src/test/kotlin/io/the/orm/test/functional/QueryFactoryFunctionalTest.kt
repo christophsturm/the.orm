@@ -135,7 +135,7 @@ class QueryFactoryFunctionalTest {
                 val freddi = create(user.copy(name = "freddi", email = "freddi@email.com"))
                 val queryByName = repo.queryFactory.createQuery(User::name.isEqualTo())
 
-                expectThat(queryByName.with(connectionProvider, "kurt").delete()).isEqualTo(1)
+                assert(queryByName.with(connectionProvider, "kurt").delete() == 1L)
                 expectThrows<NotFoundException> { repo.findById(connectionProvider, kurt.id!!) }
                 repo.findById(connectionProvider, freddi.id!!)
             }

@@ -31,7 +31,7 @@ dependencies {
     implementation(kotlin("reflect"))
 
 
-    implementation("io.r2dbc:r2dbc-pool:0.9.2.RELEASE")
+    implementation("io.r2dbc:r2dbc-pool:1.0.0.RELEASE")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesVersion")
 
 
@@ -44,10 +44,10 @@ dependencies {
     testImplementation("dev.failgood:failgood:$failgoodVersion")
 
 
-    testRuntimeOnly("io.r2dbc:r2dbc-h2:0.9.1.RELEASE")
+    testRuntimeOnly("io.r2dbc:r2dbc-h2:1.0.0.RELEASE")
     testRuntimeOnly("com.h2database:h2:2.1.214")
     testRuntimeOnly("org.postgresql:postgresql:42.5.0")
-    testRuntimeOnly("org.postgresql:r2dbc-postgresql:0.9.2.RELEASE")
+    testRuntimeOnly("org.postgresql:r2dbc-postgresql:1.0.0.RELEASE")
     testImplementation("com.christophsturm:randolf:0.2.2")
 
 

@@ -112,7 +112,7 @@ class QueryFactory<T : Any> internal constructor(
 
         suspend fun findSingle(): T = findAndTransform { it.single() }
 
-        suspend fun delete(): Int =
+        suspend fun delete(): Long =
             connectionProvider.withConnection { connection ->
                 connection.executeSelect(
                     parameterValues,

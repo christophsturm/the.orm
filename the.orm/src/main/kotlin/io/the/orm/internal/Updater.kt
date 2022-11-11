@@ -30,6 +30,6 @@ internal class Updater<T : Any>(
             connection.createStatement(updateStatementString)
 
         val rowsUpdated = statement.execute(types, sequenceOf(sequenceOf(id), values).flatten()).rowsUpdated()
-        if (rowsUpdated != 1) throw RepositoryException("rowsUpdated was $rowsUpdated instead of 1")
+        if (rowsUpdated != 1L) throw RepositoryException("rowsUpdated was $rowsUpdated instead of 1")
     }
 }

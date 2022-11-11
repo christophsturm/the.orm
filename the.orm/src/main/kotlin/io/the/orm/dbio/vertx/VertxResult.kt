@@ -9,9 +9,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 
 class VertxResult(private val rows: RowSet<Row>) : DBResult {
-    override suspend fun rowsUpdated(): Int {
-        return rows.rowCount()
-    }
+    override suspend fun rowsUpdated(): Long = rows.rowCount().toLong()
 
     override suspend fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T> {
         val flow: Flow<Row> = rows.asFlow()
