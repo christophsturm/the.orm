@@ -33,6 +33,8 @@ class MultiRepoImpl(classes: List<KClass<out Any>>) : MultiRepo {
     override fun <T : Any> getRepo(kClass: KClass<T>) = entityRepos[kClass] as Repo<T>
 }
 
+inline fun <reified T:Any> MultiRepo.getRepo() = getRepo(T::class)
+
 interface ConnectedMultiRepo {
     companion object {
         operator fun invoke(connectionProvider: ConnectionProvider, multiRepo: MultiRepo) =
