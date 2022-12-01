@@ -13,7 +13,7 @@ plugins {
     id("the.orm.common")
     java
     kotlin("jvm")
-    id("info.solidsoft.pitest")
+    id("info.solidsoft.pitest") version("1.9.11")
     `maven-publish`
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter") version "3.12.0"
@@ -67,4 +67,19 @@ tasks.check {
 
 configure<com.bnorm.power.PowerAssertGradleExtension> {
     functions = listOf("kotlin.assert", "kotlin.test.assertTrue", "kotlin.test.assertNotNull")
+}
+
+plugins.withId("info.solidsoft.pitest") {
+    configure<info.solidsoft.gradle.pitest.PitestPluginExtension> {
+        mutators.set(listOf("ALL"))
+        jvmArgs.set(listOf("-Xmx512m")) // necessary on CI
+        avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
+        targetClasses.set(setOf("io.the.orm.*")) // by default "${project.group}.*"
+        targetTests.set(setOf("io.the.orm.*", "io.the.orm.**.*"))
+        pitestVersion.set("1.10.0")
+        threads.set(
+            System.getenv("PITEST_THREADS")?.toInt() ?: Runtime.getRuntime().availableProcessors()
+        )
+        outputFormats.set(setOf("XML", "HTML"))
+    }
 }
