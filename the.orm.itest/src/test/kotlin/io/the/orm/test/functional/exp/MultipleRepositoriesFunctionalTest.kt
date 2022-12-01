@@ -1,6 +1,7 @@
 package io.the.orm.test.functional.exp
 
 import failgood.Test
+import io.the.orm.MultiRepo
 import io.the.orm.PK
 import io.the.orm.Repo
 import io.the.orm.TransactionalMultiRepo
@@ -58,7 +59,7 @@ private const val SCHEMA = """
 """
 
 @Test
-object TransactionalMultiRepoFunctionalTest {
+object MultipleRepositoriesFunctionalTest {
     data class Page(
         val url: String,
         val title: String?,
@@ -85,11 +86,13 @@ object TransactionalMultiRepoFunctionalTest {
 
     data class Ingredient(val name: String, val id: Long? = null)
 
+    // the repo is immutable, so it can be created outside the test
+    val multiRepo = MultiRepo(listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class))
     val context =
         describeOnAllDbs(TransactionalMultiRepo::class, DBS.databases, SCHEMA) {
-            val connection = it()
+            val transactionProvider = it()
             val transactionalMultiRepo = TransactionalMultiRepo(
-                connection,
+                transactionProvider,
                 listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
             )
             it("can write Entities that have BelongsTo relations") {
