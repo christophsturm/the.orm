@@ -7,11 +7,13 @@ import io.the.orm.Repo
 import io.the.orm.TransactionalMultiRepo
 import io.the.orm.create
 import io.the.orm.exp.relations.HasMany
+import io.the.orm.exp.relations.HasManyImpl
 import io.the.orm.findById
 import io.the.orm.getRepo
 import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 private const val SCHEMA = """
@@ -67,6 +69,7 @@ object MultipleRepositoriesFunctionalTest {
         val description: String?,
         val ldJson: String?,
         val author: String?,
+        val recipes: HasMany<Recipe> = HasManyImpl(), // TODO equals and has many. (possibly unfetched)
         val id: PK? = null
     )
 
@@ -97,7 +100,8 @@ object MultipleRepositoriesFunctionalTest {
                     transactionProvider.transaction { connection ->
                         val page = multiRepo.getRepo<Page>()
                             .create(connection, Page("url", "pageTitle", "description", "{}", "author"))
-                        multiRepo.getRepo<Recipe>().create(connection,
+                        multiRepo.getRepo<Recipe>().create(
+                            connection,
                             Recipe(
                                 "Spaghetti Carbonara",
                                 "Wasser Salzen, Speck dazu, fertig",
@@ -114,10 +118,13 @@ object MultipleRepositoriesFunctionalTest {
                     transactionProvider.transaction { transaction ->
                         // recipe hasMany RecipeIngredient(s)
                         // recipe hasMany Ingredients through RecipeIngredients
-                        val page = multiRepo.getRepo<Page>().create(transaction, Page("url", "pageTitle", "description", "{}", "author"))
+                        val page = multiRepo.getRepo<Page>()
+                            .create(transaction,
+                                Page("url", "pageTitle", "description", "{}", "author"))
                         val recipeRepo = multiRepo.getRepo<Recipe>()
                         val recipe =
-                            recipeRepo.create(transaction,
+                            recipeRepo.create(
+                                transaction,
                                 Recipe(
                                     "Spaghetti Carbonara",
                                     "Wasser Salzen, Speck dazu, fertig",
@@ -127,10 +134,13 @@ object MultipleRepositoriesFunctionalTest {
                         val gurke = findIngredientByName.with(transaction, "gurke")
                             .findOrCreate { Ingredient("Gurke") }
                         val recipeIngredientRepo = multiRepo.getRepo<RecipeIngredient>()
-                        val createdIngredient = recipeIngredientRepo.create(transaction, RecipeIngredient("100g", recipe, gurke))
-                        val reloadedIngredient = recipeIngredientRepo.findById(transaction, createdIngredient.id!!)
-                        val recipeIngredient = recipeIngredientRepo.create(transaction, RecipeIngredient("2", recipe, gurke))
-                        assert(createdIngredient == reloadedIngredient)
+                        val createdIngredient =
+                            recipeIngredientRepo.create(transaction, RecipeIngredient("100g", recipe, gurke))
+                        val reloadedIngredient = recipeIngredientRepo.findById(transaction,
+                            createdIngredient.id!!)
+                        val recipeIngredient =
+                            recipeIngredientRepo.create(transaction, RecipeIngredient("2", recipe, gurke))
+                        assertEquals(createdIngredient, reloadedIngredient)
                         val reloadedRecipe = recipeRepo.findById(transaction, recipe.id!!)
 
                         // HasMany side of 1:N relations is not yet fetched.
@@ -141,11 +151,10 @@ object MultipleRepositoriesFunctionalTest {
                         }
                     }
                 }
-
             }
 
             describe("with transactional multi repo") {
-               val transactionalMultiRepo = TransactionalMultiRepo(
+                val transactionalMultiRepo = TransactionalMultiRepo(
                     transactionProvider,
                     listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
                 )
@@ -183,7 +192,7 @@ object MultipleRepositoriesFunctionalTest {
                         val createdIngredient = repo.create(RecipeIngredient("100g", recipe, gurke))
                         val reloadedIngredient = repo.findById<RecipeIngredient>(createdIngredient.id!!)
                         val recipeIngredient = repo.create(RecipeIngredient("2", recipe, gurke))
-                        assert(createdIngredient == reloadedIngredient)
+                        assertEquals(createdIngredient, reloadedIngredient)
                         val reloadedRecipe = repo.findById<Recipe>(recipe.id!!)
 
                         // HasMany side of 1:N relations is not yet fetched.
