@@ -12,9 +12,12 @@ class MultiRepoTest {
         val title: String?,
         val description: String?,
         val ldJson: String?,
-        val author: String?,
-        val recipes: HasMany<Recipe, Page>
-    )
+        val author: String?
+    ) {
+        companion object {
+            val recipes = HasMany<Recipe, Page>()
+        }
+    }
 
     data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
 
