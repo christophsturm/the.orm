@@ -13,7 +13,7 @@ class MultiRepoTest {
         val description: String?,
         val ldJson: String?,
         val author: String?,
-        val recipes: HasMany<Recipe>
+        val recipes: HasMany<Recipe, Page>
     )
 
     data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)

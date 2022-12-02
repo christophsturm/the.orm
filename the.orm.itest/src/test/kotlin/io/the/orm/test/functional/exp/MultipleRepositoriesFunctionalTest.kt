@@ -7,7 +7,6 @@ import io.the.orm.Repo
 import io.the.orm.TransactionalMultiRepo
 import io.the.orm.create
 import io.the.orm.exp.relations.HasMany
-import io.the.orm.exp.relations.HasManyImpl
 import io.the.orm.findById
 import io.the.orm.getRepo
 import io.the.orm.query.isEqualTo
@@ -69,17 +68,23 @@ object MultipleRepositoriesFunctionalTest {
         val description: String?,
         val ldJson: String?,
         val author: String?,
-        val recipes: HasMany<Recipe> = HasManyImpl(), // TODO equals and has many. (possibly unfetched)
         val id: PK? = null
-    )
+    ) {
+        companion object {
+            val recipes = HasMany<Recipe, Page>()
+        }
+    }
 
     data class Recipe(
         val name: String,
         val description: String?,
         val page: Page,
-        val ingredients: HasMany<RecipeIngredient>? = null,
         val id: PK? = null
-    )
+    ) {
+        companion object {
+            val ingredients = HasMany<RecipeIngredient, Recipe>()
+        }
+    }
 
     data class RecipeIngredient(
         val amount: String,
@@ -119,8 +124,10 @@ object MultipleRepositoriesFunctionalTest {
                         // recipe hasMany RecipeIngredient(s)
                         // recipe hasMany Ingredients through RecipeIngredients
                         val page = multiRepo.getRepo<Page>()
-                            .create(transaction,
-                                Page("url", "pageTitle", "description", "{}", "author"))
+                            .create(
+                                transaction,
+                                Page("url", "pageTitle", "description", "{}", "author")
+                            )
                         val recipeRepo = multiRepo.getRepo<Recipe>()
                         val recipe =
                             recipeRepo.create(
@@ -136,8 +143,10 @@ object MultipleRepositoriesFunctionalTest {
                         val recipeIngredientRepo = multiRepo.getRepo<RecipeIngredient>()
                         val createdIngredient =
                             recipeIngredientRepo.create(transaction, RecipeIngredient("100g", recipe, gurke))
-                        val reloadedIngredient = recipeIngredientRepo.findById(transaction,
-                            createdIngredient.id!!)
+                        val reloadedIngredient = recipeIngredientRepo.findById(
+                            transaction,
+                            createdIngredient.id!!
+                        )
                         val recipeIngredient =
                             recipeIngredientRepo.create(transaction, RecipeIngredient("2", recipe, gurke))
                         assertEquals(createdIngredient, reloadedIngredient)
@@ -145,9 +154,7 @@ object MultipleRepositoriesFunctionalTest {
 
                         // HasMany side of 1:N relations is not yet fetched.
                         if (System.getenv("NEXT") != null) {
-                            with(assertNotNull(reloadedRecipe.ingredients)) {
-                                assert(contains(recipeIngredient))
-                            }
+                            assert(assertNotNull(Recipe.ingredients.get(reloadedRecipe)).contains(recipeIngredient))
                         }
                     }
                 }
@@ -197,9 +204,7 @@ object MultipleRepositoriesFunctionalTest {
 
                         // HasMany side of 1:N relations is not yet fetched.
                         if (System.getenv("NEXT") != null) {
-                            with(assertNotNull(reloadedRecipe.ingredients)) {
-                                assert(contains(recipeIngredient))
-                            }
+                            assert(assertNotNull(Recipe.ingredients.get(reloadedRecipe)).contains(recipeIngredient))
                         }
                     }
                 }

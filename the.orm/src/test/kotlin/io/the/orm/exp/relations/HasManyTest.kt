@@ -10,17 +10,19 @@ import io.the.orm.exp.testing.MockConnectionProvider
 @Test
 object HasManyTest {
     data class NestedEntity(val name: String)
-    data class HolderOfNestedEntity(val name: String, val nestedEntities: HasMany<NestedEntity>, val id: PK? = null)
-
-    private fun <T : Any> hasMany(list: Set<T>): HasMany<T> {
-        return NewHasMany(list)
+    data class HolderOfNestedEntity(
+        val name: String,
+        val id: PK? = null
+    ) {
+        companion object {
+            val nestedEntity = HasMany<NestedEntity, HolderOfNestedEntity>()
+        }
     }
 
-    val context = describe<HasMany<NestedEntity>> {
+    val context = describe<HasMany<NestedEntity, HolderOfNestedEntity>> {
         it("can create an entity with nested entities") {
             val holder = HolderOfNestedEntity(
-                "name",
-                hasMany(setOf(NestedEntity("nested entity 1"), NestedEntity("nested entity 2")))
+                "name"
             )
             val multiRepo = MultiRepo(HolderOfNestedEntity::class)
             multiRepo.create(MockConnectionProvider(), holder)
@@ -28,7 +30,6 @@ object HasManyTest {
     }
 }
 
-class NewHasMany<T : Any>(private val list: Set<T>) : HasMany<T>, Set<T> by list
 class UnlessEnv(private val envVar: String) : Ignored {
     override fun isIgnored(): String? {
         return if (System.getenv(envVar) == null)

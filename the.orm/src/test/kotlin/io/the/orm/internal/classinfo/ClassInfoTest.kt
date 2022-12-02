@@ -5,6 +5,7 @@ import failgood.assert.containsExactlyInAnyOrder
 import failgood.describe
 import io.the.orm.PK
 import io.the.orm.exp.relations.HasMany
+import io.the.orm.exp.relations.HasManyTest
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
@@ -57,12 +58,6 @@ class ClassInfoTest {
         }
         describe("has many relations") {
             describe("local has many relations") {
-                data class NestedEntity(val name: String)
-                data class HolderOfNestedEntity(
-                    val name: String,
-                    val nestedEntities: HasMany<NestedEntity>,
-                    val id: PK? = null
-                )
                 it("works without specifying the nested entity as referenced class") {
                     ClassInfo(HolderOfNestedEntity::class)
                 }
@@ -74,5 +69,19 @@ class ClassInfoTest {
     }
 }
 
+data class NestedEntity(val name: String)
+data class HolderOfNestedEntity(
+    val name: String,
+    val id: PK? = null
+) {
+    companion object {
+        val nestedEntities = HasMany<NestedEntity, HasManyTest.HolderOfNestedEntity>()
+    }
+}
+
 data class UserGroup(val user: User, val id: Long? = null)
-data class User(val name: String, val groups: HasMany<UserGroup>? = null, val id: Long? = null)
+data class User(val name: String, val id: Long? = null) {
+    companion object {
+        val groups = HasMany<UserGroup, User>()
+    }
+}
