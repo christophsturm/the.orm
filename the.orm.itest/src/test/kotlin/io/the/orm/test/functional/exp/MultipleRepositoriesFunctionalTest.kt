@@ -116,33 +116,36 @@ object MultipleRepositoriesFunctionalTest {
                         multiRepo.getRepo<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
 
 //                val findPageByUrl = repo.repository.queryFactory.createQuery(Page::url.isEqualTo())
-                    transactionProvider.transaction { transaction ->
+                    repoTransactionProvider.transaction(
+                        Page::class,
+                        Recipe::class,
+                        RecipeIngredient::class
+                    ) { pageRepo, recipeRepo, recipeIngredientRepo ->
                         // recipe hasMany RecipeIngredient(s)
                         // recipe hasMany Ingredients through RecipeIngredients
-                        val page = multiRepo.getRepo<Page>()
-                            .create(transaction,
-                                Page("url", "pageTitle", "description", "{}", "author"))
-                        val recipeRepo = multiRepo.getRepo<Recipe>()
+                        val page = pageRepo
+                            .create(
+                                Page("url", "pageTitle", "description", "{}", "author")
+                            )
                         val recipe =
                             recipeRepo.create(
-                                transaction,
                                 Recipe(
                                     "Spaghetti Carbonara",
                                     "Wasser Salzen, Speck dazu, fertig",
                                     page
                                 )
                             )
-                        val gurke = findIngredientByName.with(transaction, "gurke")
+                        val gurke = findIngredientByName.with(pageRepo.connectionProvider, "gurke")
                             .findOrCreate { Ingredient("Gurke") }
-                        val recipeIngredientRepo = multiRepo.getRepo<RecipeIngredient>()
                         val createdIngredient =
-                            recipeIngredientRepo.create(transaction, RecipeIngredient("100g", recipe, gurke))
-                        val reloadedIngredient = recipeIngredientRepo.findById(transaction,
-                            createdIngredient.id!!)
+                            recipeIngredientRepo.create(RecipeIngredient("100g", recipe, gurke))
+                        val reloadedIngredient = recipeIngredientRepo.findById(
+                            createdIngredient.id!!
+                        )
                         val recipeIngredient =
-                            recipeIngredientRepo.create(transaction, RecipeIngredient("2", recipe, gurke))
+                            recipeIngredientRepo.create(RecipeIngredient("2", recipe, gurke))
                         assertEquals(createdIngredient, reloadedIngredient)
-                        val reloadedRecipe = recipeRepo.findById(transaction, recipe.id!!)
+                        val reloadedRecipe = recipeRepo.findById(recipe.id!!)
 
                         // HasMany side of 1:N relations is not yet fetched.
                         if (System.getenv("NEXT") != null) {
