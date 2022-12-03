@@ -4,14 +4,9 @@ import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.TransactionProvider
 import kotlin.reflect.KClass
 
-inline operator fun <reified Entity : Any> MultiRepo.Companion.invoke(): Repo<Entity> =
-    invoke(Entity::class)
-
 interface MultiRepo {
     companion object {
         operator fun invoke(classes: List<KClass<out Any>>) = MultiRepoImpl(classes)
-        operator fun <Entity : Any> invoke(entity: KClass<Entity>): Repo<Entity> =
-            RepoImpl(entity)
     }
 
     fun <T : Any> getRepo(kClass: KClass<T>): Repo<T>
