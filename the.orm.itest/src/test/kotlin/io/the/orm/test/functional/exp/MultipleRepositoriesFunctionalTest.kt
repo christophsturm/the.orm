@@ -13,6 +13,7 @@ import io.the.orm.getRepo
 import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
+import io.the.orm.transaction.RepoTransactionProvider
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -95,13 +96,13 @@ object MultipleRepositoriesFunctionalTest {
     val context =
         describeOnAllDbs(TransactionalMultiRepo::class, DBS.databases, SCHEMA) {
             val transactionProvider = it()
-            describe("without transactional multi repo") {
+            describe("with RepoTransactionProvider") {
+                val repoTransactionProvider = RepoTransactionProvider(multiRepo, transactionProvider)
                 it("can write Entities that have BelongsTo relations") {
-                    transactionProvider.transaction { connection ->
-                        val page = multiRepo.getRepo<Page>()
-                            .create(connection, Page("url", "pageTitle", "description", "{}", "author"))
-                        multiRepo.getRepo<Recipe>().create(
-                            connection,
+                    repoTransactionProvider.transaction(Page::class, Recipe::class) { pageRepo, recipeRepo ->
+                        val page = pageRepo
+                            .create(Page("url", "pageTitle", "description", "{}", "author"))
+                        recipeRepo.create(
                             Recipe(
                                 "Spaghetti Carbonara",
                                 "Wasser Salzen, Speck dazu, fertig",
