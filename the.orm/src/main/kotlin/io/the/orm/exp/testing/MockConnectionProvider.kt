@@ -9,12 +9,18 @@ import io.the.orm.dbio.Statement
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-class MockConnectionProvider(private val dbConnection: DBConnection = MockDbConnection()) : ConnectionProvider {
+class MockConnectionProvider(val dbConnection: DBConnection = MockDbConnection()) : ConnectionProvider {
     override suspend fun <T> withConnection(function: suspend (DBConnection) -> T): T = function(dbConnection)
 }
 
 class MockDbConnection : DBConnection {
-    override fun createStatement(sql: String): Statement = MockStatement(sql)
+    val events = mutableListOf<MockStatement>()
+    override fun createStatement(sql: String): Statement = report(MockStatement(sql))
+
+    private fun report(mockStatement: MockStatement): Statement {
+        events.add(mockStatement)
+        return mockStatement
+    }
 
     override fun createInsertStatement(sql: String): Statement = MockStatement(sql)
 
@@ -26,7 +32,6 @@ class MockDbConnection : DBConnection {
     override suspend fun execute(sql: String) {
     }
 }
-
 class MockTransaction : DBTransaction {
     override suspend fun rollbackTransaction() {
     }

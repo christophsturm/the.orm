@@ -7,6 +7,11 @@ Relations support, not yet finished
  */
 
 interface HasMany<Entity : Any> : Set<Entity>
+fun <T : Any> hasMany(list: Set<T>): HasMany<T> {
+    return NewHasMany(list)
+}
+
+class NewHasMany<T : Any>(private val list: Set<T>) : HasMany<T>, Set<T> by list
 
 class HasManyImpl<Entity : Any> : HasMany<Entity> {
     override val size: Int = 0
