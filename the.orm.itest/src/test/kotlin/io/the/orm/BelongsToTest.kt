@@ -1,4 +1,4 @@
-package io.the.orm.test.functional
+package io.the.orm
 
 import failgood.describe
 
