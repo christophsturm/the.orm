@@ -1,6 +1,5 @@
 package io.the.orm
 
-import io.r2dbc.spi.R2dbcDataIntegrityViolationException
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.ExceptionInspector
 import io.the.orm.internal.IDHandler
@@ -17,7 +16,6 @@ import io.the.orm.mapper.StreamingEntityCreator
 import io.the.orm.query.Conditions.isEqualToCondition
 import io.the.orm.query.QueryFactory
 import io.the.orm.query.isIn
-import io.vertx.pgclient.PgException
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -79,9 +77,7 @@ class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptyS
     private val idHandler = IDHandler(kClass)
     private val classInfo = ClassInfo(kClass, otherClasses)
 
-    private val exceptionInspector = ExceptionInspector(table, kClass)
-
-    private val inserter: Inserter<T> = SimpleInserter(table, idHandler, classInfo)
+    private val inserter: Inserter<T> = SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)
 
     private val updater = Updater(table, idHandler, idProperty, classInfo)
 
@@ -111,17 +107,7 @@ class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptyS
      * @return a copy of the instance with an assigned id field.
      */
     override suspend fun create(connectionProvider: ConnectionProvider, instance: T): T =
-        connectionProvider.withConnection { connection ->
-            try {
-                inserter.create(connection, instance)
-            } catch (e: R2dbcDataIntegrityViolationException) {
-                throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
-            } catch (e: PgException) {
-                throw exceptionInspector.pgException(e, instance)
-            } catch (e: Exception) {
-                throw RepositoryException("error creating instance: $instance", e)
-            }
-        }
+        inserter.create(connectionProvider, instance)
 
     /**
      * updates a record in the database.

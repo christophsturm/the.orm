@@ -1,15 +1,19 @@
 package io.the.orm.internal
 
-import io.the.orm.dbio.DBConnection
+import io.r2dbc.spi.R2dbcDataIntegrityViolationException
+import io.the.orm.RepositoryException
+import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.classinfo.ClassInfo
+import io.vertx.pgclient.PgException
 
 interface Inserter<T : Any> {
-    suspend fun create(connection: DBConnection, instance: T): T
+    suspend fun create(connectionProvider: ConnectionProvider, instance: T): T
 }
 
 internal class SimpleInserter<T : Any>(
     table: Table,
     private val idHandler: IDHandler<T>,
+    private val exceptionInspector: ExceptionInspector<T>,
     classInfo: ClassInfo<T>
 ) : Inserter<T> {
     private val fieldsWithoutId = classInfo.localFieldInfo.filter { it.dbFieldName != "id" }
@@ -21,12 +25,22 @@ internal class SimpleInserter<T : Any>(
             "INSERT INTO ${table.name}(${fieldsWithoutId.joinToString { it.dbFieldName }}) values ($fieldPlaceHolders)"
         }
 
-    override suspend fun create(connection: DBConnection, instance: T): T {
-        val values = fieldsWithoutId.asSequence().map { it.valueForDb(instance) }
-        val statement = connection.createInsertStatement(insertStatementString)
+    override suspend fun create(connectionProvider: ConnectionProvider, instance: T): T {
+        return connectionProvider.withConnection { connection ->
+            try {
+                val values = fieldsWithoutId.asSequence().map { it.valueForDb(instance) }
+                val statement = connection.createInsertStatement(insertStatementString)
 
-        val id = statement.execute(types, values).getId()
+                val id = statement.execute(types, values).getId()
 
-        return idHandler.assignId(instance, id)
+                idHandler.assignId(instance, id)
+            } catch (e: R2dbcDataIntegrityViolationException) {
+                throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
+            } catch (e: PgException) {
+                throw exceptionInspector.pgException(e, instance)
+            } catch (e: Exception) {
+                throw RepositoryException("error creating instance: $instance", e)
+            }
+        }
     }
 }
