@@ -181,14 +181,15 @@ suspend fun ContextDSL<*>.withDb(
 
 private suspend fun ContextDSL<Unit>.withDbInternal(
     db: DBTestUtil.TestDatabase,
-    schema: String,
+    schema: String?,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ) {
     val createDB by dependency({ db.createDB() }) { it.close() }
     val connectionFactory: suspend () -> TransactionProvider =
         {
-            createDB.create().also { transactionProvider ->
-                transactionProvider.withConnection { dbConnection ->
+            val transactionProvider = createDB.create()
+            if (schema == null) transactionProvider else transactionProvider.also { t ->
+                t.withConnection { dbConnection ->
                     dbConnection.execute(schema)
                 }
             }
@@ -196,23 +197,23 @@ private suspend fun ContextDSL<Unit>.withDbInternal(
     tests(connectionFactory)
 }
 inline fun <reified Subject> describeOnAllDbs(
-    databases: List<DBTestUtil.TestDatabase>,
-    schema: String,
+    databases: List<DBTestUtil.TestDatabase> = DBS.databases,
+    schema: String? = null,
     ignored: Ignored? = null,
     noinline tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ) = describeOnAllDbs(Subject::class, databases, schema, ignored, tests)
 fun describeOnAllDbs(
     subject: KClass<*>,
-    databases: List<DBTestUtil.TestDatabase>,
-    schema: String,
+    databases: List<DBTestUtil.TestDatabase> = DBS.databases,
+    schema: String? = null,
     ignored: Ignored? = null,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ) = describeOnAllDbs("the ${subject.simpleName!!}", databases, schema, ignored, tests)
 
 fun describeOnAllDbs(
     contextName: String,
-    databases: List<DBTestUtil.TestDatabase>,
-    schema: String,
+    databases: List<DBTestUtil.TestDatabase> = DBS.databases,
+    schema: String? = null,
     ignored: Ignored? = null,
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ): List<RootContext> {
