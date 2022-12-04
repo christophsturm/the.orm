@@ -10,40 +10,40 @@ import io.the.orm.transaction.RepoTransactionProvider
 
 @Test
 object HasManyTest {
-    data class Entity(val name: String, val id: PK? = null)
-    data class HolderOfEntity(val name: String, val nestedEntities: HasMany<Entity>, val id: PK? = null)
+    data class Page(val name: String, val id: PK? = null)
+    data class Book(val name: String, val nestedEntities: HasMany<Page>, val id: PK? = null)
 
     private const val SCHEMA = """
-    create sequence holder_of_entity_seq no maxvalue;
-create table holder_of_entitys
+    create sequence book_seq no maxvalue;
+create table books
 (
-    id             bigint       not null default nextval('holder_of_entity_seq') primary key,
+    id             bigint       not null default nextval('book_seq') primary key,
     name           varchar(100) not null
 );
 
-    create sequence entity_seq no maxvalue;
-create table entitys
+    create sequence page_seq no maxvalue;
+create table pages
 (
-    id             bigint       not null default nextval('entity_seq') primary key,
-    holder_of_entity_id      bigint       not null,
-    foreign key (holder_of_entity_id) references holder_of_entitys (id),
+    id             bigint       not null default nextval('page_seq') primary key,
+    book_id      bigint       not null,
+    foreign key (book_id) references books (id),
     name           varchar(100) not null
 );
 
 """
 
-    val repo = MultiRepo(listOf(Entity::class, HolderOfEntity::class))
-    val context = describeOnAllDbs<HasMany<Entity>>(schema = SCHEMA) {
-        it("can create an entity with nested entities") {
-            val holder = HolderOfEntity(
+    val repo = MultiRepo(listOf(Page::class, Book::class))
+    val context = describeOnAllDbs<HasMany<Page>>(schema = SCHEMA) {
+        it("can create an page with nested entities") {
+            val holder = Book(
                 "name",
-                hasMany(setOf(Entity("nested entity 1"), Entity("nested entity 2")))
+                hasMany(setOf(Page("page 1"), Page("page 2")))
             )
-            RepoTransactionProvider(repo, it()).transaction(HolderOfEntity::class, Entity::class) { holderRepo, entityRepo->
-                val createdHolder = holderRepo.create(holder)
+            RepoTransactionProvider(repo, it()).transaction(Book::class, Page::class) { bookRepo, pageRepo->
+                bookRepo.create(holder)
                 // this is a hack to load all entities. query api really needs a rethought
-                val entities = entityRepo.queryFactory.createQuery(Entity::name.isNotNull()).with(entityRepo.connectionProvider, Unit).find()
-                assert(entities.map { it.name }.containsExactlyInAnyOrder("nested entity 1", "nested entity 2"))
+                val entities = pageRepo.queryFactory.createQuery(Page::name.isNotNull()).with(pageRepo.connectionProvider, Unit).find()
+                assert(entities.map { it.name }.containsExactlyInAnyOrder("page 1", "page 2"))
             }
         }
     }
