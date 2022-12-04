@@ -1,8 +1,9 @@
 package io.the.orm
 
 import failgood.describe
+import io.the.orm.exp.relations.BelongsTo
+import io.the.orm.test.describeOnAllDbs
 
-// currently not used, see ConnectedMultiRepoFunctionalTest
 object BelongsToTest {
     data class Page(
         val id: Long?,
@@ -15,6 +16,9 @@ object BelongsToTest {
 
     data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
 
-    val tests = describe("belongs to support") {
+    val repo = RepoRegistry(listOf(HasManyTest.Page::class, HasManyTest.Book::class))
+
+    val tests = describeOnAllDbs<BelongsTo<*>>(schema = HasManyTest.SCHEMA) {
+
     }
 }
