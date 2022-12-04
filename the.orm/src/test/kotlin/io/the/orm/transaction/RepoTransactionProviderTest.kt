@@ -3,8 +3,8 @@ package io.the.orm.transaction
 import failgood.Test
 import failgood.describe
 import io.the.orm.ConnectedRepo
-import io.the.orm.MultiRepo
 import io.the.orm.PK
+import io.the.orm.RepoRegistry
 import io.the.orm.exp.testing.MockConnectionProvider
 import io.the.orm.exp.testing.MockTransactionProvider
 import kotlinx.coroutines.delay
@@ -20,7 +20,7 @@ object RepoTransactionProviderTest {
         var passedRepo1: ConnectedRepo<Entity1>? = null
         var passedRepo2: ConnectedRepo<Entity2>? = null
         var passedRepo3: ConnectedRepo<Entity3>? = null
-        val repos = MultiRepo(listOf(Entity1::class, Entity2::class, Entity3::class))
+        val repos = RepoRegistry(listOf(Entity1::class, Entity2::class, Entity3::class))
         val connectionProvider = MockConnectionProvider()
         val r = RepoTransactionProvider(repos, MockTransactionProvider(connectionProvider))
         it("can start a transaction with one repo") {

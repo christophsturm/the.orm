@@ -5,7 +5,7 @@ import failgood.describe
 import io.the.orm.exp.relations.HasMany
 
 @Test
-class MultiRepoTest {
+class RepoRegistryTest {
     data class Page(
         val id: Long?,
         val url: String,
@@ -18,9 +18,9 @@ class MultiRepoTest {
 
     data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
 
-    val context = describe<MultiRepo> {
+    val context = describe<RepoRegistry> {
         it("can be created with classes that reference each other") {
-            MultiRepo(listOf(Page::class, Recipe::class))
+            RepoRegistry(listOf(Page::class, Recipe::class))
         }
     }
 }

@@ -1,8 +1,8 @@
 package io.the.orm.test.functional.exp
 
 import failgood.Test
-import io.the.orm.MultiRepo
 import io.the.orm.PK
+import io.the.orm.RepoRegistry
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.exp.relations.HasManyImpl
 import io.the.orm.getRepo
@@ -88,11 +88,11 @@ object MultipleRepositoriesFunctionalTest {
     data class Ingredient(val name: String, val id: Long? = null)
 
     // the repo is immutable, so it can be created outside the test
-    val multiRepo = MultiRepo(listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class))
+    val repoRegistry = RepoRegistry(listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class))
     val context =
         describeOnAllDbs(RepoTransactionProvider::class, DBS.databases, SCHEMA) {
             val transactionProvider = it()
-            val repoTransactionProvider = RepoTransactionProvider(multiRepo, transactionProvider)
+            val repoTransactionProvider = RepoTransactionProvider(repoRegistry, transactionProvider)
             it("can write Entities that have BelongsTo relations") {
                 repoTransactionProvider.transaction(Page::class, Recipe::class) { pageRepo, recipeRepo ->
                     val page = pageRepo
@@ -108,7 +108,7 @@ object MultipleRepositoriesFunctionalTest {
             }
             it("can write and query") {
                 val findIngredientByName =
-                    multiRepo.getRepo<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
+                    repoRegistry.getRepo<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
 
 //                val findPageByUrl = repo.repository.queryFactory.createQuery(Page::url.isEqualTo())
                 repoTransactionProvider.transaction(

@@ -32,7 +32,7 @@ create table pages
 
 """
 
-    val repo = MultiRepo(listOf(Page::class, Book::class))
+    val repo = RepoRegistry(listOf(Page::class, Book::class))
     val context = describeOnAllDbs<HasMany<Page>>(schema = SCHEMA) {
         it("can create an page with nested entities") {
             val holder = Book(
