@@ -3,11 +3,15 @@ package io.the.orm.internal
 import io.the.orm.dbio.DBConnection
 import io.the.orm.internal.classinfo.ClassInfo
 
-internal class Inserter<T : Any>(
+interface Inserter<T : Any> {
+    suspend fun create(connection: DBConnection, instance: T): T
+}
+
+internal class SimpleInserter<T : Any>(
     table: Table,
     private val idHandler: IDHandler<T>,
     classInfo: ClassInfo<T>
-) {
+) : Inserter<T> {
     private val fieldsWithoutId = classInfo.localFieldInfo.filter { it.dbFieldName != "id" }
     private val types = fieldsWithoutId.map { it.type }
 
@@ -17,7 +21,7 @@ internal class Inserter<T : Any>(
             "INSERT INTO ${table.name}(${fieldsWithoutId.joinToString { it.dbFieldName }}) values ($fieldPlaceHolders)"
         }
 
-    suspend fun create(connection: DBConnection, instance: T): T {
+    override suspend fun create(connection: DBConnection, instance: T): T {
         val values = fieldsWithoutId.asSequence().map { it.valueForDb(instance) }
         val statement = connection.createInsertStatement(insertStatementString)
 

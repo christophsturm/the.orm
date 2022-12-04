@@ -5,6 +5,7 @@ import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.ExceptionInspector
 import io.the.orm.internal.IDHandler
 import io.the.orm.internal.Inserter
+import io.the.orm.internal.SimpleInserter
 import io.the.orm.internal.Table
 import io.the.orm.internal.Updater
 import io.the.orm.internal.classinfo.ClassInfo
@@ -80,7 +81,7 @@ class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptyS
 
     private val exceptionInspector = ExceptionInspector(table, kClass)
 
-    private val inserter = Inserter(table, idHandler, classInfo)
+    private val inserter: Inserter<T> = SimpleInserter(table, idHandler, classInfo)
 
     private val updater = Updater(table, idHandler, idProperty, classInfo)
 
