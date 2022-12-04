@@ -1,6 +1,7 @@
 package io.the.orm
 
 import failgood.Test
+import failgood.assert.containsExactlyInAnyOrder
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.exp.relations.hasMany
 import io.the.orm.query.isNotNull
@@ -44,7 +45,8 @@ create table pages
                 val entities =
                     pageRepo.queryFactory.createQuery(Page::name.isNotNull()).with(pageRepo.connectionProvider, Unit)
                         .find()
-//                assert(entities.map { it.name }.containsExactlyInAnyOrder("page 1", "page 2"))
+                if (System.getenv("NEXT") != null)
+                    assert(entities.map { it.name }.containsExactlyInAnyOrder("page 1", "page 2"))
             }
         }
     }
