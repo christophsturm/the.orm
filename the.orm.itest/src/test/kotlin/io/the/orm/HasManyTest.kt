@@ -11,17 +11,19 @@ object HasManyTest {
     data class HolderOfEntity(val name: String, val nestedEntities: HasMany<Entity>, val id: PK? = null)
 
     private const val SCHEMA = """
-    create sequence entity_seq no maxvalue;
-create table entitys
-(
-    id             bigint       not null default nextval('entity_seq') primary key,
-    name           varchar(100) not null
-);
     create sequence holder_of_entity_seq no maxvalue;
 create table holder_of_entitys
 (
     id             bigint       not null default nextval('holder_of_entity_seq') primary key,
-    entity_id      bigint       not null,
+    name           varchar(100) not null
+);
+
+    create sequence entity_seq no maxvalue;
+create table entitys
+(
+    id             bigint       not null default nextval('entity_seq') primary key,
+    holder_of_entity_id      bigint       not null,
+    foreign key (holder_of_entity_id) references holder_of_entitys (id),
     name           varchar(100) not null
 );
 
