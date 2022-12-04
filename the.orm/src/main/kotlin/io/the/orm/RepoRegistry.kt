@@ -10,6 +10,7 @@ data class RepoRegistry(val entityRepos: Map<KClass<out Any>, Repo<out Any>>) {
             return RepoRegistry(entityRepos)
         }
     }
+
     @Suppress("UNCHECKED_CAST")
     fun <T : Any> getRepo(kClass: KClass<T>) = entityRepos[kClass] as Repo<T>
 }

@@ -84,7 +84,7 @@ class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptyS
 
     private val updater = Updater(table, idHandler, idProperty, classInfo)
 
-    override val queryFactory: QueryFactory<T> by lazy {
+    override val queryFactory: QueryFactory<T> =
         QueryFactory(
             table,
             if (classInfo.hasBelongsToRelations) RelationFetchingResultMapper(
@@ -102,7 +102,6 @@ class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptyS
             idProperty,
             classInfo
         )
-    }
 
     /**
      * creates a new record in the database.
