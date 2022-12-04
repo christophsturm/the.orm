@@ -8,6 +8,7 @@ import io.the.orm.exp.relations.HasMany
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
+import kotlin.test.assertNotNull
 
 @Test
 class ClassInfoTest {
@@ -68,6 +69,10 @@ class ClassInfoTest {
                 }
                 it("knows if entity has hasMany relations") {
                     assert(ClassInfo(HolderOfNestedEntity::class).hasHasManyRelations)
+                }
+                it("knows the class of the has many relation") {
+                    val rel = assertNotNull(ClassInfo(HolderOfNestedEntity::class).hasManyRelations.singleOrNull())
+                    assert(rel.relatedClass == NestedEntity::class)
                 }
             }
         }
