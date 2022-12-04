@@ -3,7 +3,6 @@ package io.the.orm
 import failgood.Test
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.exp.relations.hasMany
-import io.the.orm.exp.testing.MockConnectionProvider
 import io.the.orm.test.describeOnAllDbs
 
 @Test

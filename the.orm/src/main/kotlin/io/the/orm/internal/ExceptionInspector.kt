@@ -2,6 +2,7 @@ package io.the.orm.internal
 
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException
 import io.the.orm.DataIntegrityViolationException
+import io.the.orm.UnexpectedDatabaseErrorException
 import io.the.orm.UniqueConstraintViolatedException
 import io.vertx.pgclient.PgException
 import java.util.Locale
@@ -16,7 +17,9 @@ internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KCl
         instance: T
     ): DataIntegrityViolationException {
         val field = computeAffectedField(e.message!!)
-        val value = field?.invoke(instance)
+            ?: throw UnexpectedDatabaseErrorException(e.message!!, e)
+
+        val value = field.invoke(instance)
         return UniqueConstraintViolatedException(e.message!!, e.cause, field, value)
     }
 
@@ -24,12 +27,15 @@ internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KCl
         val lowerCasedMessage = message.lowercase(Locale.getDefault())
         val fieldString = when {
             // h2: Unique index or primary key violation: "PUBLIC.CONSTRAINT_INDEX_4 ON PUBLIC.USERS(EMAIL) VALUES 1"; SQL statement:
-            lowerCasedMessage.contains("unique index or primary key violation") ->
-                lowerCasedMessage.substringAfter("public.${table.name}(").substringBefore(")").substringBefore(" ")
+            lowerCasedMessage.contains("unique index or primary key violation")
+            -> lowerCasedMessage.substringAfter("public.${table.name}(")
+                .substringBefore(")").substringBefore(" ")
             // psql: duplicate key value violates unique constraint "users_email_key"
-            lowerCasedMessage.startsWith("duplicate key value violates unique constraint") ->
-                lowerCasedMessage.substringAfter("constraint \"${table.name}_")
-                    .substringBefore("_key\"")
+            lowerCasedMessage.startsWith("duplicate key value violates unique constraint")
+            -> lowerCasedMessage.substringAfter(
+                "constraint \"${table.name}_"
+            ).substringBefore("_key\"")
+
             else -> null
         }
         return fieldNamesProperties[fieldString?.lowercase(Locale.getDefault())]
