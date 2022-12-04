@@ -1,9 +1,12 @@
 package io.the.orm
 
 import failgood.Test
+import failgood.assert.containsExactlyInAnyOrder
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.exp.relations.hasMany
+import io.the.orm.query.isNotNull
 import io.the.orm.test.describeOnAllDbs
+import io.the.orm.transaction.RepoTransactionProvider
 
 @Test
 object HasManyTest {
@@ -29,14 +32,19 @@ create table entitys
 
 """
 
+    val repo = MultiRepo(listOf(Entity::class, HolderOfEntity::class))
     val context = describeOnAllDbs<HasMany<Entity>>(schema = SCHEMA) {
         it("can create an entity with nested entities") {
             val holder = HolderOfEntity(
                 "name",
                 hasMany(setOf(Entity("nested entity 1"), Entity("nested entity 2")))
             )
-            val repo = Repo.create<HolderOfEntity>()
-            repo.create(it(), holder)
+            RepoTransactionProvider(repo, it()).transaction(HolderOfEntity::class, Entity::class) { holderRepo, entityRepo->
+                val createdHolder = holderRepo.create(holder)
+                // this is a hack to load all entities. query api really needs a rethought
+                val entities = entityRepo.queryFactory.createQuery(Entity::name.isNotNull()).with(entityRepo.connectionProvider, Unit).find()
+                assert(entities.map { it.name }.containsExactlyInAnyOrder("nested entity 1", "nested entity 2"))
+            }
         }
     }
 }

@@ -3,6 +3,9 @@ package io.the.orm.query
 import java.time.LocalDate
 import kotlin.reflect.KProperty1
 
+fun <T : Any, V> KProperty1<T, V>.isNotNull(): QueryFactory.Condition<Unit> =
+    Conditions.isNotNullCondition(this)
+
 fun <T : Any, V> KProperty1<T, V>.isNull(): QueryFactory.Condition<Unit> =
     Conditions.isNullCondition(this)
 
@@ -19,6 +22,8 @@ fun <T : Any> KProperty1<T, LocalDate?>.between(): QueryFactory.Condition<Pair<L
     QueryFactory.Condition("between ? and ?", this)
 
 object Conditions {
+    fun <T : Any, V> isNotNullCondition(property: KProperty1<T, V>): QueryFactory.Condition<Unit> =
+        QueryFactory.Condition("is not null", property)
     fun <T : Any, V> isNullCondition(property: KProperty1<T, V>): QueryFactory.Condition<Unit> =
         QueryFactory.Condition("is null", property)
 
