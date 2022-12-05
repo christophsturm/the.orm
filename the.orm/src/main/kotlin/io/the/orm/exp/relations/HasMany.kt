@@ -7,9 +7,8 @@ Relations support, not yet finished
  */
 
 interface HasMany<Entity : Any> : Set<Entity>
-fun <T : Any> hasMany(list: Set<T>): HasMany<T> {
-    return NewHasMany(list)
-}
+fun <T : Any> hasMany(list: Set<T>): HasMany<T> = NewHasMany(list)
+fun <T : Any> hasMany(vararg entities: T): HasMany<T> = NewHasMany(entities.asList().toSet())
 
 class NewHasMany<T : Any>(private val list: Set<T>) : HasMany<T>, Set<T> by list
 
