@@ -99,7 +99,7 @@ internal data class ClassInfo<T : Any>(
         override val property: KProperty1<*, *>,
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
-        override val relatedClass: KClass<*>? = null
+        override val relatedClass: KClass<*>
     ) : FieldInfo
 
     class LocalFieldInfo(

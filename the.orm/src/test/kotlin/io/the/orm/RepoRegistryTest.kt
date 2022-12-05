@@ -1,6 +1,5 @@
 package io.the.orm
 
-import failgood.Ignored
 import failgood.Test
 import failgood.describe
 import io.the.orm.exp.relations.HasMany

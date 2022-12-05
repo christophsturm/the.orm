@@ -98,6 +98,7 @@ object MultipleRepositoriesFunctionalTest {
                 repoTransactionProvider.transaction(Page::class, Recipe::class) { pageRepo, recipeRepo ->
                     val page = pageRepo
                         .create(Page("url", "pageTitle", "description", "{}", "author"))
+                    assert(page.id != null)
                     recipeRepo.create(
                         Recipe(
                             "Spaghetti Carbonara",

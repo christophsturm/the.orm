@@ -31,7 +31,7 @@ class MockTransactionProviderTest {
             }
             val singleStatement = assertNotNull(dbConnection.events.single())
             assert(singleStatement.sql == "blah")
-            assert(singleStatement.events.single() == MockStatement.Executed(listOf(), sequenceOf()))
+            assert(singleStatement.events.single() == MockStatement.Executed(listOf(), listOf()))
         }
     }
 }

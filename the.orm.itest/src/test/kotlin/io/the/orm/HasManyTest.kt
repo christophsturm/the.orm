@@ -47,6 +47,9 @@ create table sentences
 );
 
 """
+/*
+for has many we really need recursive saving because we don't know the id when we create the objects
+ */
 
     val context = describeOnAllDbs<HasMany<*>>(schema = SCHEMA) {
         val repo = RepoRegistry(setOf(Sentence::class, Chapter::class, Book::class))

@@ -1,5 +1,6 @@
 package io.the.orm.internal
 
+import failgood.Ignored
 import failgood.Test
 import failgood.describe
 import failgood.mock.call
@@ -12,35 +13,43 @@ import io.the.orm.exp.relations.HasMany
 import io.the.orm.exp.relations.belongsTo
 import io.the.orm.exp.relations.hasMany
 import io.the.orm.internal.classinfo.ClassInfo
-import kotlin.test.assertNotNull
+import kotlin.test.assertEquals
 
 @Test
 object HasManyInserterTest {
     data class Belonging(val name: String, val entity: BelongsTo<Entity> = belongsTo(), val id: PK? = null)
     data class Entity(val name: String, val belongings: HasMany<Belonging>, val id: PK? = null)
 
-    val context = describe<HasMany<Entity>> {
+    val context = describe<HasManyInserter<Entity>> {
+        val connection = mock<ConnectionProvider>()
+        val belonging = Belonging("belonging 1")
+        val entity = Entity("entity-name", hasMany(belonging))
+        val entityWithId = entity.copy(id = 42)
 
-        val rootSimpleInserter = mock<Inserter<Entity>>()
+        val rootSimpleInserter = mock<Inserter<Entity>> {
+            method { create(connection, entity) }.returns(entityWithId)
+        }
         val belongingInserter = mock<Inserter<Belonging>>()
         val subject =
             HasManyInserter(
                 rootSimpleInserter,
                 ClassInfo(Entity::class, setOf(Belonging::class)),
-                listOf(belongingInserter)
+                listOf(belongingInserter),
+                listOf(ClassInfo(Belonging::class, setOf(Entity::class)).belongsToRelations.single())
+
             )
-        val connection = mock<ConnectionProvider>()
-        val belonging = Belonging("belonging 1")
-        val entity = Entity("entity-name", hasMany(belonging))
         it("inserts the created object") {
-            subject.create(connection, entity)
-            val call = assertNotNull(getCalls(rootSimpleInserter).singleOrNull())
-            assert(call == call(Inserter<Entity>::create, connection, entity))
+            assert(subject.create(connection, entity) == entityWithId)
+            assert(getCalls(rootSimpleInserter).singleOrNull() == call(Inserter<Entity>::create, connection, entity))
         }
-        it("inserts the has many relations of the created entity") {
+        it("inserts the has many relations of the created entity",
+            ignored = Ignored.Because("currently working on this")) {
             subject.create(connection, entity)
-            val call = assertNotNull(getCalls(belongingInserter).singleOrNull())
-            assert(call == call(Inserter<Belonging>::create, connection, belonging))
+            val belongingWithId = belonging.copy(entity = BelongsTo.Auto<Entity>().apply { id = 42 })
+            assertEquals(
+                getCalls(belongingInserter).singleOrNull(),
+                call(Inserter<Belonging>::create, connection, belongingWithId)
+            )
         }
     }
 }

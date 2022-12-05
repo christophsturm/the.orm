@@ -93,6 +93,8 @@ class RepoImpl<T : Any> internal constructor(kClass: KClass<T>, classInfos: Map<
                         kClass1,
                         classInfos
                     ).inserter
+                }, classInfo.hasManyRelations.map {
+                    classInfos[it.relatedClass]!!.belongsToRelations.single { it.relatedClass == kClass }
                 })
         } else simpleInserter
     }

@@ -11,8 +11,7 @@ sealed interface BelongsTo<Entity : Any> {
             return 0
         }
     }
-    class Auto<Entity : Any> : BelongsTo<Entity> {
-        internal var id: PK? = null
+    data class Auto<Entity : Any>(var id: PK? = null) : BelongsTo<Entity> {
         override fun id(): PK {
             return id ?: throw RepositoryException("id missing")
         }
