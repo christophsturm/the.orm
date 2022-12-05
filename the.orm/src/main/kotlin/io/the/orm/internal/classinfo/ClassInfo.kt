@@ -15,6 +15,7 @@ import java.nio.ByteBuffer
 import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -106,6 +107,7 @@ internal data class ClassInfo<T : Any>(
         override val constructorParameter: KParameter,
         override val property: KProperty1<*, *>,
         val dbFieldName: String,
+        val mutable: Boolean,
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
         override val relatedClass: KClass<*>? = null
@@ -152,29 +154,33 @@ internal data class ClassInfo<T : Any>(
                         parameter,
                         property,
                         fieldName + "_id",
+                        property is KMutableProperty<*>,
                         BelongsToConverter(IDHandler(kotlinClass)),
                         Long::class.java,
                         kotlinClass
                     )
                 } else when {
                     javaClass.isEnum -> LocalFieldInfo(
-                        parameter, property, fieldName, EnumConverter(javaClass), String::class.java
+                        parameter, property, fieldName, property is KMutableProperty<*>,
+                        EnumConverter(javaClass), String::class.java
                     )
 
                     else -> {
                         val isPK = parameter.name == "id"
                         if (isPK) {
                             LocalFieldInfo(
-                                parameter, property, fieldName, PKFieldConverter(IDHandler(kClass)), Long::class.java
+                                parameter, property, fieldName, property is KMutableProperty<*>,
+                                PKFieldConverter(IDHandler(kClass)), Long::class.java
                             )
                         } else {
                             val fieldConverter = fieldConverters[kotlinClass] ?: throw RepositoryException(
                                 "type ${kotlinClass.simpleName} not supported." +
-                                    " class: ${kClass.simpleName}," +
-                                    " otherClasses: ${otherClasses.map { it.simpleName }}"
+                                        " class: ${kClass.simpleName}," +
+                                        " otherClasses: ${otherClasses.map { it.simpleName }}"
                             )
                             LocalFieldInfo(
-                                parameter, property, fieldName, fieldConverter, javaClass
+                                parameter, property, fieldName, property is KMutableProperty<*>,
+                                fieldConverter, javaClass
                             )
                         }
                     }
@@ -202,7 +208,8 @@ private class EnumConverter(private val clazz: Class<*>) : FieldConverter {
     override fun dbValueToParameter(value: Any?): Any? {
         if (value == null) return null
 
-        @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST", "RemoveExplicitTypeArguments"
+        @Suppress(
+            "UPPER_BOUND_VIOLATED", "UNCHECKED_CAST", "RemoveExplicitTypeArguments"
         )
         return (java.lang.Enum.valueOf<Any>(clazz as Class<Any>, value as String))
     }

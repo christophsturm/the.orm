@@ -34,6 +34,18 @@ class ClassInfoTest {
                 assert(!classInfo.hasBelongsToRelations)
             }
         }
+        describe("mutable fields") {
+            data class Entity(val name: String, var mutableField: String, val id: Long? = null)
+
+            val classInfo = ClassInfo(Entity::class, setOf())
+            it("knows if a field is mutable") {
+                assert(classInfo.localFieldInfo.singleOrNull {it.property == Entity::mutableField}?.mutable == true)
+            }
+            it("knows if a field is immutable") {
+                assert(classInfo.localFieldInfo.singleOrNull {it.property == Entity::name}?.mutable == false)
+            }
+
+        }
         describe("belongs to relations") {
             val classInfo = ClassInfo(UserGroup::class, setOf(User::class))
 
