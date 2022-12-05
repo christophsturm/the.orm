@@ -2,6 +2,7 @@ package io.the.orm
 
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.ExceptionInspector
+import io.the.orm.internal.HasManyInserter
 import io.the.orm.internal.IDHandler
 import io.the.orm.internal.Inserter
 import io.the.orm.internal.SimpleInserter
@@ -77,11 +78,19 @@ class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptyS
     private val idHandler = IDHandler(kClass)
     private val classInfo = ClassInfo(kClass, otherClasses)
 
-    private val inserter: Inserter<T> = SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)
+    private val inserter: Inserter<T> = run {
+        val simpleInserter = SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)
+
+        if (classInfo.hasHasManyRelations && false) HasManyInserter(
+            simpleInserter,
+            classInfo,
+            classInfo.hasManyRelations.map { RepoImpl(it.relatedClass!!, otherClasses + kClass).inserter })
+        else simpleInserter
+    }
 
     private val updater = Updater(table, idHandler, idProperty, classInfo)
 
-    override val queryFactory: QueryFactory<T> =
+    override val queryFactory: QueryFactory<T> by lazy {
         QueryFactory(
             table,
             if (classInfo.hasBelongsToRelations) RelationFetchingResultMapper(
@@ -99,6 +108,7 @@ class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptyS
             idProperty,
             classInfo
         )
+    }
 
     /**
      * creates a new record in the database.

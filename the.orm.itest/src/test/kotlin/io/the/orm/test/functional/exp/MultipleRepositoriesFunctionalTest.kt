@@ -4,7 +4,7 @@ import failgood.Test
 import io.the.orm.PK
 import io.the.orm.RepoRegistry
 import io.the.orm.exp.relations.HasMany
-import io.the.orm.exp.relations.HasManyImpl
+import io.the.orm.exp.relations.hasMany
 import io.the.orm.getRepo
 import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
@@ -66,7 +66,7 @@ object MultipleRepositoriesFunctionalTest {
         val description: String?,
         val ldJson: String?,
         val author: String?,
-        val recipes: HasMany<Recipe> = HasManyImpl(), // TODO equals and has many. (possibly unfetched)
+        val recipes: HasMany<Recipe> = hasMany(), // TODO equals and has many. (possibly unfetched)
         val id: PK? = null
     )
 
@@ -74,7 +74,7 @@ object MultipleRepositoriesFunctionalTest {
         val name: String,
         val description: String?,
         val page: Page,
-        val ingredients: HasMany<RecipeIngredient>? = null,
+        val ingredients: HasMany<RecipeIngredient> = hasMany(),
         val id: PK? = null
     )
 

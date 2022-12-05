@@ -2,7 +2,9 @@ package io.the.orm
 
 import failgood.Test
 import failgood.assert.containsExactlyInAnyOrder
+import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
+import io.the.orm.exp.relations.belongsTo
 import io.the.orm.exp.relations.hasMany
 import io.the.orm.query.isNotNull
 import io.the.orm.test.describeOnAllDbs
@@ -10,8 +12,13 @@ import io.the.orm.transaction.RepoTransactionProvider
 
 @Test
 object HasManyTest {
-    data class Sentence(val content: String, val id: PK? = null)
-    data class Chapter(val name: String, val sentences: HasMany<Sentence>, val id: PK? = null)
+    data class Sentence(val content: String, val chapter: BelongsTo<Chapter> = belongsTo(), val id: PK? = null)
+    data class Chapter(
+        val name: String,
+        val sentences: HasMany<Sentence>,
+        val book: BelongsTo<Book> = belongsTo(),
+        val id: PK? = null
+    )
     data class Book(val name: String, val chapters: HasMany<Chapter>, val id: PK? = null)
 
     const val SCHEMA = """

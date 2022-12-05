@@ -144,10 +144,9 @@ internal data class ClassInfo<T : Any>(
 
                 val fieldName = parameter.name!!.toSnakeCase()
                 val property = properties[parameter.name]!!
-                if (kc == HasMany::class)
-                    RemoteFieldInfo(
-                        parameter, property, HasManyConverter(), Long::class.java, kotlinClass
-                    )
+                if (kc == HasMany::class) RemoteFieldInfo(
+                    parameter, property, HasManyConverter(), Long::class.java, kotlinClass
+                )
                 else if (otherClasses.contains(kotlinClass)) {
                     LocalFieldInfo(
                         parameter,
@@ -169,8 +168,11 @@ internal data class ClassInfo<T : Any>(
                                 parameter, property, fieldName, PKFieldConverter(IDHandler(kClass)), Long::class.java
                             )
                         } else {
-                            val fieldConverter = fieldConverters[kotlinClass]
-                                ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
+                            val fieldConverter = fieldConverters[kotlinClass] ?: throw RepositoryException(
+                                "type ${kotlinClass.simpleName} not supported." +
+                                    " class: ${kClass.simpleName}," +
+                                    " otherClasses: ${otherClasses.map { it.simpleName }}"
+                            )
                             LocalFieldInfo(
                                 parameter, property, fieldName, fieldConverter, javaClass
                             )
@@ -183,12 +185,7 @@ internal data class ClassInfo<T : Any>(
             val fields = partitions.second
             val relations = partitions.first
             return ClassInfo(
-                name!!,
-                constructor,
-                localFieldInfo,
-                fields,
-                relations,
-                fieldInfo.filterIsInstance<RemoteFieldInfo>()
+                name!!, constructor, localFieldInfo, fields, relations, fieldInfo.filterIsInstance<RemoteFieldInfo>()
             )
         }
     }
