@@ -53,8 +53,8 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
     fun readId(instance: T): PK {
         when (val idResult = idField.getter.call(instance)) {
             is PK -> return idResult
-            null -> throw RuntimeException("id is not yet set for $instance")
-            else -> throw RuntimeException("unknown pk type for $instance")
+            null -> throw RepositoryException("id is not yet set for $instance")
+            else -> throw RepositoryException("unknown pk type for $instance")
         }
     }
 

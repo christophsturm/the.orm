@@ -10,7 +10,7 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 
 class R2dbcStatement(private val statement: io.r2dbc.spi.Statement, private val sql: String) : Statement {
-    override suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult {
+    override suspend fun execute(types: List<Class<*>>, values: List<Any?>): DBResult {
         values.forEachIndexed { index, o ->
             try {
                 if (o == null) {
@@ -24,7 +24,7 @@ class R2dbcStatement(private val statement: io.r2dbc.spi.Statement, private val 
         return R2dbcResult(statement.execute().awaitSingle())
     }
 
-    override suspend fun executeBatch(types: List<Class<*>>, valuesList: Sequence<Sequence<Any?>>): Flow<DBResult> {
+    override suspend fun executeBatch(types: List<Class<*>>, valuesList: List<List<Any?>>): Flow<DBResult> {
         valuesList.forEachIndexed { valuesIdx, values ->
             if (valuesIdx != 0)
                 statement.add()

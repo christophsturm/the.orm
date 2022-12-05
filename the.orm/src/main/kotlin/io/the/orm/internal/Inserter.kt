@@ -28,7 +28,7 @@ internal class SimpleInserter<T : Any>(
     override suspend fun create(connectionProvider: ConnectionProvider, instance: T): T {
         return connectionProvider.withConnection { connection ->
             try {
-                val values = fieldsWithoutId.asSequence().map { it.valueForDb(instance) }
+                val values = fieldsWithoutId.map { it.valueForDb(instance) }
                 val statement = connection.createInsertStatement(insertStatementString)
 
                 val id = statement.execute(types, values).getId()
@@ -38,6 +38,8 @@ internal class SimpleInserter<T : Any>(
                 throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
             } catch (e: PgException) {
                 throw exceptionInspector.pgException(e, instance)
+            } catch (e: RepositoryException) {
+                throw e
             } catch (e: Exception) {
                 throw RepositoryException("error creating instance: $instance", e)
             }
