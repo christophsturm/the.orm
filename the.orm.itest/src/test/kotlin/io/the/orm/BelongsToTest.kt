@@ -16,7 +16,7 @@ object BelongsToTest {
             data class Chapter(val name: String, val book: Book, val id: PK? = null)
             data class Sentence(val content: String, val chapter: Chapter, val id: PK? = null)
 
-            val repo = RepoRegistry(listOf(Chapter::class, Book::class, Sentence::class))
+            val repo = RepoRegistry(setOf(Chapter::class, Book::class, Sentence::class))
             val repoProvider = RepoTransactionProvider(repo, connection)
             it("can load recursive belongs to relations") {
                 repoProvider.transaction(

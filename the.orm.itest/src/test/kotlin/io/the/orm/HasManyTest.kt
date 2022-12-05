@@ -48,8 +48,8 @@ create table sentences
 
 """
 
-    val repo = RepoRegistry(listOf(Sentence::class, Chapter::class, Book::class))
     val context = describeOnAllDbs<HasMany<*>>(schema = SCHEMA) {
+        val repo = RepoRegistry(setOf(Sentence::class, Chapter::class, Book::class))
         it("can create an page with nested entities") {
             val chapters: Set<Chapter> = setOf(
                 Chapter(

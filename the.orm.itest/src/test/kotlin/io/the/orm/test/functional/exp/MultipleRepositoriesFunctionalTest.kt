@@ -87,10 +87,9 @@ object MultipleRepositoriesFunctionalTest {
 
     data class Ingredient(val name: String, val id: Long? = null)
 
-    // the repo is immutable, so it can be created outside the test
-    val repoRegistry = RepoRegistry(listOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class))
     val context =
         describeOnAllDbs(RepoTransactionProvider::class, DBS.databases, SCHEMA) {
+            val repoRegistry = RepoRegistry(setOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class))
             val transactionProvider = it()
             val repoTransactionProvider = RepoTransactionProvider(repoRegistry, transactionProvider)
             it("can write Entities that have BelongsTo relations") {

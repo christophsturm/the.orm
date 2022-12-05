@@ -21,7 +21,7 @@ class RepoRegistryTest {
 
     val context = describe<RepoRegistry>(ignored = Ignored.Because("temporarily fails")) {
         it("can be created with classes that reference each other") {
-            RepoRegistry(listOf(Page::class, Recipe::class))
+            RepoRegistry(setOf(Page::class, Recipe::class))
         }
     }
 }
