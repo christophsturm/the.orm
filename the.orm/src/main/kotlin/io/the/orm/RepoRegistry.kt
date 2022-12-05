@@ -8,7 +8,7 @@ data class RepoRegistry(val entityRepos: Map<KClass<out Any>, Repo<out Any>>) {
         operator fun invoke(classes: Set<KClass<out Any>>): RepoRegistry {
             val classInfo = classes.associateBy({ it }) { ClassInfo(it, classes) }
             val entityRepos: Map<KClass<out Any>, Repo<out Any>> =
-                classes.associateBy({ it }, { RepoImpl(it, classes.toSet()) })
+                classes.associateBy({ it }, { RepoImpl(it, classInfo) })
             return RepoRegistry(entityRepos)
         }
     }

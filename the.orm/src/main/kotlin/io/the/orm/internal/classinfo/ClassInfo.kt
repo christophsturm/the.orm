@@ -202,7 +202,8 @@ private class EnumConverter(private val clazz: Class<*>) : FieldConverter {
     override fun dbValueToParameter(value: Any?): Any? {
         if (value == null) return null
 
-        @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST", "RemoveExplicitTypeArguments")
+        @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST", "RemoveExplicitTypeArguments"
+        )
         return (java.lang.Enum.valueOf<Any>(clazz as Class<Any>, value as String))
     }
 

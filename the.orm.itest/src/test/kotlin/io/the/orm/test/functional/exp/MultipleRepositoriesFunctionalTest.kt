@@ -89,7 +89,9 @@ object MultipleRepositoriesFunctionalTest {
 
     val context =
         describeOnAllDbs(RepoTransactionProvider::class, DBS.databases, SCHEMA) {
-            val repoRegistry = RepoRegistry(setOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class))
+            val repoRegistry = RepoRegistry(
+                setOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
+            )
             val transactionProvider = it()
             val repoTransactionProvider = RepoTransactionProvider(repoRegistry, transactionProvider)
             it("can write Entities that have BelongsTo relations") {

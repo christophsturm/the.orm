@@ -63,8 +63,10 @@ interface Repo<T : Any> {
     suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, T>
 }
 
-class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptySet()) :
+class RepoImpl<T : Any> internal constructor(kClass: KClass<T>, classInfos: Map<KClass<*>, ClassInfo<*>>) :
     Repo<T> {
+    constructor(kClass: KClass<T>) : this(kClass, mapOf(kClass to ClassInfo(kClass)))
+
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
 
     private val table = Table(kClass)
@@ -76,16 +78,23 @@ class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptyS
             KProperty1<T, PK>
 
     private val idHandler = IDHandler(kClass)
-    private val classInfo = ClassInfo(kClass, otherClasses)
+    private val classInfo: ClassInfo<T> = classInfos[kClass] as ClassInfo<T>
 
     private val inserter: Inserter<T> = run {
         val simpleInserter = SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)
 
-        if (classInfo.hasHasManyRelations && false) HasManyInserter(
-            simpleInserter,
-            classInfo,
-            classInfo.hasManyRelations.map { RepoImpl(it.relatedClass!!, otherClasses + kClass).inserter })
-        else simpleInserter
+        if (classInfo.hasHasManyRelations && false) {
+            HasManyInserter(
+                simpleInserter,
+                classInfo,
+                classInfo.hasManyRelations.map {
+                    val kClass1 = it.relatedClass!!
+                    RepoImpl(
+                        kClass1,
+                        classInfos
+                    ).inserter
+                })
+        } else simpleInserter
     }
 
     private val updater = Updater(table, idHandler, idProperty, classInfo)
@@ -96,7 +105,7 @@ class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptyS
             if (classInfo.hasBelongsToRelations) RelationFetchingResultMapper(
                 ResultResolver(classInfo),
                 RelationFetchingEntityCreator(
-                    classInfo.belongsToRelations.map { RepoImpl(it.relatedClass!!, otherClasses + kClass) },
+                    classInfo.belongsToRelations.map { RepoImpl(it.relatedClass!!, classInfos) },
                     StreamingEntityCreator(classInfo)
                 )
             )
