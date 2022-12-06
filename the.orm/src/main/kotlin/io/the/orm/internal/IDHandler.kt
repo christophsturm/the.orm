@@ -21,7 +21,8 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
                 "no copy function found for ${kClass.simpleName}." +
                     " Entities must be data classes"
             )) as KFunction<T>
-    private val idParameter = copyFunction.parameters.single { it.name == "id" }
+    private val idParameter = copyFunction.parameters.singleOrNull() { it.name == "id" }
+        ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")
     private val idField = kClass.declaredMemberProperties.single { it.name == "id" }
     private val instanceParameter = copyFunction.instanceParameter!!
     private val pkConstructor: KFunction<Any>?
@@ -33,8 +34,10 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
             pkConstructor = pkClass.primaryConstructor!!
             val parameters = pkConstructor.parameters
             if (parameters.singleOrNull()?.type?.classifier as? KClass<*> != pKClass)
-                throw RepositoryException("PK classes must have a single field of type ${pKClass.simpleName}." +
-                    "$parameters")
+                throw RepositoryException(
+                    "PK classes must have a single field of type ${pKClass.simpleName}." +
+                        "$parameters"
+                )
             pkIdGetter = pkClass.memberProperties.single().getter
         } else {
             pkConstructor = null
@@ -50,6 +53,7 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
             throw RepositoryException("Error assigning ID. args:${args.friendlyString()}")
         }
     }
+
     fun readId(instance: T): PK {
         when (val idResult = idField.getter.call(instance)) {
             is PK -> return idResult

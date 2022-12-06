@@ -3,7 +3,6 @@ package io.the.orm
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.ExceptionInspector
 import io.the.orm.internal.HasManyInserter
-import io.the.orm.internal.IDHandler
 import io.the.orm.internal.Inserter
 import io.the.orm.internal.SimpleInserter
 import io.the.orm.internal.Table
@@ -77,8 +76,8 @@ class RepoImpl<T : Any> internal constructor(kClass: KClass<T>, classInfos: Map<
             ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")) as
             KProperty1<T, PK>
 
-    private val idHandler = IDHandler(kClass)
     private val classInfo: ClassInfo<T> = classInfos[kClass] as ClassInfo<T>
+    private val idHandler = classInfo.idHandler
 
     private val inserter: Inserter<T> = run {
         val simpleInserter = SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)

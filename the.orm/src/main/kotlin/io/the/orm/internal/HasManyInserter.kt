@@ -1,6 +1,7 @@
 package io.the.orm.internal
 
 import io.the.orm.dbio.ConnectionProvider
+import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.internal.classinfo.ClassInfo
 
@@ -18,7 +19,8 @@ internal class HasManyInserter<Entity : Any>(
             val hasMany = remoteFieldInfo.property.call(instance) as HasMany<*>
             val fieldInfo = belongingsFieldInfo[index]
             hasMany.forEach { e ->
-//                fieldInfo.property.
+                val belongsToField = fieldInfo.property.call(e) as? BelongsTo.Auto<*>
+//                belongsToField?.id = ins
                 inserter.create(connectionProvider, e)
             }
         }

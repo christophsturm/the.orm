@@ -74,6 +74,7 @@ object DoubleConverter : FieldConverter {
 internal data class ClassInfo<T : Any>(
     val name: String,
     val constructor: KFunction<T>,
+    val idHandler: IDHandler<T>,
     val localFieldInfo: List<LocalFieldInfo>,
     val fields: List<LocalFieldInfo>,
     val belongsToRelations: List<LocalFieldInfo>,
@@ -131,6 +132,7 @@ internal data class ClassInfo<T : Any>(
             val constructor: KFunction<T> = kClass.primaryConstructor
                 ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
+            val idHandler = IDHandler(kClass)
             val fieldInfo: List<FieldInfo> = constructor.parameters.map { parameter ->
                 val type = parameter.type
                 val kc = type.classifier as KClass<*>
@@ -170,7 +172,7 @@ internal data class ClassInfo<T : Any>(
                         if (isPK) {
                             LocalFieldInfo(
                                 parameter, property, fieldName, property is KMutableProperty<*>,
-                                PKFieldConverter(IDHandler(kClass)), Long::class.java
+                                PKFieldConverter(idHandler), Long::class.java
                             )
                         } else {
                             val fieldConverter = fieldConverters[kotlinClass] ?: throw RepositoryException(
@@ -191,7 +193,13 @@ internal data class ClassInfo<T : Any>(
             val fields = partitions.second
             val relations = partitions.first
             return ClassInfo(
-                name!!, constructor, localFieldInfo, fields, relations, fieldInfo.filterIsInstance<RemoteFieldInfo>()
+                name!!,
+                constructor,
+                idHandler,
+                localFieldInfo,
+                fields,
+                relations,
+                fieldInfo.filterIsInstance<RemoteFieldInfo>()
             )
         }
     }

@@ -1,6 +1,5 @@
 package io.the.orm.internal
 
-import failgood.Ignored
 import failgood.Test
 import failgood.describe
 import failgood.mock.call
@@ -42,8 +41,7 @@ object HasManyInserterTest {
             assert(subject.create(connection, entity) == entityWithId)
             assert(getCalls(rootSimpleInserter).singleOrNull() == call(Inserter<Entity>::create, connection, entity))
         }
-        it("inserts the has many relations of the created entity",
-            ignored = Ignored.Because("currently working on this")) {
+        it("inserts the has many relations of the created entity") {
             subject.create(connection, entity)
             val belongingWithId = belonging.copy(entity = BelongsTo.Auto<Entity>().apply { id = 42 })
             assertEquals(
