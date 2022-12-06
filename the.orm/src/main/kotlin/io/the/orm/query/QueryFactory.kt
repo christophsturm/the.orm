@@ -17,7 +17,7 @@ import kotlin.reflect.KProperty1
 
 class QueryFactory<T : Any> internal constructor(
     table: Table,
-    private val resultMapper: ResultMapper<T>,
+    internal var resultMapper: ResultMapper<T>,
     private val repository: Repo<T>,
     private val idHandler: IDHandler<T>,
     private val idProperty: KProperty1<T, Any>,

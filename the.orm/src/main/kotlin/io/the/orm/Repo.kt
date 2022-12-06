@@ -62,7 +62,7 @@ interface Repo<T : Any> {
     suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, T>
 }
 
-class RepoImpl<T : Any> internal constructor(kClass: KClass<T>, classInfos: Map<KClass<*>, ClassInfo<*>>) :
+class RepoImpl<T : Any> internal constructor(val kClass: KClass<T>, classInfos: Map<KClass<*>, ClassInfo<*>>) :
     Repo<T> {
     constructor(kClass: KClass<T>) : this(kClass, mapOf(kClass to ClassInfo(kClass)))
 
@@ -79,38 +79,14 @@ class RepoImpl<T : Any> internal constructor(kClass: KClass<T>, classInfos: Map<
     private val classInfo: ClassInfo<T> = classInfos[kClass] as ClassInfo<T>
     private val idHandler = classInfo.idHandler
 
-    private val inserter: Inserter<T> = run {
-        val simpleInserter = SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)
-
-        if (classInfo.hasHasManyRelations) {
-            HasManyInserter(
-                simpleInserter,
-                classInfo,
-                classInfo.hasManyRelations.map {
-                    val kClass1 = it.relatedClass!!
-                    RepoImpl(
-                        kClass1,
-                        classInfos
-                    ).inserter
-                }, classInfo.hasManyRelations.map {
-                    classInfos[it.relatedClass]!!.belongsToRelations.single { it.relatedClass == kClass }
-                })
-        } else simpleInserter
-    }
+    private var inserter: Inserter<T> = SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)
 
     private val updater = Updater(table, idHandler, idProperty, classInfo)
 
-    override val queryFactory: QueryFactory<T> by lazy {
+    override val queryFactory: QueryFactory<T> =
         QueryFactory(
             table,
-            if (classInfo.hasBelongsToRelations) RelationFetchingResultMapper(
-                ResultResolver(classInfo),
-                RelationFetchingEntityCreator(
-                    classInfo.belongsToRelations.map { RepoImpl(it.relatedClass!!, classInfos) },
-                    StreamingEntityCreator(classInfo)
-                )
-            )
-            else DefaultResultMapper(
+            DefaultResultMapper(
                 ResultResolver(classInfo), StreamingEntityCreator(classInfo)
             ),
             this,
@@ -118,6 +94,32 @@ class RepoImpl<T : Any> internal constructor(kClass: KClass<T>, classInfos: Map<
             idProperty,
             classInfo
         )
+
+    /**
+     * the repo is first created as a repo that can not fetch relations
+     * when all repos are created they are upgraded to repos that can fetch relations
+     */
+    fun afterInit(repos: Map<KClass<*>, RepoImpl<*>>) {
+        if (classInfo.hasHasManyRelations) {
+            val simpleInserter = inserter
+            inserter = HasManyInserter(
+                simpleInserter,
+                classInfo,
+                classInfo.hasManyRelations.map {
+                    repos[it.relatedClass]!!
+                }, classInfo.hasManyRelations.map {
+                    repos[it.relatedClass]!!.classInfo.belongsToRelations.single { it.relatedClass == kClass }
+                })
+        }
+        if (classInfo.hasBelongsToRelations) {
+            queryFactory.resultMapper = RelationFetchingResultMapper(
+                ResultResolver(classInfo),
+                RelationFetchingEntityCreator(
+                    classInfo.belongsToRelations.map { repos[it.relatedClass!!]!! },
+                    StreamingEntityCreator(classInfo)
+                )
+            )
+        }
     }
 
     /**
@@ -159,7 +161,7 @@ class RepoImpl<T : Any> internal constructor(kClass: KClass<T>, classInfos: Map<
 
     override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, T> {
         return byIdsQuery.with(ids.toTypedArray()).findAndTransform(connectionProvider) { flow ->
-            val result = mutableMapOf<PK, T>()
+            val result = LinkedHashMap<PK, T>(ids.size)
             flow.collect {
                 result[idProperty(it)] = it
             }
