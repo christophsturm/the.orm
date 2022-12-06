@@ -82,7 +82,7 @@ class RepoImpl<T : Any> internal constructor(kClass: KClass<T>, classInfos: Map<
     private val inserter: Inserter<T> = run {
         val simpleInserter = SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)
 
-        if (classInfo.hasHasManyRelations && false) {
+        if (classInfo.hasHasManyRelations) {
             HasManyInserter(
                 simpleInserter,
                 classInfo,

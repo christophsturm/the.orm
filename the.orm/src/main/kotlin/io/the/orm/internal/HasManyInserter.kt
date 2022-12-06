@@ -13,6 +13,7 @@ internal class HasManyInserter<Entity : Any>(
 ) : Inserter<Entity> {
     override suspend fun create(connectionProvider: ConnectionProvider, instance: Entity): Entity {
         val insertedRoot = rootSimpleInserter.create(connectionProvider, instance)
+        val id = classInfo.idHandler.readId(insertedRoot)
         classInfo.hasManyRelations.forEachIndexed { index, remoteFieldInfo ->
             @Suppress("UNCHECKED_CAST")
             val inserter = belongingsInserters[index] as Inserter<Any>
@@ -20,7 +21,7 @@ internal class HasManyInserter<Entity : Any>(
             val fieldInfo = belongingsFieldInfo[index]
             hasMany.forEach { e ->
                 val belongsToField = fieldInfo.property.call(e) as? BelongsTo.Auto<*>
-//                belongsToField?.id = ins
+                belongsToField?.id = id
                 inserter.create(connectionProvider, e)
             }
         }

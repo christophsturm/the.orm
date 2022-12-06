@@ -1,14 +1,14 @@
 package io.the.orm
 
 import failgood.Test
-import failgood.assert.containsExactlyInAnyOrder
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.exp.relations.belongsTo
 import io.the.orm.exp.relations.hasMany
-import io.the.orm.query.isNotNull
 import io.the.orm.test.describeOnAllDbs
 import io.the.orm.transaction.RepoTransactionProvider
+import kotlinx.coroutines.flow.toSet
+import kotlin.test.assertEquals
 
 @Test
 object HasManyTest {
@@ -19,6 +19,7 @@ object HasManyTest {
         val book: BelongsTo<Book> = belongsTo(),
         val id: PK? = null
     )
+
     data class Book(val name: String, val chapters: HasMany<Chapter>, val id: PK? = null)
 
     const val SCHEMA = """
@@ -47,9 +48,9 @@ create table sentences
 );
 
 """
-/*
-for has many we really need recursive saving because we don't know the id when we create the objects
- */
+    /*
+    for has many we really need recursive saving because we don't know the id when we create the objects
+     */
 
     val context = describeOnAllDbs<HasMany<*>>(schema = SCHEMA) {
         val repo = RepoRegistry(setOf(Sentence::class, Chapter::class, Book::class))
@@ -80,14 +81,21 @@ for has many we really need recursive saving because we don't know the id when w
                 "Also Sprach Zarathustra",
                 hasMany(chapters)
             )
-            RepoTransactionProvider(repo, it()).transaction(Book::class, Chapter::class) { bookRepo, pageRepo ->
+            RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
                 bookRepo.create(holder)
                 // this is a hack to load all entities. query api really needs to be rethought
-                val entities =
-                    pageRepo.queryFactory.createQuery(Chapter::name.isNotNull()).with(pageRepo.connectionProvider, Unit)
-                        .find()
-                if (System.getenv("NEXT") != null)
-                    assert(entities.map { it.name }.containsExactlyInAnyOrder("page 1", "page 2"))
+                val result = bookRepo.connectionProvider.withConnection { conn ->
+                    conn.createStatement("select content from SENTENCES").execute()
+                        .map { it.get("content", String::class.java)!! }.toSet()
+                }
+                assertEquals(
+                    result, setOf(
+                        "god is dead", "No small art is it to sleep:" +
+                            " it is necessary for that purpose to keep awake all day.",
+                        "god is still doing pretty badly", "sleeping is still not easy"
+
+                    )
+                )
             }
         }
     }

@@ -177,8 +177,8 @@ internal data class ClassInfo<T : Any>(
                         } else {
                             val fieldConverter = fieldConverters[kotlinClass] ?: throw RepositoryException(
                                 "type ${kotlinClass.simpleName} not supported." +
-                                        " class: ${kClass.simpleName}," +
-                                        " otherClasses: ${otherClasses.map { it.simpleName }}"
+                                    " class: ${kClass.simpleName}," +
+                                    " otherClasses: ${otherClasses.map { it.simpleName }}"
                             )
                             LocalFieldInfo(
                                 parameter, property, fieldName, property is KMutableProperty<*>,
