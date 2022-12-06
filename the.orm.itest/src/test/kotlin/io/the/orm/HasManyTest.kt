@@ -55,35 +55,10 @@ create table sentences
     val context = describeOnAllDbs<HasMany<*>>(schema = SCHEMA) {
         val repo = RepoRegistry(setOf(Sentence::class, Chapter::class, Book::class))
         it("can create an page with nested entities") {
-            val chapters: Set<Chapter> = setOf(
-                Chapter(
-                    "page 1", hasMany(
-                        setOf(
-                            Sentence("god is dead"),
-                            Sentence(
-                                "No small art is it to sleep:" +
-                                    " it is necessary for that purpose to keep awake all day."
-                            )
-                        )
-                    )
-                ),
-                Chapter(
-                    "page 2",
-                    hasMany(
-                        setOf(
-                            Sentence("god is still doing pretty badly"),
-                            Sentence("sleeping is still not easy")
-                        )
-                    )
-                )
-            )
-            val holder = Book(
-                "Also Sprach Zarathustra",
-                hasMany(chapters)
-            )
+            // the whole hierarchy is created outside the transaction and needs no access to a repo
+            val holder = book()
             RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
                 bookRepo.create(holder)
-                // this is a hack to load all entities. query api really needs to be rethought
                 val result = bookRepo.connectionProvider.withConnection { conn ->
                     conn.createStatement("select content from SENTENCES").execute()
                         .map { it.get("content", String::class.java)!! }.toSet()
@@ -98,5 +73,41 @@ create table sentences
                 )
             }
         }
+        it("can load has many") {
+            // the whole hierarchy is created outside the transaction and needs no access to a repo
+            val holder = book()
+            RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
+                val id = bookRepo.create(holder).id!!
+                val reloaded = bookRepo.findById(id)
+                assert(reloaded.chapters.map { it.book }
+                    == listOf("Also Sprach Zarathustra", "Also Sprach Zarathustra"))
+            }
+        }
+    }
+
+    private fun book(): Book {
+        val chapters: Set<Chapter> = setOf(
+            Chapter(
+                "page 1", hasMany(
+                    setOf(
+                        Sentence("god is dead"),
+                        Sentence(
+                            "No small art is it to sleep:" +
+                                " it is necessary for that purpose to keep awake all day."
+                        )
+                    )
+                )
+            ),
+            Chapter(
+                "page 2",
+                hasMany(
+                    setOf(
+                        Sentence("god is still doing pretty badly"),
+                        Sentence("sleeping is still not easy")
+                    )
+                )
+            )
+        )
+        return Book("Also Sprach Zarathustra", hasMany(chapters))
     }
 }

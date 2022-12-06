@@ -2,6 +2,7 @@ package io.the.orm.mapper
 
 import io.the.orm.PK
 import io.the.orm.RepositoryException
+import io.the.orm.exp.relations.LazyHasMany
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -23,6 +24,7 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
                 val fieldInfo = classInfo.belongsToRelations[index]
                 Pair(fieldInfo.constructorParameter, relations[index][value as PK])
             }
+            classInfo.hasManyRelations.associateTo(map) { Pair(it.constructorParameter, LazyHasMany<Any>()) }
         }.map {
             try {
                 classInfo.constructor.callBy(it)
