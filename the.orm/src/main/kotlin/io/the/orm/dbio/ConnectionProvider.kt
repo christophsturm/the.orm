@@ -16,8 +16,8 @@ interface TransactionProvider : ConnectionProvider {
 }
 
 interface Statement {
-    suspend fun execute(types: List<Class<*>> = listOf(), values: Sequence<Any?> = sequenceOf()): DBResult
-    suspend fun executeBatch(types: List<Class<*>>, valuesList: Sequence<Sequence<Any?>>): Flow<DBResult>
+    suspend fun execute(types: List<Class<*>> = listOf(), values: List<Any?> = listOf()): DBResult
+    suspend fun executeBatch(types: List<Class<*>>, valuesList: List<List<Any?>>): Flow<DBResult>
 }
 
 interface DBResult {

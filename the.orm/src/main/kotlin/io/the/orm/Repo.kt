@@ -1,10 +1,10 @@
 package io.the.orm
 
-import io.r2dbc.spi.R2dbcDataIntegrityViolationException
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.ExceptionInspector
-import io.the.orm.internal.IDHandler
+import io.the.orm.internal.HasManyInserter
 import io.the.orm.internal.Inserter
+import io.the.orm.internal.SimpleInserter
 import io.the.orm.internal.Table
 import io.the.orm.internal.Updater
 import io.the.orm.internal.classinfo.ClassInfo
@@ -16,7 +16,6 @@ import io.the.orm.mapper.StreamingEntityCreator
 import io.the.orm.query.Conditions.isEqualToCondition
 import io.the.orm.query.QueryFactory
 import io.the.orm.query.isIn
-import io.vertx.pgclient.PgException
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -63,8 +62,10 @@ interface Repo<T : Any> {
     suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, T>
 }
 
-class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptySet()) :
+class RepoImpl<T : Any> internal constructor(kClass: KClass<T>, classInfos: Map<KClass<*>, ClassInfo<*>>) :
     Repo<T> {
+    constructor(kClass: KClass<T>) : this(kClass, mapOf(kClass to ClassInfo(kClass)))
+
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
 
     private val table = Table(kClass)
@@ -75,12 +76,27 @@ class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptyS
             ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")) as
             KProperty1<T, PK>
 
-    private val idHandler = IDHandler(kClass)
-    private val classInfo = ClassInfo(kClass, otherClasses)
+    private val classInfo: ClassInfo<T> = classInfos[kClass] as ClassInfo<T>
+    private val idHandler = classInfo.idHandler
 
-    private val exceptionInspector = ExceptionInspector(table, kClass)
+    private val inserter: Inserter<T> = run {
+        val simpleInserter = SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)
 
-    private val inserter = Inserter(table, idHandler, classInfo)
+        if (classInfo.hasHasManyRelations) {
+            HasManyInserter(
+                simpleInserter,
+                classInfo,
+                classInfo.hasManyRelations.map {
+                    val kClass1 = it.relatedClass!!
+                    RepoImpl(
+                        kClass1,
+                        classInfos
+                    ).inserter
+                }, classInfo.hasManyRelations.map {
+                    classInfos[it.relatedClass]!!.belongsToRelations.single { it.relatedClass == kClass }
+                })
+        } else simpleInserter
+    }
 
     private val updater = Updater(table, idHandler, idProperty, classInfo)
 
@@ -90,7 +106,7 @@ class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptyS
             if (classInfo.hasBelongsToRelations) RelationFetchingResultMapper(
                 ResultResolver(classInfo),
                 RelationFetchingEntityCreator(
-                    classInfo.belongsToRelations.map { RepoImpl(it.relatedClass!!, otherClasses + kClass) },
+                    classInfo.belongsToRelations.map { RepoImpl(it.relatedClass!!, classInfos) },
                     StreamingEntityCreator(classInfo)
                 )
             )
@@ -111,17 +127,7 @@ class RepoImpl<T : Any>(kClass: KClass<T>, otherClasses: Set<KClass<*>> = emptyS
      * @return a copy of the instance with an assigned id field.
      */
     override suspend fun create(connectionProvider: ConnectionProvider, instance: T): T =
-        connectionProvider.withConnection { connection ->
-            try {
-                inserter.create(connection, instance)
-            } catch (e: R2dbcDataIntegrityViolationException) {
-                throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
-            } catch (e: PgException) {
-                throw exceptionInspector.pgException(e, instance)
-            } catch (e: Exception) {
-                throw RepositoryException("error creating instance: $instance", e)
-            }
-        }
+        inserter.create(connectionProvider, instance)
 
     /**
      * updates a record in the database.

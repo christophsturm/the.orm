@@ -27,7 +27,7 @@ class DBConnectionTest {
                 val result =
                     createConnectionProvider().withConnection { connection ->
                         connection.createInsertStatement("insert into users(name) values ($1)")
-                            .execute(listOf(String::class.java), sequenceOf("belle")).getId()
+                            .execute(listOf(String::class.java), listOf("belle")).getId()
                     }
                 expectThat(result).isEqualTo(1)
             }
@@ -35,7 +35,7 @@ class DBConnectionTest {
                 val result =
                     createConnectionProvider().withConnection { connection ->
                         connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
-                            .execute(listOf(String::class.java, String::class.java), sequenceOf("belle", null))
+                            .execute(listOf(String::class.java, String::class.java), listOf("belle", null))
                             .getId()
                     }
                 expectThat(result).isEqualTo(1)
@@ -48,7 +48,7 @@ class DBConnectionTest {
                         connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
                             .executeBatch(
                                 listOf(String::class.java, String::class.java),
-                                sequenceOf(sequenceOf("belle", "belle@bs.com"), sequenceOf("sebastian", "seb@bs.com"))
+                                listOf(listOf("belle", "belle@bs.com"), listOf("sebastian", "seb@bs.com"))
                             )
                             .map { it.getId() }.toList()
                     }
@@ -60,7 +60,7 @@ class DBConnectionTest {
                         connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
                             .executeBatch(
                                 listOf(String::class.java, String::class.java),
-                                sequenceOf(sequenceOf("belle", null), sequenceOf("sebastian", null))
+                                listOf(listOf("belle", null), listOf("sebastian", null))
                             )
                             .map { it.getId() }.toList()
                     }

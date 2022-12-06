@@ -15,6 +15,7 @@ import java.nio.ByteBuffer
 import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -73,6 +74,7 @@ object DoubleConverter : FieldConverter {
 internal data class ClassInfo<T : Any>(
     val name: String,
     val constructor: KFunction<T>,
+    val idHandler: IDHandler<T>,
     val localFieldInfo: List<LocalFieldInfo>,
     val fields: List<LocalFieldInfo>,
     val belongsToRelations: List<LocalFieldInfo>,
@@ -99,13 +101,14 @@ internal data class ClassInfo<T : Any>(
         override val property: KProperty1<*, *>,
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
-        override val relatedClass: KClass<*>? = null
+        override val relatedClass: KClass<*>
     ) : FieldInfo
 
     class LocalFieldInfo(
         override val constructorParameter: KParameter,
         override val property: KProperty1<*, *>,
         val dbFieldName: String,
+        val mutable: Boolean,
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
         override val relatedClass: KClass<*>? = null
@@ -129,6 +132,7 @@ internal data class ClassInfo<T : Any>(
             val constructor: KFunction<T> = kClass.primaryConstructor
                 ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
+            val idHandler = IDHandler(kClass)
             val fieldInfo: List<FieldInfo> = constructor.parameters.map { parameter ->
                 val type = parameter.type
                 val kc = type.classifier as KClass<*>
@@ -144,35 +148,41 @@ internal data class ClassInfo<T : Any>(
 
                 val fieldName = parameter.name!!.toSnakeCase()
                 val property = properties[parameter.name]!!
-                if (kc == HasMany::class)
-                    RemoteFieldInfo(
-                        parameter, property, HasManyConverter(), Long::class.java, kotlinClass
-                    )
+                if (kc == HasMany::class) RemoteFieldInfo(
+                    parameter, property, HasManyConverter(), Long::class.java, kotlinClass
+                )
                 else if (otherClasses.contains(kotlinClass)) {
                     LocalFieldInfo(
                         parameter,
                         property,
                         fieldName + "_id",
+                        property is KMutableProperty<*>,
                         BelongsToConverter(IDHandler(kotlinClass)),
                         Long::class.java,
                         kotlinClass
                     )
                 } else when {
                     javaClass.isEnum -> LocalFieldInfo(
-                        parameter, property, fieldName, EnumConverter(javaClass), String::class.java
+                        parameter, property, fieldName, property is KMutableProperty<*>,
+                        EnumConverter(javaClass), String::class.java
                     )
 
                     else -> {
                         val isPK = parameter.name == "id"
                         if (isPK) {
                             LocalFieldInfo(
-                                parameter, property, fieldName, PKFieldConverter(IDHandler(kClass)), Long::class.java
+                                parameter, property, fieldName, property is KMutableProperty<*>,
+                                PKFieldConverter(idHandler), Long::class.java
                             )
                         } else {
-                            val fieldConverter = fieldConverters[kotlinClass]
-                                ?: throw RepositoryException("type ${kotlinClass.simpleName} not supported")
+                            val fieldConverter = fieldConverters[kotlinClass] ?: throw RepositoryException(
+                                "type ${kotlinClass.simpleName} not supported." +
+                                    " class: ${kClass.simpleName}," +
+                                    " otherClasses: ${otherClasses.map { it.simpleName }}"
+                            )
                             LocalFieldInfo(
-                                parameter, property, fieldName, fieldConverter, javaClass
+                                parameter, property, fieldName, property is KMutableProperty<*>,
+                                fieldConverter, javaClass
                             )
                         }
                     }
@@ -185,6 +195,7 @@ internal data class ClassInfo<T : Any>(
             return ClassInfo(
                 name!!,
                 constructor,
+                idHandler,
                 localFieldInfo,
                 fields,
                 relations,
@@ -205,7 +216,9 @@ private class EnumConverter(private val clazz: Class<*>) : FieldConverter {
     override fun dbValueToParameter(value: Any?): Any? {
         if (value == null) return null
 
-        @Suppress("UPPER_BOUND_VIOLATED", "UNCHECKED_CAST", "RemoveExplicitTypeArguments")
+        @Suppress(
+            "UPPER_BOUND_VIOLATED", "UNCHECKED_CAST", "RemoveExplicitTypeArguments"
+        )
         return (java.lang.Enum.valueOf<Any>(clazz as Class<Any>, value as String))
     }
 

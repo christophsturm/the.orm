@@ -182,7 +182,7 @@ class RepositoryFunctionalTest {
                     val color =
                         connection.withConnection { connection ->
                             connection.createStatement("select * from Users where id = $1")
-                                .execute(listOf(Long::class.java), sequenceOf(id))
+                                .execute(listOf(Long::class.java), listOf(id))
                                 .map { row ->
                                     row.get(
                                         "favorite_color",

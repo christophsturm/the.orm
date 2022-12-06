@@ -218,7 +218,7 @@ fun describeOnAllDbs(
     tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
 ): List<RootContext> {
     return databases.mapIndexed { index, testDB ->
-        RootContext("$contextName on ${testDB.name}", ignored, order = index) {
+        RootContext("$contextName (running on ${testDB.name})", ignored, order = index) {
             withDbInternal(testDB, schema, tests)
         }
     }

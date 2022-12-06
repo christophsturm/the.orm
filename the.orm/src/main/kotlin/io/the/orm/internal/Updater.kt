@@ -29,7 +29,7 @@ internal class Updater<T : Any>(
         val statement =
             connection.createStatement(updateStatementString)
 
-        val rowsUpdated = statement.execute(types, sequenceOf(sequenceOf(id), values).flatten()).rowsUpdated()
+        val rowsUpdated = statement.execute(types, listOf(id) + values).rowsUpdated()
         if (rowsUpdated != 1L) throw RepositoryException("rowsUpdated was $rowsUpdated instead of 1")
     }
 }

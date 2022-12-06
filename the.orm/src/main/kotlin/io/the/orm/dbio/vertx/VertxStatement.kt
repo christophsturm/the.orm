@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.flow
 
 class VertxStatement(private val preparedQuery: PreparedQuery<RowSet<Row>>, private val sql: String) :
     Statement {
-    override suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult {
+    override suspend fun execute(types: List<Class<*>>, values: List<Any?>): DBResult {
         val parameterList = values.toList()
         val rowSet = try {
             preparedQuery.execute(Tuple.from(parameterList)).await()
@@ -26,7 +26,7 @@ class VertxStatement(private val preparedQuery: PreparedQuery<RowSet<Row>>, priv
         return VertxResult(rowSet)
     }
 
-    override suspend fun executeBatch(types: List<Class<*>>, valuesList: Sequence<Sequence<Any?>>): Flow<DBResult> {
+    override suspend fun executeBatch(types: List<Class<*>>, valuesList: List<List<Any?>>): Flow<DBResult> {
         val list = valuesList.map { Tuple.from(it.toList()) }.toList()
 
         var rowSet = preparedQuery.executeBatch(list).await()

@@ -8,23 +8,26 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
+import java.lang.IllegalArgumentException
 
 class R2dbcStatement(private val statement: io.r2dbc.spi.Statement, private val sql: String) : Statement {
-    override suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult {
+    override suspend fun execute(types: List<Class<*>>, values: List<Any?>): DBResult {
         values.forEachIndexed { index, o ->
             try {
                 if (o == null) {
                     statement.bindNull(index, types[index])
                 } else
                     statement.bind(index, o)
+            } catch (e: IllegalArgumentException) {
+                throw RepositoryException("error binding parameter with value $o and index $index to statement $sql", e)
             } catch (e: PgException) {
-                throw RepositoryException("error binding parameter with value $o and index $index to statement $sql")
+                throw RepositoryException("error binding parameter with value $o and index $index to statement $sql", e)
             }
         }
         return R2dbcResult(statement.execute().awaitSingle())
     }
 
-    override suspend fun executeBatch(types: List<Class<*>>, valuesList: Sequence<Sequence<Any?>>): Flow<DBResult> {
+    override suspend fun executeBatch(types: List<Class<*>>, valuesList: List<List<Any?>>): Flow<DBResult> {
         valuesList.forEachIndexed { valuesIdx, values ->
             if (valuesIdx != 0)
                 statement.add()

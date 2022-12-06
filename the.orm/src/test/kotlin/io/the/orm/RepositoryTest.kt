@@ -11,6 +11,7 @@ import strikt.assertions.isA
 import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
 import strikt.assertions.message
+import kotlin.test.assertNotNull
 
 @Test
 object RepositoryTest {
@@ -24,17 +25,17 @@ object RepositoryTest {
                 data class Unsupported(val field: String)
                 data class ClassWithUnsupportedType(val id: Long, val unsupported: Unsupported)
                 expectCatching { Repo.create<ClassWithUnsupportedType>() }.isFailure()
-                    .isA<RepositoryException>()
-                    .message
-                    .isNotNull()
-                    .contains("type Unsupported not supported")
+                    .isA<RepositoryException>().message.isNotNull().contains("type Unsupported not supported")
             }
             test("fails if class has no id field") {
-                expectCatching { Repo.create<Any>() }.isFailure()
-                    .isA<RepositoryException>()
-                    .message
-                    .isNotNull()
-                    .contains("class Any has no field named id")
+                data class WithoutId(val name: String)
+
+                val result = runCatching { Repo.create<WithoutId>() }
+                val exception = assertNotNull(result.exceptionOrNull())
+                assert(
+                    exception is RepositoryException &&
+                        (exception.message?.contains("class WithoutId has no field named id") == true)
+                ) { exception.stackTraceToString() }
             }
         }
     }

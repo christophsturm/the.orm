@@ -1,16 +1,15 @@
 package io.the.orm.transaction
 
 import io.the.orm.ConnectedRepo
-import io.the.orm.MultiRepo
+import io.the.orm.RepoRegistry
 import io.the.orm.dbio.TransactionProvider
 import kotlin.reflect.KClass
 
 suspend inline fun <reified E1 : Any, Result> RepoTransactionProvider.transaction(
     noinline t: suspend (ConnectedRepo<E1>) -> Result
-): Result =
-    transaction(E1::class, t)
+): Result = transaction(E1::class, t)
 
-class RepoTransactionProvider(private val repos: MultiRepo, private val transactionProvider: TransactionProvider) {
+class RepoTransactionProvider(private val repos: RepoRegistry, private val transactionProvider: TransactionProvider) {
     suspend fun <Entity : Any, Result> transaction(
         clazz: KClass<Entity>,
         t: suspend (ConnectedRepo<Entity>) -> Result

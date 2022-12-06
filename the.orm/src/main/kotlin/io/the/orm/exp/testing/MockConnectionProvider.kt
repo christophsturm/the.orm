@@ -41,14 +41,14 @@ class MockTransaction : DBTransaction {
 }
 
 class MockStatement(val sql: String) : Statement {
-    data class Executed(val types: List<Class<*>>, val values: Sequence<Any?>)
+    data class Executed(val types: List<Class<*>>, val values: List<Any?>)
     val events = mutableListOf<Executed>()
-    override suspend fun execute(types: List<Class<*>>, values: Sequence<Any?>): DBResult {
+    override suspend fun execute(types: List<Class<*>>, values: List<Any?>): DBResult {
         events.add(Executed(types, values))
         return MockDBResult()
     }
 
-    override suspend fun executeBatch(types: List<Class<*>>, valuesList: Sequence<Sequence<Any?>>): Flow<DBResult> {
+    override suspend fun executeBatch(types: List<Class<*>>, valuesList: List<List<Any?>>): Flow<DBResult> {
         return flowOf()
     }
 }

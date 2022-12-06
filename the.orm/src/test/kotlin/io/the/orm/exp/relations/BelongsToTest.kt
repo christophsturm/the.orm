@@ -9,7 +9,7 @@ object BelongsToTest {
 
     val tests = describe<BelongsTo<Entity>> {
         val entity = Entity("blah")
-        val subject = BelongsTo(entity)
+        val subject = BelongsTo.BelongsToImpl(entity)
         it("can reference the entity") {
             assert(subject() == entity)
         }

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 
 internal class RelationFetchingEntityCreator<Entity : Any>(
+    // one repo for every field in relation, in the same order
     private val repos: List<Repo<*>>,
     private val creator: EntityCreator<Entity>
 ) {

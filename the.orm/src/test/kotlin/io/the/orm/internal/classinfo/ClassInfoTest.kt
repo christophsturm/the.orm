@@ -8,6 +8,7 @@ import io.the.orm.exp.relations.HasMany
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
+import kotlin.test.assertNotNull
 
 @Test
 class ClassInfoTest {
@@ -31,6 +32,17 @@ class ClassInfoTest {
             }
             it("know that it has no relations") {
                 assert(!classInfo.hasBelongsToRelations)
+            }
+        }
+        describe("mutable fields") {
+            data class Entity(val name: String, var mutableField: String, val id: Long? = null)
+
+            val classInfo = ClassInfo(Entity::class, setOf())
+            it("knows if a field is mutable") {
+                assert(classInfo.localFieldInfo.singleOrNull { it.property == Entity::mutableField }?.mutable == true)
+            }
+            it("knows if a field is immutable") {
+                assert(classInfo.localFieldInfo.singleOrNull { it.property == Entity::name }?.mutable == false)
             }
         }
         describe("belongs to relations") {
@@ -68,6 +80,10 @@ class ClassInfoTest {
                 }
                 it("knows if entity has hasMany relations") {
                     assert(ClassInfo(HolderOfNestedEntity::class).hasHasManyRelations)
+                }
+                it("knows the class of the has many relation") {
+                    val rel = assertNotNull(ClassInfo(HolderOfNestedEntity::class).hasManyRelations.singleOrNull())
+                    assert(rel.relatedClass == NestedEntity::class)
                 }
             }
         }

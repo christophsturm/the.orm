@@ -77,7 +77,7 @@ class QueryFactory<T : Any> internal constructor(
 
         fun with(connection: ConnectionProvider, vararg parameter: Any): QueryWithParameters {
             val parameterValues =
-                parameter.asSequence()
+                parameter
                     // remove Unit parameters because conditions that have no parameters use it
                     .filter { it != Unit }
                     .flatMap {
@@ -93,7 +93,7 @@ class QueryFactory<T : Any> internal constructor(
     inner class QueryWithParameters(
         private val connectionProvider: ConnectionProvider,
         private val queryString: String,
-        private val parameterValues: Sequence<Any>
+        private val parameterValues: List<Any>
     ) {
 
         suspend fun find(): List<T> {
@@ -160,6 +160,6 @@ class QueryFactory<T : Any> internal constructor(
 }
 
 private suspend fun DBConnection.executeSelect(
-    parameterValues: Sequence<Any>,
+    parameterValues: List<Any>,
     sql: String
 ): DBResult = createStatement(sql).execute(listOf(), parameterValues)
