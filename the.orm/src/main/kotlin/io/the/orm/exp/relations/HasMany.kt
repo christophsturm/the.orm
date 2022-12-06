@@ -2,7 +2,6 @@
 
 package io.the.orm.exp.relations
 
-import io.the.orm.Repo
 import io.the.orm.RepositoryException
 
 /*
@@ -20,7 +19,7 @@ class NewHasMany<T : Any>(internal val list: Set<T>) : HasMany<T>, Set<T> by lis
     }
 }
 
-internal class LazyHasMany<T : Any> : HasMany<T> {
+internal class LazyHasMany<T : Any>(/*val query: QueryFactory<T>.QueryWithParameters*/) : HasMany<T> {
     internal var backingSet: Set<T>? = null
     override val size: Int
         get() {

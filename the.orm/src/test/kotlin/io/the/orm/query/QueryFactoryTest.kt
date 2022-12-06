@@ -27,15 +27,15 @@ class QueryFactoryTest {
         val condition = Entity::id.isEqualTo()
         test("can create query with one parameter") {
             val query = queryFactory.createQuery(condition)
-            query.with(connection, 1)
+            query.with(1)
         }
         test("can create query with two parameter") {
             val query = queryFactory.createQuery(condition, condition)
-            query.with(connection, 1, 1)
+            query.with(1, 1)
         }
         test("can create query with three parameter") {
             val query = queryFactory.createQuery(condition, condition, condition)
-            query.with(connection, 1, 1, 1)
+            query.with(1, 1, 1)
         }
     }
 }

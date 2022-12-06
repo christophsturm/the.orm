@@ -151,14 +151,14 @@ class RepoImpl<T : Any> internal constructor(kClass: KClass<T>, classInfos: Map<
      */
     override suspend fun findById(connectionProvider: ConnectionProvider, id: PK): T {
         return try {
-            byIdQuery.with(connectionProvider, id).findSingle()
+            byIdQuery.with(id).findSingle(connectionProvider)
         } catch (e: NoSuchElementException) {
             throw NotFoundException("No ${table.name} found for id $id")
         }
     }
 
     override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, T> {
-        return byIdsQuery.with(connectionProvider, ids.toTypedArray()).findAndTransform { flow ->
+        return byIdsQuery.with(ids.toTypedArray()).findAndTransform(connectionProvider) { flow ->
             val result = mutableMapOf<PK, T>()
             flow.collect {
                 result[idProperty(it)] = it

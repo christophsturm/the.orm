@@ -1,5 +1,6 @@
 package io.the.orm
 
+import failgood.Ignored
 import failgood.Test
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
@@ -47,8 +48,7 @@ create table sentences
     content           text not null
 );
 
-"""
-    /*
+"""/*
     for has many we really need recursive saving because we don't know the id when we create the objects
      */
 
@@ -65,22 +65,26 @@ create table sentences
                 }
                 assertEquals(
                     result, setOf(
-                        "god is dead", "No small art is it to sleep:" +
-                            " it is necessary for that purpose to keep awake all day.",
-                        "god is still doing pretty badly", "sleeping is still not easy"
+                        "god is dead",
+                        "No small art is it to sleep:" + " it is necessary for that purpose to keep awake all day.",
+                        "god is still doing pretty badly",
+                        "sleeping is still not easy"
 
                     )
                 )
             }
         }
-        it("can load has many") {
+        it("can load has many",
+            ignored = if (System.getenv("NEXT") == null) Ignored.Because("NEXT") else null) {
             // the whole hierarchy is created outside the transaction and needs no access to a repo
             val holder = book()
             RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
                 val id = bookRepo.create(holder).id!!
                 val reloaded = bookRepo.findById(id)
-                assert(reloaded.chapters.map { it.book }
-                    == listOf("Also Sprach Zarathustra", "Also Sprach Zarathustra"))
+                assert(reloaded.chapters.map { it.book } == listOf(
+                    "Also Sprach Zarathustra",
+                    "Also Sprach Zarathustra"
+                ))
             }
         }
     }
@@ -90,20 +94,15 @@ create table sentences
             Chapter(
                 "page 1", hasMany(
                     setOf(
-                        Sentence("god is dead"),
-                        Sentence(
-                            "No small art is it to sleep:" +
-                                " it is necessary for that purpose to keep awake all day."
+                        Sentence("god is dead"), Sentence(
+                            "No small art is it to sleep:" + " it is necessary for that purpose to keep awake all day."
                         )
                     )
                 )
-            ),
-            Chapter(
-                "page 2",
-                hasMany(
+            ), Chapter(
+                "page 2", hasMany(
                     setOf(
-                        Sentence("god is still doing pretty badly"),
-                        Sentence("sleeping is still not easy")
+                        Sentence("god is still doing pretty badly"), Sentence("sleeping is still not easy")
                     )
                 )
             )

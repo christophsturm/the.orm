@@ -45,8 +45,8 @@ class QueryFactory<T : Any> internal constructor(
 
     inner class OneParameterQuery<P1 : Any> internal constructor(p1: Condition<P1>) {
         private val query = Query(p1)
-        fun with(connection: ConnectionProvider, p1: P1): QueryWithParameters =
-            query.with(connection, p1)
+        fun with(p1: P1): QueryWithParameters =
+            query.with(p1)
     }
 
     inner class TwoParameterQuery<P1 : Any, P2 : Any> internal constructor(
@@ -54,8 +54,8 @@ class QueryFactory<T : Any> internal constructor(
         p2: Condition<P2>
     ) {
         private val query = Query(p1, p2)
-        fun with(connection: ConnectionProvider, p1: P1, p2: P2): QueryWithParameters =
-            query.with(connection, p1, p2)
+        fun with(p1: P1, p2: P2): QueryWithParameters =
+            query.with(p1, p2)
     }
 
     inner class ThreeParameterQuery<P1 : Any, P2 : Any, P3 : Any>(
@@ -64,8 +64,8 @@ class QueryFactory<T : Any> internal constructor(
         p3: Condition<P3>
     ) {
         private val query = Query(p1, p2, p3)
-        fun with(connection: ConnectionProvider, p1: P1, p2: P2, p3: P3): QueryWithParameters =
-            query.with(connection, p1, p2, p3)
+        fun with(p1: P1, p2: P2, p3: P3): QueryWithParameters =
+            query.with(p1, p2, p3)
     }
 
     // internal api
@@ -75,7 +75,7 @@ class QueryFactory<T : Any> internal constructor(
                 "${dbFieldNameForProperty[it.prop]} ${it.conditionString}"
             }.toIndexedPlaceholders()
 
-        fun with(connection: ConnectionProvider, vararg parameter: Any): QueryWithParameters {
+        fun with(vararg parameter: Any): QueryWithParameters {
             val parameterValues =
                 parameter
                     // remove Unit parameters because conditions that have no parameters use it
@@ -86,21 +86,20 @@ class QueryFactory<T : Any> internal constructor(
                         else
                             sequenceOf(it)
                     }
-            return QueryWithParameters(connection, queryString, parameterValues)
+            return QueryWithParameters(queryString, parameterValues)
         }
     }
 
     inner class QueryWithParameters(
-        private val connectionProvider: ConnectionProvider,
         private val queryString: String,
         private val parameterValues: List<Any>
     ) {
 
-        suspend fun find(): List<T> {
-            return findAndTransform { it.toList(mutableListOf()) }
+        suspend fun find(connectionProvider: ConnectionProvider): List<T> {
+            return findAndTransform(connectionProvider) { it.toList(mutableListOf()) }
         }
 
-        suspend fun <R> findAndTransform(transform: suspend (Flow<T>) -> R): R {
+        suspend fun <R> findAndTransform(connectionProvider: ConnectionProvider, transform: suspend (Flow<T>) -> R): R {
             return connectionProvider.withConnection { connection ->
                 val queryResult = connection.executeSelect(
                     parameterValues,
@@ -110,9 +109,10 @@ class QueryFactory<T : Any> internal constructor(
             }
         }
 
-        suspend fun findSingle(): T = findAndTransform { it.single() }
+        suspend fun findSingle(connectionProvider: ConnectionProvider): T =
+            findAndTransform(connectionProvider) { it.single() }
 
-        suspend fun delete(): Long =
+        suspend fun delete(connectionProvider: ConnectionProvider): Long =
             connectionProvider.withConnection { connection ->
                 connection.executeSelect(
                     parameterValues,
@@ -120,7 +120,7 @@ class QueryFactory<T : Any> internal constructor(
                 ).rowsUpdated()
             }
 
-        suspend fun findOrCreate(creator: () -> T): T {
+        suspend fun findOrCreate(connectionProvider: ConnectionProvider, creator: () -> T): T {
             return connectionProvider.withConnection { connection ->
                 val existing =
                     resultMapper.mapQueryResult(
@@ -135,7 +135,7 @@ class QueryFactory<T : Any> internal constructor(
             }
         }
 
-        suspend fun createOrUpdate(entity: T): T {
+        suspend fun createOrUpdate(connectionProvider: ConnectionProvider, entity: T): T {
             return connectionProvider.withConnection { connection ->
 
                 val existing =
