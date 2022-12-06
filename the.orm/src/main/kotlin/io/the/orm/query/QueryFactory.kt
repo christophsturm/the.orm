@@ -40,6 +40,10 @@ class QueryFactory<T : Any> internal constructor(
     fun <P1 : Any, P2 : Any, P3 : Any> createQuery(p1: Condition<P1>, p2: Condition<P2>, p3: Condition<P3>):
         ThreeParameterQuery<P1, P2, P3> = ThreeParameterQuery(p1, p2, p3)
 
+    fun createQuery(queryString: String): Query {
+        return Query(queryString.toIndexedPlaceholders())
+    }
+
     @Suppress("unused")
     data class Condition<Type>(val conditionString: String, val prop: KProperty1<*, *>)
 
@@ -69,11 +73,11 @@ class QueryFactory<T : Any> internal constructor(
     }
 
     // internal api
-    inner class Query internal constructor(vararg conditions: Condition<*>) {
-        private val queryString =
-            conditions.joinToString(separator = " and ") {
+    inner class Query(private val queryString: String) {
+        internal constructor(vararg conditions: Condition<*>) :
+            this(conditions.joinToString(separator = " and ") {
                 "${dbFieldNameForProperty[it.prop]} ${it.conditionString}"
-            }.toIndexedPlaceholders()
+            }.toIndexedPlaceholders())
 
         fun with(vararg parameter: Any): QueryWithParameters {
             val parameterValues =

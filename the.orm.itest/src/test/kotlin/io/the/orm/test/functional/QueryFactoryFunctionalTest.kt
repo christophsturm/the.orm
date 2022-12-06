@@ -71,6 +71,18 @@ class QueryFactoryFunctionalTest {
                         ).find(connectionProvider)
                     ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                 }
+                it("can query by sql") {
+                    val findByUserNameLikeAndBirthdayBetween =
+                        repo.queryFactory.createQuery("name like ? and birthday between ? and ?")
+
+                    expectThat(
+                        findByUserNameLikeAndBirthdayBetween.with(
+                            "%",
+                            Pair(LocalDate.of(2000, 4, 2), LocalDate.of(2000, 6, 2))
+                        ).find(connectionProvider)
+                    ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
+                }
+
                 // works on R2DBC psql and vertx psql but not on H2
                 it(
                     "can query by list parameters with unnest",

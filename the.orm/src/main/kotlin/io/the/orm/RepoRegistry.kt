@@ -19,3 +19,6 @@ data class RepoRegistry(val entityRepos: Map<KClass<out Any>, Repo<out Any>>) {
 }
 
 inline fun <reified T : Any> RepoRegistry.getRepo() = getRepo(T::class)
+
+@Suppress("UNCHECKED_CAST")
+fun <T : Any> Map<KClass<*>, RepoImpl<*>>.getRepo(c: KClass<T>): RepoImpl<T> = get(c) as RepoImpl<T>
