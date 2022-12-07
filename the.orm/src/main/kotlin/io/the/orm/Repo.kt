@@ -5,7 +5,6 @@ import io.the.orm.internal.ExceptionInspector
 import io.the.orm.internal.HasManyInserter
 import io.the.orm.internal.Inserter
 import io.the.orm.internal.SimpleInserter
-import io.the.orm.internal.Table
 import io.the.orm.internal.Updater
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.mapper.DefaultResultMapper
@@ -71,8 +70,6 @@ class RepoImpl<Entity : Any> internal constructor(
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
 
-    private val table = Table(kClass)
-
     @Suppress("UNCHECKED_CAST")
     private val idProperty =
         (properties["id"]
@@ -83,13 +80,12 @@ class RepoImpl<Entity : Any> internal constructor(
     private val idHandler = classInfo.idHandler
 
     private var inserter: Inserter<Entity> =
-        SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)
+        SimpleInserter(idHandler, ExceptionInspector(classInfo.table, kClass), classInfo)
 
-    private val updater = Updater(table, idHandler, idProperty, classInfo)
+    private val updater = Updater(idHandler, idProperty, classInfo)
 
     override val queryFactory: QueryFactory<Entity> =
         QueryFactory(
-            table,
             DefaultResultMapper(
                 ResultResolver(classInfo), StreamingEntityCreator(classInfo)
             ),
@@ -160,7 +156,7 @@ class RepoImpl<Entity : Any> internal constructor(
         return try {
             byIdQuery.with(id).findSingle(connectionProvider)
         } catch (e: NoSuchElementException) {
-            throw NotFoundException("No ${table.name} found for id $id")
+            throw NotFoundException("No ${classInfo.name} found for id $id")
         }
     }
 

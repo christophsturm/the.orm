@@ -6,7 +6,6 @@ import io.the.orm.internal.classinfo.ClassInfo
 import kotlin.reflect.KProperty1
 
 internal class Updater<T : Any>(
-    table: Table,
     private val idHandler: IDHandler<T>,
     private val idProperty: KProperty1<T, Any>,
     classInfo: ClassInfo<T>
@@ -19,7 +18,7 @@ internal class Updater<T : Any>(
                 fieldsWithoutId.withIndex().joinToString { (index, value) -> "${value.dbFieldName}=$${index + 2}" }
 
             @Suppress("SqlResolve")
-            "UPDATE ${table.name} set $propertiesString where id=$1"
+            "UPDATE ${classInfo.table.name} set $propertiesString where id=$1"
         }
 
     suspend fun update(connection: DBConnection, instance: T) {

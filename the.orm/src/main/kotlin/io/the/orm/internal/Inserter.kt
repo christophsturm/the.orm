@@ -11,7 +11,6 @@ interface Inserter<T : Any> {
 }
 
 internal class SimpleInserter<T : Any>(
-    table: Table,
     private val idHandler: IDHandler<T>,
     private val exceptionInspector: ExceptionInspector<T>,
     classInfo: ClassInfo<T>
@@ -22,7 +21,8 @@ internal class SimpleInserter<T : Any>(
     private val insertStatementString =
         run {
             val fieldPlaceHolders = (1..fieldsWithoutId.size).joinToString { idx -> "$$idx" }
-            "INSERT INTO ${table.name}(${fieldsWithoutId.joinToString { it.dbFieldName }}) values ($fieldPlaceHolders)"
+            val fields = fieldsWithoutId.joinToString { it.dbFieldName }
+            "INSERT INTO ${classInfo.table.name}($fields) values ($fieldPlaceHolders)"
         }
 
     override suspend fun create(connectionProvider: ConnectionProvider, instance: T): T {

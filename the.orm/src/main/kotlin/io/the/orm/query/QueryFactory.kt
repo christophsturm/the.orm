@@ -5,7 +5,6 @@ import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.DBConnection
 import io.the.orm.dbio.DBResult
 import io.the.orm.internal.IDHandler
-import io.the.orm.internal.Table
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.mapper.ResultMapper
 import io.the.orm.util.toIndexedPlaceholders
@@ -16,7 +15,6 @@ import kotlinx.coroutines.flow.toList
 import kotlin.reflect.KProperty1
 
 class QueryFactory<T : Any> internal constructor(
-    table: Table,
     internal var resultMapper: ResultMapper<T>,
     private val repository: Repo<T>,
     private val idHandler: IDHandler<T>,
@@ -28,8 +26,8 @@ class QueryFactory<T : Any> internal constructor(
         classInfo.localFieldInfo.associateBy({ it.property }, { it.dbFieldName })
 
     private val selectPrefix =
-        "select ${classInfo.localFieldInfo.joinToString { it.dbFieldName }} from ${table.name} where "
-    private val deletePrefix = "delete from ${table.name} where "
+        "select ${classInfo.localFieldInfo.joinToString { it.dbFieldName }} from ${classInfo.table.name} where "
+    private val deletePrefix = "delete from ${classInfo.table.name} where "
 
     fun <P1 : Any> createQuery(p1: Condition<P1>): OneParameterQuery<P1> =
         OneParameterQuery(p1)

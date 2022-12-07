@@ -5,7 +5,6 @@ import failgood.describe
 import failgood.mock.mock
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.IDHandler
-import io.the.orm.internal.Table
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.mapper.ResultMapper
 import io.the.orm.test.TestObjects.Entity
@@ -16,7 +15,6 @@ class QueryFactoryTest {
         val resultMapper = mock<ResultMapper<Entity>>()
         val queryFactory =
             QueryFactory(
-                Table("table"),
                 resultMapper,
                 mock(),
                 IDHandler(Entity::class),

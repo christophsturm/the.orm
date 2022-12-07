@@ -10,6 +10,7 @@ import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.getRepo
 import io.the.orm.internal.IDHandler
+import io.the.orm.internal.Table
 import io.the.orm.util.toSnakeCase
 import io.vertx.sqlclient.data.Numeric
 import java.lang.reflect.ParameterizedType
@@ -75,6 +76,7 @@ object DoubleConverter : FieldConverter {
 }
 
 internal data class ClassInfo<T : Any>(
+    val table: Table,
     val name: String,
     val constructor: KFunction<T>,
     val idHandler: IDHandler<T>,
@@ -104,6 +106,7 @@ internal data class ClassInfo<T : Any>(
         val property: KProperty1<*, *>
         val fieldConverter: FieldConverter
         val mutable: Boolean
+        val dbFieldName: String
 
         /**
          * then type that we request from the database.
@@ -113,7 +116,6 @@ internal data class ClassInfo<T : Any>(
     }
 
     interface LocalFieldInfo : FieldInfo {
-        val dbFieldName: String
         fun valueForDb(instance: Any): Any?
     }
 
@@ -129,7 +131,8 @@ internal data class ClassInfo<T : Any>(
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
         override val relatedClass: KClass<*>,
-        override val mutable: Boolean
+        override val mutable: Boolean,
+        override val dbFieldName: String // in this case this is the field name in the remote table
     ) : FieldInfo, RelationFieldInfo {
         override lateinit var repo: Repo<*>
         override lateinit var classInfo: ClassInfo<*>
@@ -179,6 +182,7 @@ internal data class ClassInfo<T : Any>(
             kClass: KClass<T>,
             otherClasses: Set<KClass<*>> = setOf()
         ): ClassInfo<T> {
+            val table = Table(kClass)
             val properties: Map<String, KProperty1<T, *>> =
                 kClass.declaredMemberProperties.associateBy({ it.name }, { it })
 
@@ -203,7 +207,8 @@ internal data class ClassInfo<T : Any>(
                 val fieldName = parameter.name!!.toSnakeCase()
                 val property = properties[parameter.name]!!
                 if (kc == HasMany::class) RemoteFieldInfo(
-                    parameter, property, HasManyConverter(), Long::class.java, kotlinClass, mutable(property)
+                    parameter, property, HasManyConverter(),
+                    Long::class.java, kotlinClass, mutable(property), table.baseName + "_id"
                 )
                 else if (otherClasses.contains(kotlinClass)) {
                     LocalRelationFieldInfo(
@@ -244,6 +249,7 @@ internal data class ClassInfo<T : Any>(
             }
             val localFieldInfo = fieldInfo.filterIsInstance<LocalFieldInfo>()
             return ClassInfo(
+                table,
                 name!!,
                 constructor,
                 idHandler,
