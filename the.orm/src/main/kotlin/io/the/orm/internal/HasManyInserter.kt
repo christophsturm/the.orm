@@ -10,7 +10,7 @@ internal class HasManyInserter<Entity : Any>(
     private val rootSimpleInserter: Inserter<Entity>,
     private val classInfo: ClassInfo<Entity>,
     private val belongingsRepos: List<Repo<*>>,
-    private val belongingsFieldInfo: List<ClassInfo.LocalFieldInfo>
+    private val belongingsFieldInfo: List<ClassInfo.LocalRelationFieldInfo>
 ) : Inserter<Entity> {
     override suspend fun create(connectionProvider: ConnectionProvider, instance: Entity): Entity {
         val insertedRoot = rootSimpleInserter.create(connectionProvider, instance)

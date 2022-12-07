@@ -78,9 +78,22 @@ internal data class ClassInfo<T : Any>(
     val name: String,
     val constructor: KFunction<T>,
     val idHandler: IDHandler<T>,
+    val allFields: List<FieldInfo>,
+    /**
+     * local fields. Fields that are stored in the table of this class. can be simple local fields or belongs to relations
+     */
     val localFieldInfo: List<LocalFieldInfo>,
-    val fields: List<LocalFieldInfo>,
-    val belongsToRelations: List<LocalFieldInfo>,
+    /**
+     * simple fields
+     */
+    val simpleFieldInfo: List<SimpleLocalFieldInfo>,
+    /**
+     * fields for belongs to relations.
+     */
+    val belongsToRelations: List<LocalRelationFieldInfo>,
+    /**
+     * fields for has many relations. these are not stored in the table of this class
+     */
     val hasManyRelations: List<RemoteFieldInfo>
 ) {
     val hasBelongsToRelations = belongsToRelations.isNotEmpty()
@@ -90,37 +103,61 @@ internal data class ClassInfo<T : Any>(
         val constructorParameter: KParameter
         val property: KProperty1<*, *>
         val fieldConverter: FieldConverter
+        val mutable: Boolean
 
         /**
          * then type that we request from the database.
          * Usually the same type as the field, but for relations it will be the PK type
          */
         val type: Class<*>
-        val relatedClass: KClass<*>?
-        var repo: Repo<*>
     }
 
-    class RemoteFieldInfo(
+    interface LocalFieldInfo : FieldInfo {
+        val dbFieldName: String
+        fun valueForDb(instance: Any): Any?
+    }
+
+    interface RelationFieldInfo : FieldInfo {
+        val relatedClass: KClass<*>
+        var repo: Repo<*>
+        var classInfo: ClassInfo<*>
+    }
+
+    data class RemoteFieldInfo(
         override val constructorParameter: KParameter,
         override val property: KProperty1<*, *>,
+        override val fieldConverter: FieldConverter,
+        override val type: Class<*>,
+        override val relatedClass: KClass<*>,
+        override val mutable: Boolean
+    ) : FieldInfo, RelationFieldInfo {
+        override lateinit var repo: Repo<*>
+        override lateinit var classInfo: ClassInfo<*>
+    }
+
+    data class SimpleLocalFieldInfo(
+        override val constructorParameter: KParameter,
+        override val property: KProperty1<*, *>,
+        override val dbFieldName: String,
+        override val fieldConverter: FieldConverter,
+        override val type: Class<*>,
+        override val mutable: Boolean
+    ) : LocalFieldInfo {
+        override fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
+    }
+
+    class LocalRelationFieldInfo(
+        override val constructorParameter: KParameter,
+        override val property: KProperty1<*, *>,
+        override val dbFieldName: String,
+        override val mutable: Boolean,
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
         override val relatedClass: KClass<*>
-    ) : FieldInfo {
+    ) : RelationFieldInfo, LocalFieldInfo {
+        override fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
         override lateinit var repo: Repo<*>
-    }
-
-    class LocalFieldInfo(
-        override val constructorParameter: KParameter,
-        override val property: KProperty1<*, *>,
-        val dbFieldName: String,
-        val mutable: Boolean,
-        override val fieldConverter: FieldConverter,
-        override val type: Class<*>,
-        override val relatedClass: KClass<*>? = null
-    ) : FieldInfo {
-        fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
-        override lateinit var repo: Repo<*>
+        override lateinit var classInfo: ClassInfo<*>
     }
 
     fun values(instance: T): Sequence<Any?> {
@@ -128,7 +165,13 @@ internal data class ClassInfo<T : Any>(
     }
 
     fun afterInit(repos: Map<KClass<out Any>, RepoImpl<out Any>>) {
-        fields.forEach { if (it.relatedClass != null)it.repo = repos.getRepo(it.relatedClass) }
+        allFields.forEach {
+            if (it is RelationFieldInfo) {
+                val repo = repos.getRepo(it.relatedClass)
+                it.repo = repo
+                it.classInfo = repo.classInfo
+            }
+        }
     }
 
     companion object {
@@ -160,30 +203,30 @@ internal data class ClassInfo<T : Any>(
                 val fieldName = parameter.name!!.toSnakeCase()
                 val property = properties[parameter.name]!!
                 if (kc == HasMany::class) RemoteFieldInfo(
-                    parameter, property, HasManyConverter(), Long::class.java, kotlinClass
+                    parameter, property, HasManyConverter(), Long::class.java, kotlinClass, mutable(property)
                 )
                 else if (otherClasses.contains(kotlinClass)) {
-                    LocalFieldInfo(
+                    LocalRelationFieldInfo(
                         parameter,
                         property,
                         fieldName + "_id",
-                        property is KMutableProperty<*>,
+                        mutable(property),
                         BelongsToConverter(IDHandler(kotlinClass)),
                         Long::class.java,
                         kotlinClass
                     )
                 } else when {
-                    javaClass.isEnum -> LocalFieldInfo(
-                        parameter, property, fieldName, property is KMutableProperty<*>,
-                        EnumConverter(javaClass), String::class.java
+                    javaClass.isEnum -> SimpleLocalFieldInfo(
+                        parameter, property, fieldName,
+                        EnumConverter(javaClass), String::class.java, mutable(property)
                     )
 
                     else -> {
                         val isPK = parameter.name == "id"
                         if (isPK) {
-                            LocalFieldInfo(
-                                parameter, property, fieldName, property is KMutableProperty<*>,
-                                PKFieldConverter(idHandler), Long::class.java
+                            SimpleLocalFieldInfo(
+                                parameter, property, fieldName,
+                                PKFieldConverter(idHandler), Long::class.java, mutable(property)
                             )
                         } else {
                             val fieldConverter = fieldConverters[kotlinClass] ?: throw RepositoryException(
@@ -191,28 +234,28 @@ internal data class ClassInfo<T : Any>(
                                     " class: ${kClass.simpleName}," +
                                     " otherClasses: ${otherClasses.map { it.simpleName }}"
                             )
-                            LocalFieldInfo(
-                                parameter, property, fieldName, property is KMutableProperty<*>,
-                                fieldConverter, javaClass
+                            SimpleLocalFieldInfo(
+                                parameter, property, fieldName,
+                                fieldConverter, javaClass, mutable<T>(property)
                             )
                         }
                     }
                 }
             }
             val localFieldInfo = fieldInfo.filterIsInstance<LocalFieldInfo>()
-            val partitions = localFieldInfo.partition { it.relatedClass != null }
-            val fields = partitions.second
-            val relations = partitions.first
             return ClassInfo(
                 name!!,
                 constructor,
                 idHandler,
+                fieldInfo,
                 localFieldInfo,
-                fields,
-                relations,
+                fieldInfo.filterIsInstance<SimpleLocalFieldInfo>(),
+                fieldInfo.filterIsInstance<LocalRelationFieldInfo>(),
                 fieldInfo.filterIsInstance<RemoteFieldInfo>()
             )
         }
+
+        private fun <T : Any> mutable(property: KProperty1<T, *>) = property is KMutableProperty<*>
     }
 }
 

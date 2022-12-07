@@ -16,7 +16,7 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
     override fun toEntities(results: Flow<ResultLine>, relations: List<Map<PK, Any>>): Flow<Entity> {
         return results.map { values ->
             val map = values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
-                val fieldInfo = classInfo.fields[index]
+                val fieldInfo = classInfo.simpleFieldInfo[index]
                 val parameterValue = fieldInfo.fieldConverter.dbValueToParameter(value)
                 Pair(fieldInfo.constructorParameter, parameterValue)
             }

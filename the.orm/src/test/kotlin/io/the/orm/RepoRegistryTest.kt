@@ -22,5 +22,10 @@ class RepoRegistryTest {
         it("can be created with classes that reference each other") {
             RepoRegistry(setOf(Page::class, Recipe::class))
         }
+        it("adds the repo to remote field infos") {
+            val registry = RepoRegistry(setOf(Page::class, Recipe::class))
+            val classInfo = (registry.getRepo(Page::class) as RepoImpl<Page>).classInfo
+            assert(classInfo.hasManyRelations.singleOrNull()?.repo is RepoImpl<*>)
+        }
     }
 }

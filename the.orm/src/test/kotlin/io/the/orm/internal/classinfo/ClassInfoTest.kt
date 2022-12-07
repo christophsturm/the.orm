@@ -61,7 +61,7 @@ class ClassInfoTest {
                 assert(classInfo.hasBelongsToRelations)
             }
             it("separates fields and relations") {
-                assert(classInfo.fields.map { Pair(it.dbFieldName, it.type) }
+                assert(classInfo.simpleFieldInfo.map { Pair(it.dbFieldName, it.type) }
                     .containsExactlyInAnyOrder(Pair("id", Long::class.java)))
                 assert(classInfo.belongsToRelations.map { Pair(it.dbFieldName, it.type) }
                     .containsExactlyInAnyOrder(Pair("user_id", Long::class.java)))

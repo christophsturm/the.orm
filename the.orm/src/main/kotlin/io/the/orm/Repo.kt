@@ -76,7 +76,7 @@ class RepoImpl<T : Any> internal constructor(val kClass: KClass<T>, classInfos: 
             ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")) as
             KProperty1<T, PK>
 
-    private val classInfo: ClassInfo<T> = classInfos[kClass] as ClassInfo<T>
+    internal val classInfo: ClassInfo<T> = classInfos[kClass] as ClassInfo<T>
     private val idHandler = classInfo.idHandler
 
     private var inserter: Inserter<T> = SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)
@@ -106,16 +106,16 @@ class RepoImpl<T : Any> internal constructor(val kClass: KClass<T>, classInfos: 
                 simpleInserter,
                 classInfo,
                 classInfo.hasManyRelations.map {
-                    repos[it.relatedClass]!!
+                    it.repo
                 }, classInfo.hasManyRelations.map {
-                    repos[it.relatedClass]!!.classInfo.belongsToRelations.single { it.relatedClass == kClass }
+                    it.classInfo.belongsToRelations.single { it.relatedClass == kClass }
                 })
         }
         if (classInfo.hasBelongsToRelations) {
             queryFactory.resultMapper = RelationFetchingResultMapper(
                 ResultResolver(classInfo),
                 RelationFetchingEntityCreator(
-                    classInfo.belongsToRelations.map { repos[it.relatedClass!!]!! },
+                    classInfo.belongsToRelations.map { it.repo!! },
                     StreamingEntityCreator(classInfo)
                 )
             )
