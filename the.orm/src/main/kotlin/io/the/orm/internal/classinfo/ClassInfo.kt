@@ -3,9 +3,12 @@ package io.the.orm.internal.classinfo
 import io.r2dbc.spi.Blob
 import io.r2dbc.spi.Clob
 import io.the.orm.PK
+import io.the.orm.Repo
+import io.the.orm.RepoImpl
 import io.the.orm.RepositoryException
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
+import io.the.orm.getRepo
 import io.the.orm.internal.IDHandler
 import io.the.orm.util.toSnakeCase
 import io.vertx.sqlclient.data.Numeric
@@ -94,6 +97,7 @@ internal data class ClassInfo<T : Any>(
          */
         val type: Class<*>
         val relatedClass: KClass<*>?
+        var repo: Repo<*>
     }
 
     class RemoteFieldInfo(
@@ -102,7 +106,9 @@ internal data class ClassInfo<T : Any>(
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
         override val relatedClass: KClass<*>
-    ) : FieldInfo
+    ) : FieldInfo {
+        override lateinit var repo: Repo<*>
+    }
 
     class LocalFieldInfo(
         override val constructorParameter: KParameter,
@@ -114,10 +120,15 @@ internal data class ClassInfo<T : Any>(
         override val relatedClass: KClass<*>? = null
     ) : FieldInfo {
         fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
+        override lateinit var repo: Repo<*>
     }
 
     fun values(instance: T): Sequence<Any?> {
         return localFieldInfo.asSequence().map { it.valueForDb(instance) }
+    }
+
+    fun afterInit(repos: Map<KClass<out Any>, RepoImpl<out Any>>) {
+        fields.forEach { if (it.relatedClass != null)it.repo = repos.getRepo(it.relatedClass) }
     }
 
     companion object {

@@ -6,9 +6,10 @@ import kotlin.reflect.KClass
 data class RepoRegistry(val entityRepos: Map<KClass<out Any>, Repo<out Any>>) {
     companion object {
         operator fun invoke(classes: Set<KClass<out Any>>): RepoRegistry {
-            val classInfo = classes.associateBy({ it }) { ClassInfo(it, classes) }
+            val classInfos = classes.associateBy({ it }) { ClassInfo(it, classes) }
             val entityRepos: Map<KClass<out Any>, RepoImpl<out Any>> =
-                classes.associateBy({ it }, { RepoImpl(it, classInfo) })
+                classes.associateBy({ it }, { RepoImpl(it, classInfos) })
+            classInfos.values.forEach { it.afterInit(entityRepos) }
             entityRepos.values.forEach { it.afterInit(entityRepos) }
             return RepoRegistry(entityRepos)
         }
