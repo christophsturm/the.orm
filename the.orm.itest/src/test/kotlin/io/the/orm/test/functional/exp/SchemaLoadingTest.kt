@@ -9,6 +9,7 @@ import io.the.orm.test.describeOnAllDbs
 import io.the.orm.test.functional.USERS_SCHEMA
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.toList
+import kotlin.test.assertEquals
 
 @Test
 object SchemaLoadingTest {
@@ -38,8 +39,8 @@ object SchemaLoadingTest {
         balance        decimal(5, 2)
 
                      */
-                    assert(
-                        columns.map { it.columnName.lowercase() }.containsExactlyInAnyOrder(
+                    assertEquals(
+                        columns.map { it.columnName.lowercase() }.sorted(), listOf(
                             "id",
                             "email",
                             "is_cool",
@@ -48,7 +49,7 @@ object SchemaLoadingTest {
                             "birthday",
                             "weight",
                             "balance"
-                        )
+                        ).sorted()
                     )
                 }
             }

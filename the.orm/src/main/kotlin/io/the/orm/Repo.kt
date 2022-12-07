@@ -77,7 +77,7 @@ class RepoImpl<Entity : Any> internal constructor(
             KProperty1<Entity, PK>
 
     internal val classInfo: ClassInfo<Entity> = classInfos[kClass] as ClassInfo<Entity>
-    private val idHandler = classInfo.idHandler
+    private val idHandler = classInfo.idHandler!!
 
     private var inserter: Inserter<Entity> =
         SimpleInserter(idHandler, ExceptionInspector(classInfo.table, kClass), classInfo)

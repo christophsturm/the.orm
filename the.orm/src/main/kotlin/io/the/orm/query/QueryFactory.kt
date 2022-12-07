@@ -1,5 +1,6 @@
 package io.the.orm.query
 
+import io.the.orm.PK
 import io.the.orm.Repo
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.DBConnection
@@ -152,7 +153,7 @@ class QueryFactory<T : Any> internal constructor(
                 if (existing == null) {
                     repository.create(connectionProvider, entity)
                 } else {
-                    val updatedInstance = idHandler.assignId(entity, idHandler.getId(idProperty.get(existing)))
+                    val updatedInstance = idHandler.assignId(entity, idProperty.get(existing) as PK)
                     repository.update(connectionProvider, updatedInstance)
                     updatedInstance
                 }

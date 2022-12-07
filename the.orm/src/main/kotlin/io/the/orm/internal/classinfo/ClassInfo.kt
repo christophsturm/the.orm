@@ -2,7 +2,6 @@ package io.the.orm.internal.classinfo
 
 import io.r2dbc.spi.Blob
 import io.r2dbc.spi.Clob
-import io.the.orm.PK
 import io.the.orm.Repo
 import io.the.orm.RepoImpl
 import io.the.orm.RepositoryException
@@ -79,7 +78,7 @@ internal data class ClassInfo<T : Any>(
     val table: Table,
     val name: String,
     val constructor: KFunction<T>,
-    val idHandler: IDHandler<T>,
+    val idHandler: IDHandler<T>?,
     val allFields: List<FieldInfo>,
     /**
      * local fields. Fields that are stored in the table of this class. can be simple local fields or belongs to relations
@@ -190,7 +189,11 @@ internal data class ClassInfo<T : Any>(
             val constructor: KFunction<T> = kClass.primaryConstructor
                 ?: throw RuntimeException("No primary constructor found for ${kClass.simpleName}")
 
-            val idHandler = IDHandler(kClass)
+            val idHandler = try {
+                IDHandler(kClass)
+            } catch (e: Exception) {
+                null
+            }
             val fieldInfo: List<FieldInfo> = constructor.parameters.map { parameter ->
                 val type = parameter.type
                 val kc = type.classifier as KClass<*>
@@ -231,7 +234,7 @@ internal data class ClassInfo<T : Any>(
                         if (isPK) {
                             SimpleLocalFieldInfo(
                                 parameter, property, fieldName,
-                                PKFieldConverter(idHandler), Long::class.java, mutable(property)
+                                passThroughFieldConverter, Long::class.java, mutable(property)
                             )
                         } else {
                             val fieldConverter = fieldConverters[kotlinClass] ?: throw RepositoryException(
@@ -265,11 +268,6 @@ internal data class ClassInfo<T : Any>(
     }
 }
 
-private class PKFieldConverter(val idHandler: IDHandler<*>) : FieldConverter {
-    override fun dbValueToParameter(value: Any?) = idHandler.createId(value as PK)
-
-    override fun propertyToDBValue(value: Any?): Any? = value?.let { idHandler.getId(it) }
-}
 
 /** converts strings from the database to enums in the mapped class */
 private class EnumConverter(private val clazz: Class<*>) : FieldConverter {

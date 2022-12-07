@@ -24,9 +24,8 @@ internal class Updater<T : Any>(
     suspend fun update(connection: DBConnection, instance: T) {
         val values = fieldsWithoutId.asSequence().map { it.valueForDb(instance) }
 
-        val id = idHandler.getId(idProperty.call(instance))
-        val statement =
-            connection.createStatement(updateStatementString)
+        val id = idProperty.call(instance)
+        val statement = connection.createStatement(updateStatementString)
 
         val rowsUpdated = statement.execute(types, listOf(id) + values).rowsUpdated()
         if (rowsUpdated != 1L) throw RepositoryException("rowsUpdated was $rowsUpdated instead of 1")
