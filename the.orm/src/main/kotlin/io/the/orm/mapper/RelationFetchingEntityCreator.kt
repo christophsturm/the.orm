@@ -4,6 +4,7 @@ import io.the.orm.PK
 import io.the.orm.Repo
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.query.QueryFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
@@ -17,7 +18,8 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
 ) {
     val idFieldIndex = classInfo.simpleFieldInfo.indexOfFirst { it.dbFieldName == "id" }
     val hasManyQueries = classInfo.hasManyRelations.map {
-        // WIP
+        it.repo.queryFactory.createQuery(it.dbFieldName+"=ANY(?)")
+
     }
     fun toEntities(results: Flow<ResultLine>, connectionProvider: ConnectionProvider): Flow<Entity> {
         return flow {
@@ -35,7 +37,10 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                 idLists.mapIndexed { index, longs ->
                     repos[index].findByIds(connectionProvider, longs.toList())
                 }
-            creator.toEntities(resultsList.asFlow(), belongsToRelations).collect {
+            val hasManyRelations = if (pkList != null) {
+//                hasManyQueries.map { it.with(pkList.toTypedArray()).find(connectionProvider).toList() } // WIP
+            } else null
+             creator.toEntities(resultsList.asFlow(), belongsToRelations).collect {
                 emit(it)
             }
         }
