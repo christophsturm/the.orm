@@ -24,13 +24,13 @@ typealias PK = Long
 
 internal val pKClass = Long::class
 
-interface Repo<T : Any> {
+interface Repo<Entity : Any> {
     companion object {
         /** creates a Repo for the entity <T> */
         inline fun <reified T : Any> create(): Repo<T> = RepoImpl(T::class)
     }
 
-    val queryFactory: QueryFactory<T>
+    val queryFactory: QueryFactory<Entity>
 
     /**
      * creates a new record in the database.
@@ -38,33 +38,36 @@ interface Repo<T : Any> {
      * @param instance the instance that will be used to set the fields of the newly created record
      * @return a copy of the instance with an assigned id field.
      */
-    suspend fun create(connectionProvider: ConnectionProvider, instance: T): T
+    suspend fun create(connectionProvider: ConnectionProvider, instance: Entity): Entity
 
     /**
      * updates a record in the database.
      *
      * @param instance the instance that will be used to update the record
      */
-    suspend fun update(connectionProvider: ConnectionProvider, instance: T)
+    suspend fun update(connectionProvider: ConnectionProvider, instance: Entity)
 
     /**
      * loads an object from the database
      *
      * @param id the primary key of the object to load
      */
-    suspend fun findById(connectionProvider: ConnectionProvider, id: PK): T
+    suspend fun findById(connectionProvider: ConnectionProvider, id: PK): Entity
 
     /**
      * loads objects by id
      *
      * @param [ids] the primary key of the objects to load
      */
-    suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, T>
+    suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, Entity>
 }
 
-class RepoImpl<T : Any> internal constructor(val kClass: KClass<T>, classInfos: Map<KClass<*>, ClassInfo<*>>) :
-    Repo<T> {
-    constructor(kClass: KClass<T>) : this(kClass, mapOf(kClass to ClassInfo(kClass)))
+class RepoImpl<Entity : Any> internal constructor(
+    val kClass: KClass<Entity>,
+    classInfos: Map<KClass<*>, ClassInfo<*>>
+) :
+    Repo<Entity> {
+    constructor(kClass: KClass<Entity>) : this(kClass, mapOf(kClass to ClassInfo(kClass)))
 
     private val properties = kClass.declaredMemberProperties.associateBy({ it.name }, { it })
 
@@ -74,16 +77,17 @@ class RepoImpl<T : Any> internal constructor(val kClass: KClass<T>, classInfos: 
     private val idProperty =
         (properties["id"]
             ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")) as
-            KProperty1<T, PK>
+            KProperty1<Entity, PK>
 
-    internal val classInfo: ClassInfo<T> = classInfos[kClass] as ClassInfo<T>
+    internal val classInfo: ClassInfo<Entity> = classInfos[kClass] as ClassInfo<Entity>
     private val idHandler = classInfo.idHandler
 
-    private var inserter: Inserter<T> = SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)
+    private var inserter: Inserter<Entity> =
+        SimpleInserter(table, idHandler, ExceptionInspector(table, kClass), classInfo)
 
     private val updater = Updater(table, idHandler, idProperty, classInfo)
 
-    override val queryFactory: QueryFactory<T> =
+    override val queryFactory: QueryFactory<Entity> =
         QueryFactory(
             table,
             DefaultResultMapper(
@@ -115,8 +119,9 @@ class RepoImpl<T : Any> internal constructor(val kClass: KClass<T>, classInfos: 
             queryFactory.resultMapper = RelationFetchingResultMapper(
                 ResultResolver(classInfo),
                 RelationFetchingEntityCreator(
-                    classInfo.belongsToRelations.map { it.repo!! },
-                    StreamingEntityCreator(classInfo)
+                    classInfo.belongsToRelations.map { it.repo },
+                    StreamingEntityCreator(classInfo),
+                    classInfo
                 )
             )
         }
@@ -128,7 +133,7 @@ class RepoImpl<T : Any> internal constructor(val kClass: KClass<T>, classInfos: 
      * @param instance the instance that will be used to set the fields of the newly created record
      * @return a copy of the instance with an assigned id field.
      */
-    override suspend fun create(connectionProvider: ConnectionProvider, instance: T): T =
+    override suspend fun create(connectionProvider: ConnectionProvider, instance: Entity): Entity =
         inserter.create(connectionProvider, instance)
 
     /**
@@ -136,14 +141,14 @@ class RepoImpl<T : Any> internal constructor(val kClass: KClass<T>, classInfos: 
      *
      * @param instance the instance that will be used to update the record
      */
-    override suspend fun update(connectionProvider: ConnectionProvider, instance: T) {
+    override suspend fun update(connectionProvider: ConnectionProvider, instance: Entity) {
         connectionProvider.withConnection { connection ->
             updater.update(connection, instance)
         }
     }
 
     private val byIdQuery by lazy { queryFactory.createQuery(isEqualToCondition(idProperty)) }
-    private val byIdsQuery: QueryFactory<T>.OneParameterQuery<Array<PK>>
+    private val byIdsQuery: QueryFactory<Entity>.OneParameterQuery<Array<PK>>
         by lazy { queryFactory.createQuery(idProperty.isIn()) }
 
     /**
@@ -151,7 +156,7 @@ class RepoImpl<T : Any> internal constructor(val kClass: KClass<T>, classInfos: 
      *
      * @param id the primary key of the object to load
      */
-    override suspend fun findById(connectionProvider: ConnectionProvider, id: PK): T {
+    override suspend fun findById(connectionProvider: ConnectionProvider, id: PK): Entity {
         return try {
             byIdQuery.with(id).findSingle(connectionProvider)
         } catch (e: NoSuchElementException) {
@@ -159,9 +164,9 @@ class RepoImpl<T : Any> internal constructor(val kClass: KClass<T>, classInfos: 
         }
     }
 
-    override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, T> {
+    override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, Entity> {
         return byIdsQuery.with(ids.toTypedArray()).findAndTransform(connectionProvider) { flow ->
-            val result = LinkedHashMap<PK, T>(ids.size)
+            val result = LinkedHashMap<PK, Entity>(ids.size)
             flow.collect {
                 result[idProperty(it)] = it
             }

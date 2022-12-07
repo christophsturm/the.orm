@@ -19,8 +19,7 @@ class NewHasMany<T : Any>(internal val list: Set<T>) : HasMany<T>, Set<T> by lis
     }
 }
 
-internal class LazyHasMany<T : Any>(/*val query: QueryFactory<T>.QueryWithParameters*/) : HasMany<T> {
-    internal var backingSet: Set<T>? = null
+internal class LazyHasMany<T : Any>(internal var backingSet: Set<T>? = null) : HasMany<T> {
     override val size: Int
         get() {
             throwIfUnfetched()
