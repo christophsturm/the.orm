@@ -66,6 +66,12 @@ class ClassInfoTest {
                 assert(classInfo.belongsToRelations.map { Pair(it.dbFieldName, it.type) }
                     .containsExactlyInAnyOrder(Pair("user_id", Long::class.java)))
             }
+            it("stores all lists as arraylist as premature optimization") {
+                assert(classInfo.localFieldInfo is ArrayList<*>)
+                assert(classInfo.simpleFieldInfo is ArrayList<*>)
+                assert(classInfo.belongsToRelations is ArrayList<*>)
+                assert(classInfo.hasManyRelations is ArrayList<*>)
+            }
         }
         describe("has many relations") {
             describe("local has many relations") {
