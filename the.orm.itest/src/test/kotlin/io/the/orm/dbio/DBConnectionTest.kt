@@ -14,7 +14,8 @@ create table users
 (
     id             bigint       not null default nextval('users_id_seq') primary key,
     name           varchar(100) not null,
-    email          varchar(100) unique
+    email          varchar(100) unique,
+    bio            text
 );
 
 """
@@ -69,19 +70,20 @@ class DBConnectionTest {
             }
         }
         describe("selecting") {
+            val bio = "a very long bio".repeat(1000)
             connectionProvider.withConnection { connection ->
                 // first we insert something
                 repeat(2) {
-                    connection.createInsertStatement("insert into users(name) values ($1)")
-                        .execute(listOf(String::class.java), listOf("belle")).getId()
+                    connection.createInsertStatement("insert into users(name, bio) values ($1,$2)")
+                        .execute(listOf(String::class.java), listOf("belle", bio)).getId()
                 }
             }
             it("returns query results as flow of maps") {
                 val result = connectionProvider.withConnection {
-                    it.createStatement("select id, name, email from users").execute().asMapFlow().toList()
+                    it.createStatement("select id, name, email, bio from users").execute().asMapFlow().toList()
                 }
-                assert(result[0] == mapOf("id" to 1L, "name" to "belle", "email" to null))
-                assert(result[1] == mapOf("id" to 2L, "name" to "belle", "email" to null))
+                assert(result[0] == mapOf("id" to 1L, "name" to "belle", "email" to null, "bio" to bio))
+                assert(result[1] == mapOf("id" to 2L, "name" to "belle", "email" to null, "bio" to bio))
             }
         }
     }
