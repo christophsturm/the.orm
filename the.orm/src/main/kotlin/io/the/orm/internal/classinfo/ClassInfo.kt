@@ -268,7 +268,6 @@ internal data class ClassInfo<T : Any>(
     }
 }
 
-
 /** converts strings from the database to enums in the mapped class */
 private class EnumConverter(private val clazz: Class<*>) : FieldConverter {
     override fun dbValueToParameter(value: Any?): Any? {

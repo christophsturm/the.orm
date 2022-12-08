@@ -1,7 +1,6 @@
 package io.the.orm.test.functional.exp
 
 import failgood.Test
-import failgood.assert.containsExactlyInAnyOrder
 import io.the.orm.dbio.DBResult
 import io.the.orm.mapper.SimpleResultMapper
 import io.the.orm.test.DBS

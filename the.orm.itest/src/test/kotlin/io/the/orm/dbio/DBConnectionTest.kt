@@ -22,10 +22,11 @@ create table users
 @Test
 class DBConnectionTest {
     val context = describeOnAllDbs<DBConnection>(DBS.databases, SCHEMA) { createConnectionProvider ->
+        val connectionProvider = createConnectionProvider()
         describe("inserting with autoincrement") {
             it("works when all fields are non-null") {
                 val result =
-                    createConnectionProvider().withConnection { connection ->
+                    connectionProvider.withConnection { connection ->
                         connection.createInsertStatement("insert into users(name) values ($1)")
                             .execute(listOf(String::class.java), listOf("belle")).getId()
                     }
@@ -33,7 +34,7 @@ class DBConnectionTest {
             }
             it("even works when some fields are null") {
                 val result =
-                    createConnectionProvider().withConnection { connection ->
+                    connectionProvider.withConnection { connection ->
                         connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
                             .execute(listOf(String::class.java, String::class.java), listOf("belle", null))
                             .getId()
@@ -44,7 +45,7 @@ class DBConnectionTest {
         describe("inserting multiple rows in a batch") {
             it("works when all types are not null") {
                 val result =
-                    createConnectionProvider().withConnection { connection ->
+                    connectionProvider.withConnection { connection ->
                         connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
                             .executeBatch(
                                 listOf(String::class.java, String::class.java),
@@ -56,7 +57,7 @@ class DBConnectionTest {
             }
             it("even works for null values") {
                 val result =
-                    createConnectionProvider().withConnection { connection ->
+                    connectionProvider.withConnection { connection ->
                         connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
                             .executeBatch(
                                 listOf(String::class.java, String::class.java),
@@ -65,6 +66,22 @@ class DBConnectionTest {
                             .map { it.getId() }.toList()
                     }
                 expectThat(result).isEqualTo(listOf(1, 2))
+            }
+        }
+        describe("selecting") {
+            connectionProvider.withConnection { connection ->
+                // first we insert something
+                repeat(2) {
+                    connection.createInsertStatement("insert into users(name) values ($1)")
+                        .execute(listOf(String::class.java), listOf("belle")).getId()
+                }
+            }
+            it("returns query results as flow of maps") {
+                val result = connectionProvider.withConnection {
+                    it.createStatement("select id, name, email from users").execute().asMapFlow().toList()
+                }
+                assert(result[0] == mapOf("id" to 1L, "name" to "belle", "email" to null))
+                assert(result[1] == mapOf("id" to 2L, "name" to "belle", "email" to null))
             }
         }
     }
