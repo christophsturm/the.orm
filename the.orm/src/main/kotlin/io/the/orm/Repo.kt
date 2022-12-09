@@ -62,7 +62,7 @@ interface Repo<Entity : Any> {
 }
 
 class RepoImpl<Entity : Any> internal constructor(
-    val kClass: KClass<Entity>,
+    private val kClass: KClass<Entity>,
     classInfos: Map<KClass<*>, ClassInfo<*>>
 ) :
     Repo<Entity> {
@@ -111,7 +111,7 @@ class RepoImpl<Entity : Any> internal constructor(
                     it.classInfo.belongsToRelations.single { it.relatedClass == kClass }
                 })
         }
-        if (classInfo.hasBelongsToRelations) {
+        if (!classInfo.canBeFetchedWithoutRelations) {
             queryFactory.resultMapper = RelationFetchingResultMapper(
                 ResultResolver(classInfo),
                 RelationFetchingEntityCreator(
@@ -168,5 +168,9 @@ class RepoImpl<Entity : Any> internal constructor(
             }
             result
         }
+    }
+
+    override fun toString(): String {
+        return "repo for ${kClass.simpleName}, norel=${classInfo.canBeFetchedWithoutRelations}"
     }
 }

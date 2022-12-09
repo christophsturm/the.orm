@@ -3,7 +3,9 @@ package io.the.orm.test.functional.exp
 import failgood.Test
 import io.the.orm.PK
 import io.the.orm.RepoRegistry
+import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
+import io.the.orm.exp.relations.belongsTo
 import io.the.orm.exp.relations.hasMany
 import io.the.orm.getRepo
 import io.the.orm.query.isEqualTo
@@ -72,7 +74,7 @@ object MultipleRepositoriesFunctionalTest {
     data class Recipe(
         val name: String,
         val description: String?,
-        val page: Page,
+        val page: BelongsTo<Page>,
         val ingredients: HasMany<RecipeIngredient> = hasMany(),
         val id: PK? = null
     )
@@ -102,7 +104,7 @@ object MultipleRepositoriesFunctionalTest {
                         Recipe(
                             "Spaghetti Carbonara",
                             "Wasser Salzen, Speck dazu, fertig",
-                            page
+                            belongsTo(page)
                         )
                     )
                 }
@@ -128,7 +130,7 @@ object MultipleRepositoriesFunctionalTest {
                             Recipe(
                                 "Spaghetti Carbonara",
                                 "Wasser Salzen, Speck dazu, fertig",
-                                page
+                                belongsTo(page)
                             )
                         )
                     val gurke = findIngredientByName.with("gurke")

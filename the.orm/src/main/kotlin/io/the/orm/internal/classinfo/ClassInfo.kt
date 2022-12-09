@@ -97,6 +97,7 @@ internal data class ClassInfo<T : Any>(
      */
     val hasManyRelations: List<RemoteFieldInfo>
 ) {
+    val canBeFetchedWithoutRelations = (belongsToRelations+hasManyRelations).all { it.canBeLazy }
     val hasBelongsToRelations = belongsToRelations.isNotEmpty()
     val hasHasManyRelations = hasManyRelations.isNotEmpty()
 
@@ -122,6 +123,7 @@ internal data class ClassInfo<T : Any>(
         val relatedClass: KClass<*>
         var repo: Repo<*>
         var classInfo: ClassInfo<*>
+        val canBeLazy: Boolean // can the relation be fetched later or is it necessary to create the instance
     }
 
     data class RemoteFieldInfo(
@@ -131,10 +133,15 @@ internal data class ClassInfo<T : Any>(
         override val type: Class<*>,
         override val relatedClass: KClass<*>,
         override val mutable: Boolean,
-        override val dbFieldName: String // in this case this is the field name in the remote table
+
+        // in this case this is the field name in the remote table
+        override val dbFieldName: String,
     ) : FieldInfo, RelationFieldInfo {
+
         override lateinit var repo: Repo<*>
         override lateinit var classInfo: ClassInfo<*>
+        override val canBeLazy: Boolean
+            get() = true
     }
 
     data class SimpleLocalFieldInfo(
@@ -155,7 +162,8 @@ internal data class ClassInfo<T : Any>(
         override val mutable: Boolean,
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
-        override val relatedClass: KClass<*>
+        override val relatedClass: KClass<*>,
+        override val canBeLazy: Boolean
     ) : RelationFieldInfo, LocalFieldInfo {
         override fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
         override lateinit var repo: Repo<*>
@@ -201,9 +209,9 @@ internal data class ClassInfo<T : Any>(
                     BelongsTo::class, HasMany::class -> type.arguments.single().type!!.classifier as KClass<*>
                     else -> kc
                 }
-                val javaClass = when (val t = type.javaType) {
-                    is Class<*> -> t
-                    is ParameterizedType -> t.actualTypeArguments.single() as Class<*>
+                val (javaClass, lazy:Boolean) = when (val t = type.javaType) {
+                    is Class<*> -> Pair(t, false)
+                    is ParameterizedType -> Pair(t.actualTypeArguments.single() as Class<*>, true)
                     else -> throw RuntimeException("unsupported type: ${t.typeName}")
                 }
 
@@ -221,7 +229,7 @@ internal data class ClassInfo<T : Any>(
                         mutable(property),
                         BelongsToConverter(IDHandler(kotlinClass)),
                         Long::class.java,
-                        kotlinClass
+                        kotlinClass, lazy
                     )
                 } else when {
                     javaClass.isEnum -> SimpleLocalFieldInfo(

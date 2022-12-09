@@ -2,6 +2,7 @@ package io.the.orm.mapper
 
 import io.the.orm.PK
 import io.the.orm.Repo
+import io.the.orm.RepositoryException
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.Flow
@@ -33,10 +34,16 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
             }
             val belongsToRelations =
                 idLists.mapIndexed { index, longs ->
-                    repos[index].findByIds(connectionProvider, longs.toList())
+                    val repo = repos[index]
+                    val ids = longs.toList()
+                    try {
+                        repo.findByIds(connectionProvider, ids)
+                    } catch (e: Exception) {
+                        throw RepositoryException("unexpected error fetching ids $ids from $repo", e)
+                    }
                 }
             val hasManyRelations = if (pkList != null) {
-//                hasManyQueries.map { it.with(pkList.toTypedArray()).find(connectionProvider).toList() } // WIP
+                hasManyQueries.map { it.with(pkList.toTypedArray()).find(connectionProvider).toList() } // WIP
             } else null
             creator.toEntities(resultsList.asFlow(), belongsToRelations).collect {
                 emit(it)

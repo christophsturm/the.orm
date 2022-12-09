@@ -18,3 +18,4 @@ sealed interface BelongsTo<Entity : Any> {
     }
 }
 fun <Entity : Any> belongsTo() = BelongsTo.Auto<Entity>()
+fun <Entity : Any> belongsTo(entity: Entity) = BelongsTo.BelongsToImpl(entity)
