@@ -60,6 +60,10 @@ data class MockDBResult(val rows: List<DBRow> = listOf(), val rowsUpdated: Long 
         return flowOf()
     }
 
+    override fun asListFlow(expectedLength: Int): Flow<List<Any?>> {
+        return flowOf()
+    }
+
     override suspend fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T> {
         return flowOf()
     }

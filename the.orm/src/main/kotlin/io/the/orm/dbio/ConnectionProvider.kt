@@ -28,6 +28,7 @@ interface DBResult {
     }
 
     fun asMapFlow(): Flow<Map<String, Any?>>
+    fun asListFlow(expectedLength: Int): Flow<List<Any?>>
 }
 
 interface DBRow {

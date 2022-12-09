@@ -85,6 +85,13 @@ class DBConnectionTest {
                 assert(result[0] == mapOf("id" to 1L, "name" to "belle", "email" to null, "bio" to bio))
                 assert(result[1] == mapOf("id" to 2L, "name" to "belle", "email" to null, "bio" to bio))
             }
+            it("returns query results as flow of lists") {
+                val result = connectionProvider.withConnection {
+                    it.createStatement("select id, name, email, bio from users").execute().asListFlow(4).toList()
+                }
+                assert(result[0] == listOf(1L, "belle", null, bio))
+                assert(result[1] == listOf(2L, "belle", null, bio))
+            }
         }
     }
 }

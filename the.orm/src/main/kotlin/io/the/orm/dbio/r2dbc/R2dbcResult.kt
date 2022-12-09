@@ -35,4 +35,13 @@ class R2dbcResult(private val result: io.r2dbc.spi.Result) : DBResult {
             }
         }.asFlow()
     }
+
+    override fun asListFlow(expectedLength: Int): Flow<List<Any?>> {
+        return result.map { row, _: RowMetadata ->
+            val r = ArrayList<Any?>(expectedLength)
+            for (idx in 0 until expectedLength)
+                r.add(row.get(idx))
+            r
+        }.asFlow()
+    }
 }
