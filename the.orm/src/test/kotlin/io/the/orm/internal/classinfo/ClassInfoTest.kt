@@ -52,7 +52,6 @@ class ClassInfoTest {
                 assert(classInfo.belongsToRelations is ArrayList<*>)
                 assert(classInfo.hasManyRelations is ArrayList<*>)
             }
-
         }
         describe("eager belongs to relations") {
 
@@ -83,7 +82,6 @@ class ClassInfoTest {
             it("indicates that the class can not be fetched without relations") {
                 assert(!classInfo.canBeFetchedWithoutRelations)
             }
-
         }
         describe("lazy belongs to relations") {
             val classInfo = ClassInfo(Lazy.UserGroup::class, setOf(Lazy.User::class))
@@ -137,7 +135,6 @@ class ClassInfoTest {
                         assert(rel.canBeLazy)
                     }
                 }
-
             }
         }
     }

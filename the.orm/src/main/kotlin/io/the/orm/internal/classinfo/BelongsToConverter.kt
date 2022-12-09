@@ -15,6 +15,7 @@ internal class BelongsToConverter<Reference : Any>(private val idHandler: IDHand
             when (value) {
                 is BelongsTo.Auto<*> -> value.id
                 is BelongsTo.BelongsToImpl<*> -> idHandler.readId(value.entity as Reference)
+                is BelongsTo.BelongsToNotLoaded<*> -> value.id()
             }
         else idHandler.readId(value as Reference)
     }

@@ -16,8 +16,8 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     private val creator: StreamingEntityCreator<Entity>,
     val classInfo: ClassInfo<Entity>
 ) {
-    val idFieldIndex = classInfo.simpleFieldInfo.indexOfFirst { it.dbFieldName == "id" }
-    val hasManyQueries = classInfo.hasManyRelations.map {
+    private val idFieldIndex = classInfo.simpleFieldInfo.indexOfFirst { it.dbFieldName == "id" }
+    private val hasManyQueries = classInfo.hasManyRelations.map {
         it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
     }
     fun toEntities(results: Flow<ResultLine>, connectionProvider: ConnectionProvider): Flow<Entity> {

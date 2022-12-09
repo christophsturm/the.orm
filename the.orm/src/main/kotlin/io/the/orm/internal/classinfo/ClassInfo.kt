@@ -97,7 +97,7 @@ internal data class ClassInfo<T : Any>(
      */
     val hasManyRelations: List<RemoteFieldInfo>
 ) {
-    val canBeFetchedWithoutRelations = (belongsToRelations+hasManyRelations).all { it.canBeLazy }
+    val canBeFetchedWithoutRelations = (belongsToRelations + hasManyRelations).all { it.canBeLazy }
     val hasBelongsToRelations = belongsToRelations.isNotEmpty()
     val hasHasManyRelations = hasManyRelations.isNotEmpty()
 
@@ -135,7 +135,7 @@ internal data class ClassInfo<T : Any>(
         override val mutable: Boolean,
 
         // in this case this is the field name in the remote table
-        override val dbFieldName: String,
+        override val dbFieldName: String
     ) : FieldInfo, RelationFieldInfo {
 
         override lateinit var repo: Repo<*>
@@ -209,7 +209,7 @@ internal data class ClassInfo<T : Any>(
                     BelongsTo::class, HasMany::class -> type.arguments.single().type!!.classifier as KClass<*>
                     else -> kc
                 }
-                val (javaClass, lazy:Boolean) = when (val t = type.javaType) {
+                val (javaClass, lazy: Boolean) = when (val t = type.javaType) {
                     is Class<*> -> Pair(t, false)
                     is ParameterizedType -> Pair(t.actualTypeArguments.single() as Class<*>, true)
                     else -> throw RuntimeException("unsupported type: ${t.typeName}")

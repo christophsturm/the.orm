@@ -2,6 +2,7 @@ package io.the.orm.exp.relations
 
 import io.the.orm.PK
 import io.the.orm.RepositoryException
+import kotlin.reflect.KClass
 
 sealed interface BelongsTo<Entity : Any> {
     fun id(): PK
@@ -9,6 +10,11 @@ sealed interface BelongsTo<Entity : Any> {
         operator fun invoke(): Entity = entity
         override fun id(): PK {
             return 0
+        }
+    }
+    class BelongsToNotLoaded<Entity : Any>(c: KClass<Entity>, val pk: PK) : BelongsTo<Entity> {
+        override fun id(): PK {
+            return pk
         }
     }
     data class Auto<Entity : Any>(var id: PK? = null) : BelongsTo<Entity> {
