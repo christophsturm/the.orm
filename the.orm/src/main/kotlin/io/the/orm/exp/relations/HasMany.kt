@@ -19,7 +19,7 @@ class NewHasMany<T : Any>(internal val list: Set<T>) : HasMany<T>, Set<T> by lis
     }
 }
 
-internal class LazyHasMany<T : Any>(internal var backingSet: Set<T>? = null) : HasMany<T> {
+internal class LazyHasMany<T : Any>(private var backingSet: Set<T>? = null) : HasMany<T> {
     override val size: Int
         get() {
             throwIfUnfetched()

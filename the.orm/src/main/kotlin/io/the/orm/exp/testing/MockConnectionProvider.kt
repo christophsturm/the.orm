@@ -9,7 +9,7 @@ import io.the.orm.dbio.Statement
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-class MockConnectionProvider(val dbConnection: DBConnection = MockDbConnection()) : ConnectionProvider {
+class MockConnectionProvider(private val dbConnection: DBConnection = MockDbConnection()) : ConnectionProvider {
     override suspend fun <T> withConnection(function: suspend (DBConnection) -> T): T = function(dbConnection)
 }
 

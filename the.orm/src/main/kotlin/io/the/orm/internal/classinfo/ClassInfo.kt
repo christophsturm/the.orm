@@ -252,7 +252,7 @@ internal data class ClassInfo<T : Any>(
                             )
                             SimpleLocalFieldInfo(
                                 parameter, property, fieldName,
-                                fieldConverter, javaClass, mutable<T>(property)
+                                fieldConverter, javaClass, mutable(property)
                             )
                         }
                     }

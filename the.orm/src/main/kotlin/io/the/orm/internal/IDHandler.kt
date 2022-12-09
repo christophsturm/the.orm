@@ -21,7 +21,7 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
                 "no copy function found for ${kClass.simpleName}." +
                     " Entities must be data classes"
             )) as KFunction<T>
-    private val idParameter = copyFunction.parameters.singleOrNull() { it.name == "id" }
+    private val idParameter = copyFunction.parameters.singleOrNull { it.name == "id" }
         ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")
     private val idField = kClass.declaredMemberProperties.single { it.name == "id" }
     private val instanceParameter = copyFunction.instanceParameter!!
