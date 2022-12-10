@@ -107,8 +107,12 @@ class RepoImpl<Entity : Any> internal constructor(
                 classInfo,
                 classInfo.hasManyRelations.map {
                     it.repo
-                }, classInfo.hasManyRelations.map {
-                    it.classInfo.belongsToRelations.single { it.relatedClass == kClass }
+                }, classInfo.hasManyRelations.map { fieldInfo ->
+                    val classInfo1 = fieldInfo.classInfo
+                    classInfo1.belongsToRelations.singleOrNull { it.relatedClass == kClass }
+                        ?: throw RepositoryException("Corresponding BelongsTo field for HasMany relation " +
+                            "${classInfo.name}.${fieldInfo.property.name} not found in ${fieldInfo.classInfo.name}." +
+                            " Currently you need to declare both sides of the relation")
                 })
         }
         if (!classInfo.canBeFetchedWithoutRelations) {

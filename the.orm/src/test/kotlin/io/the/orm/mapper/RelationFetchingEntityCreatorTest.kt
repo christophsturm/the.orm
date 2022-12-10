@@ -6,7 +6,10 @@ import failgood.describe
 import failgood.mock.mock
 import io.the.orm.PK
 import io.the.orm.Repo
+import io.the.orm.RepoImpl
+import io.the.orm.RepoRegistry
 import io.the.orm.dbio.ConnectionProvider
+import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.exp.relations.LazyHasMany
 import io.the.orm.internal.classinfo.ClassInfo
@@ -15,9 +18,8 @@ import kotlinx.coroutines.flow.single
 
 @Test
 object RelationFetchingEntityCreatorTest {
-    class Entity
 
-    val tests = describe<RelationFetchingEntityCreator<Entity>> {
+    val tests = describe<RelationFetchingEntityCreator<*>> {
         val connectionProvider = mock<ConnectionProvider>()
         it("resolves belongs to entities") {
             data class ReferencedEntity(val name: String, val id: PK? = null)
@@ -42,15 +44,14 @@ object RelationFetchingEntityCreatorTest {
             "resolves hasMany relations",
             ignored = if (System.getenv("NEXT") == null) Ignored.Because("NEXT") else null
         ) {
-            data class ReferencedEntity(val name: String, val id: PK? = null)
-            data class Entity(val referencedEntities: HasMany<ReferencedEntity>, val id: PK? = null)
 
-            val referencedEntity1 = ReferencedEntity("blah", 10)
-            val referencedEntity2 = ReferencedEntity("blah", 10)
+            val referencedEntity1 = ReferencedEntity("blah", BelongsTo.BelongsToNotLoaded(Entity::class, 10), 10)
+            val referencedEntity2 = ReferencedEntity("blah", BelongsTo.BelongsToNotLoaded(Entity::class, 10), 10)
             val repository = mock<Repo<ReferencedEntity>> {
 //                method { findByIds(any(), any()) }.returns(mapOf(10L to referencedEntity))
             }
-            val classInfo = ClassInfo(Entity::class, setOf(ReferencedEntity::class))
+            val repoRegistry = RepoRegistry(setOf(Entity::class, ReferencedEntity::class))
+            val classInfo = (repoRegistry.getRepo(Entity::class) as RepoImpl).classInfo
             val creator = RelationFetchingEntityCreator(
                 listOf(repository),
                 StreamingEntityCreator(classInfo),
@@ -63,3 +64,5 @@ object RelationFetchingEntityCreatorTest {
         }
     }
 }
+data class ReferencedEntity(val name: String, val entity: BelongsTo<Entity>, val id: PK? = null)
+data class Entity(val referencedEntities: HasMany<ReferencedEntity>, val id: PK? = null)
