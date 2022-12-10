@@ -3,8 +3,9 @@ package io.the.orm.exp.relations
 import io.the.orm.PK
 import io.the.orm.RepositoryException
 import kotlin.reflect.KClass
+interface Relation
 
-sealed interface BelongsTo<Entity : Any> {
+sealed interface BelongsTo<Entity : Any> : Relation {
     fun id(): PK
     class BelongsToImpl<Entity : Any>(val entity: Entity) : BelongsTo<Entity> {
         operator fun invoke(): Entity = entity

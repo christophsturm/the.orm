@@ -8,7 +8,7 @@ import io.the.orm.RepositoryException
 Relations support, not yet finished
  */
 
-interface HasMany<Entity : Any> : Set<Entity>
+interface HasMany<Entity : Any> : Set<Entity>, Relation
 
 fun <T : Any> hasMany(list: Set<T>): HasMany<T> = NewHasMany(list)
 fun <T : Any> hasMany(vararg entities: T): HasMany<T> = NewHasMany(entities.asList().toSet())
