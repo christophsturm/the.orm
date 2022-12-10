@@ -1,6 +1,7 @@
 package io.the.orm
 
 import io.the.orm.dbio.ConnectionProvider
+import io.the.orm.exp.relations.Relation
 import io.the.orm.internal.ExceptionInspector
 import io.the.orm.internal.HasManyInserter
 import io.the.orm.internal.Inserter
@@ -51,7 +52,11 @@ interface Repo<Entity : Any> {
      *
      * @param id the primary key of the object to load
      */
-    suspend fun findById(connectionProvider: ConnectionProvider, id: PK): Entity
+    suspend fun findById(
+        connectionProvider: ConnectionProvider,
+        id: PK,
+        fetchRelations: Set<KProperty1<*, Relation>> = setOf()
+    ): Entity
 
     /**
      * loads objects by id
@@ -156,9 +161,13 @@ class RepoImpl<Entity : Any> internal constructor(
      *
      * @param id the primary key of the object to load
      */
-    override suspend fun findById(connectionProvider: ConnectionProvider, id: PK): Entity {
+    override suspend fun findById(
+        connectionProvider: ConnectionProvider,
+        id: PK,
+        fetchRelations: Set<KProperty1<*, Relation>>
+    ): Entity {
         return try {
-            byIdQuery.with(id).findSingle(connectionProvider)
+            byIdQuery.with(id).findSingle(connectionProvider, fetchRelations)
         } catch (e: NoSuchElementException) {
             throw NotFoundException("No ${classInfo.name} found for id $id")
         }

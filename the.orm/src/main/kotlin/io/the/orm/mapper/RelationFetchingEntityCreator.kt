@@ -4,11 +4,13 @@ import io.the.orm.PK
 import io.the.orm.Repo
 import io.the.orm.RepositoryException
 import io.the.orm.dbio.ConnectionProvider
+import io.the.orm.exp.relations.Relation
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import kotlin.reflect.KProperty1
 
 internal class RelationFetchingEntityCreator<Entity : Any>(
     // one repo for every field in relation, in the same order
@@ -20,7 +22,11 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     private val hasManyQueries = classInfo.hasManyRelations.map {
         it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
     }
-    fun toEntities(results: Flow<ResultLine>, connectionProvider: ConnectionProvider): Flow<Entity> {
+    fun toEntities(
+        results: Flow<ResultLine>,
+        fetchRelations: Set<KProperty1<*, Relation>>,
+        connectionProvider: ConnectionProvider
+    ): Flow<Entity> {
         return flow {
             val pkList = if (classInfo.hasHasManyRelations)
                 mutableListOf<PK>() else null

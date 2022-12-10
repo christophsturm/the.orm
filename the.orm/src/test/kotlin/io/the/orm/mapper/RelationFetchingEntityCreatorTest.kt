@@ -12,15 +12,18 @@ import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.exp.relations.LazyHasMany
+import io.the.orm.exp.relations.Relation
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.single
+import kotlin.reflect.KProperty1
 
 @Test
 object RelationFetchingEntityCreatorTest {
 
     val tests = describe<RelationFetchingEntityCreator<*>> {
         val connectionProvider = mock<ConnectionProvider>()
+        val fetchRelations = setOf<KProperty1<*, Relation>>()
         it("resolves belongs to entities") {
             data class ReferencedEntity(val name: String, val id: PK? = null)
             data class Entity(val referencedEntity: ReferencedEntity, val id: PK? = null)
@@ -36,7 +39,7 @@ object RelationFetchingEntityCreatorTest {
                 classInfo
             )
             val result = creator.toEntities(
-                flowOf(ResultLine(listOf(99L), listOf(10L))), connectionProvider
+                flowOf(ResultLine(listOf(99L), listOf(10L))), fetchRelations, connectionProvider
             )
             assert(result.single() == Entity(referencedEntity, 99))
         }
@@ -58,7 +61,7 @@ object RelationFetchingEntityCreatorTest {
                 classInfo
             )
             val result = creator.toEntities(
-                flowOf(ResultLine(listOf(99L), listOf(10L))), connectionProvider
+                flowOf(ResultLine(listOf(99L), listOf(10L))), fetchRelations, connectionProvider
             )
             assert(result.single() == Entity(LazyHasMany(setOf(referencedEntity1, referencedEntity2)), 99))
         }

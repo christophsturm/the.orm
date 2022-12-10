@@ -2,7 +2,6 @@ package io.the.orm
 
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.TransactionProvider
-import io.the.orm.exp.relations.HasMany
 import io.the.orm.exp.relations.Relation
 import io.the.orm.query.QueryFactory
 import kotlin.reflect.KProperty1
@@ -23,7 +22,7 @@ interface ConnectedRepo<T : Any> {
 
     suspend fun update(entity: T)
 
-    suspend fun findById(pk: PK, includeRelated: Set<KProperty1<*, Relation>> = setOf()): T
+    suspend fun findById(pk: PK, fetchRelations: Set<KProperty1<*, Relation>> = setOf()): T
     class Impl<T : Any>(override val repo: Repo<T>, override val connectionProvider: ConnectionProvider) :
         ConnectedRepo<T> {
 
@@ -31,7 +30,8 @@ interface ConnectedRepo<T : Any> {
         override suspend fun update(entity: T): Unit = repo.update(connectionProvider, entity)
         override val queryFactory: QueryFactory<T> = repo.queryFactory
 
-        override suspend fun findById(pk: PK, includeRelated: Set<KProperty1<*, Relation>>): T = repo.findById(connectionProvider, pk)
+        override suspend fun findById(pk: PK, fetchRelations: Set<KProperty1<*, Relation>>): T =
+            repo.findById(connectionProvider, pk, fetchRelations)
     }
 }
 

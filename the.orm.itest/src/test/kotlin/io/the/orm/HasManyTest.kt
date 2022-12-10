@@ -80,7 +80,7 @@ create table sentences
             val holder = book()
             RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
                 val id = bookRepo.create(holder).id!!
-                val reloaded = bookRepo.findById(id, includeRelated = setOf(Book::chapters))
+                val reloaded = bookRepo.findById(id, fetchRelations = setOf(Book::chapters))
                 assert(reloaded.chapters.map { it.book } == listOf(
                     "Also Sprach Zarathustra",
                     "Also Sprach Zarathustra"

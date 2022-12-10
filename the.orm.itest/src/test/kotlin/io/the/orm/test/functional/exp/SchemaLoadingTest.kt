@@ -27,8 +27,9 @@ object SchemaLoadingTest {
                 connectionProvider.withConnection { conn ->
                     println(
                         conn.createStatement(
-                            "select column_name, data_type, table_catalog, character_maximum_length, column_default, is_nullable\n" +
-                                    "from INFORMATION_SCHEMA.COLUMNS where lower(table_name) = 'users'"
+                            "select column_name, data_type, table_catalog, character_maximum_length," +
+                                " column_default, is_nullable " +
+                                "from INFORMATION_SCHEMA.COLUMNS where lower(table_name) = 'users'"
                         ).execute().asMapFlow().toList()
                     )
                     println(
@@ -42,7 +43,7 @@ object SchemaLoadingTest {
                 connectionProvider.withConnection { conn ->
                     val columns = conn.createStatement(
                         "select column_name, data_type, character_maximum_length, column_default, is_nullable\n" +
-                                "from INFORMATION_SCHEMA.COLUMNS where lower(table_name) = 'users'"
+                            "from INFORMATION_SCHEMA.COLUMNS where lower(table_name) = 'users'"
                     ).execute().mapToList<Columns>().toList()
                     /*
                             id             bigint       not null default nextval('users_id_seq') primary key,
@@ -68,7 +69,7 @@ object SchemaLoadingTest {
                             "weight",
                             "balance"
                         ).sorted(),
-                        columns.map { it.columnName.lowercase() }.sorted(),
+                        columns.map { it.columnName.lowercase() }.sorted()
                     )
                 }
             }

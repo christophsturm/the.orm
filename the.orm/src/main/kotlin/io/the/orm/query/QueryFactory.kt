@@ -5,6 +5,7 @@ import io.the.orm.Repo
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.DBConnection
 import io.the.orm.dbio.DBResult
+import io.the.orm.exp.relations.Relation
 import io.the.orm.internal.IDHandler
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.mapper.ResultMapper
@@ -102,18 +103,25 @@ class QueryFactory<T : Any> internal constructor(
             return findAndTransform(connectionProvider) { it.toList(mutableListOf()) }
         }
 
-        suspend fun <R> findAndTransform(connectionProvider: ConnectionProvider, transform: suspend (Flow<T>) -> R): R {
+        suspend fun <R> findAndTransform(
+            connectionProvider: ConnectionProvider,
+            fetchRelations: Set<KProperty1<*, Relation>> = setOf(),
+            transform: suspend (Flow<T>) -> R
+        ): R {
             return connectionProvider.withConnection { connection ->
                 val queryResult = connection.executeSelect(
                     parameterValues,
                     selectPrefix + queryString
                 )
-                transform(resultMapper.mapQueryResult(queryResult, connectionProvider))
+                transform(resultMapper.mapQueryResult(queryResult, fetchRelations, connectionProvider))
             }
         }
 
-        suspend fun findSingle(connectionProvider: ConnectionProvider): T =
-            findAndTransform(connectionProvider) { it.single() }
+        suspend fun findSingle(
+            connectionProvider: ConnectionProvider,
+            fetchRelations: Set<KProperty1<*, Relation>> = setOf()
+        ): T =
+            findAndTransform(connectionProvider, fetchRelations) { it.single() }
 
         suspend fun delete(connectionProvider: ConnectionProvider): Long =
             connectionProvider.withConnection { connection ->
@@ -131,7 +139,7 @@ class QueryFactory<T : Any> internal constructor(
                             parameterValues,
                             selectPrefix + queryString
                         ),
-                        connectionProvider
+                        connectionProvider = connectionProvider
                     )
                         .singleOrNull()
                 existing ?: repository.create(connectionProvider, creator())
@@ -147,7 +155,7 @@ class QueryFactory<T : Any> internal constructor(
                             parameterValues,
                             selectPrefix + queryString
                         ),
-                        connectionProvider
+                        connectionProvider = connectionProvider
                     )
                         .singleOrNull()
                 if (existing == null) {
