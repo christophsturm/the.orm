@@ -1,5 +1,6 @@
 package io.the.orm.test.functional.exp
 
+import failgood.Ignored
 import failgood.Test
 import io.the.orm.dbio.DBResult
 import io.the.orm.mapper.SimpleResultMapper
@@ -17,15 +18,22 @@ object SchemaLoadingTest {
             "detecting the table structure",
             DBS.databases,
             USERS_SCHEMA,
-            ignored = UnlessEnv("NEXT")
+            ignored = Ignored.Because("Unfinished")
+            // the current problem is that it finds properties of all databases, instead only of the current database.
+            // (needs to filter by table_catalog)
         ) { createConnectionProvider ->
             val connectionProvider = createConnectionProvider()
-            it("prints result") {
+            it("prints result", ignored = Ignored.Because("only for debugging")) {
                 connectionProvider.withConnection { conn ->
                     println(
                         conn.createStatement(
-                            "select column_name, data_type, character_maximum_length, column_default, is_nullable\n" +
-                                "from INFORMATION_SCHEMA.COLUMNS where lower(table_name) = 'users'"
+                            "select column_name, data_type, table_catalog, character_maximum_length, column_default, is_nullable\n" +
+                                    "from INFORMATION_SCHEMA.COLUMNS where lower(table_name) = 'users'"
+                        ).execute().asMapFlow().toList()
+                    )
+                    println(
+                        conn.createStatement(
+                            "select database()"
                         ).execute().asMapFlow().toList()
                     )
                 }
@@ -34,7 +42,7 @@ object SchemaLoadingTest {
                 connectionProvider.withConnection { conn ->
                     val columns = conn.createStatement(
                         "select column_name, data_type, character_maximum_length, column_default, is_nullable\n" +
-                            "from INFORMATION_SCHEMA.COLUMNS where lower(table_name) = 'users'"
+                                "from INFORMATION_SCHEMA.COLUMNS where lower(table_name) = 'users'"
                     ).execute().mapToList<Columns>().toList()
                     /*
                             id             bigint       not null default nextval('users_id_seq') primary key,
@@ -49,8 +57,9 @@ object SchemaLoadingTest {
 
                      */
                     assertEquals(
-                        columns.map { it.columnName.lowercase() }.sorted(), listOf(
+                        listOf(
                             "id",
+                            "name",
                             "email",
                             "is_cool",
                             "bio",
@@ -58,7 +67,8 @@ object SchemaLoadingTest {
                             "birthday",
                             "weight",
                             "balance"
-                        ).sorted()
+                        ).sorted(),
+                        columns.map { it.columnName.lowercase() }.sorted(),
                     )
                 }
             }
