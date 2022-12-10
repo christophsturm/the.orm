@@ -120,7 +120,7 @@ class RepoImpl<Entity : Any> internal constructor(
                             " Currently you need to declare both sides of the relation")
                 })
         }
-        if (!classInfo.canBeFetchedWithoutRelations) {
+        if (classInfo.hasHasManyRelations || classInfo.hasBelongsToRelations) {
             queryFactory.resultMapper = RelationFetchingResultMapper(
                 ResultResolver(classInfo),
                 RelationFetchingEntityCreator(

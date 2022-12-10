@@ -4,6 +4,7 @@ import failgood.Ignored
 import failgood.Test
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
+import io.the.orm.exp.relations.LazyHasMany
 import io.the.orm.exp.relations.belongsTo
 import io.the.orm.exp.relations.hasMany
 import io.the.orm.test.describeOnAllDbs
@@ -76,7 +77,6 @@ create table sentences
         }
         it("can load has many",
             ignored = if (System.getenv("NEXT") == null) Ignored.Because("NEXT") else null) {
-            // the whole hierarchy is created outside the transaction and needs no access to a repo
             val holder = book()
             RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
                 val id = bookRepo.create(holder).id!!
@@ -85,6 +85,15 @@ create table sentences
                     "Also Sprach Zarathustra",
                     "Also Sprach Zarathustra"
                 ))
+            }
+        }
+        it("does not load has many unless it is specified",
+            ignored = if (System.getenv("NEXT") == null) Ignored.Because("NEXT") else null) {
+            val holder = book()
+            RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
+                val id = bookRepo.create(holder).id!!
+                val reloaded = bookRepo.findById(id, fetchRelations = setOf())
+                assert(reloaded.chapters is LazyHasMany)
             }
         }
     }

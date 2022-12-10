@@ -22,24 +22,34 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     private val hasManyQueries = classInfo.hasManyRelations.map {
         it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
     }
+
+    // properties for every relation. they will only be fetched when contained in fetchRelations
+    private val hasManyProperties = classInfo.hasManyRelations.map { it.property }
+
+    // if the property is not lazy it must always be fetched, and we indicate that by setting the value to null.
+    private val belongsToProperties = classInfo.belongsToRelations.map { if (it.canBeLazy) it.property else null }
     fun toEntities(
         results: Flow<ResultLine>,
         fetchRelations: Set<KProperty1<*, Relation>>,
         connectionProvider: ConnectionProvider
     ): Flow<Entity> {
         return flow {
-            val pkList = if (classInfo.hasHasManyRelations)
-                mutableListOf<PK>() else null
-            val idLists = Array(repos.size) { mutableSetOf<PK>() }
+            val pkList = if (classInfo.hasHasManyRelations) mutableListOf<PK>() else null
+            val idLists = Array(repos.size) { idx ->
+                if (belongsToProperties[idx] == null || fetchRelations.contains(belongsToProperties[idx]))
+                    mutableSetOf<PK>()
+                else
+                    null
+            }
             val resultsList = results.toList()
             resultsList.forEach { resultLine ->
                 pkList?.add(resultLine.fields[idFieldIndex] as PK)
                 resultLine.relations.forEachIndexed { idx, v ->
-                    idLists[idx].add(v as PK)
+                    idLists[idx]?.add(v as PK)
                 }
             }
-            val belongsToRelations =
-                idLists.mapIndexed { index, longs ->
+            val belongsToRelations = idLists.mapIndexed { index, longs ->
+                if (longs != null) {
                     val repo = repos[index]
                     val ids = longs.toList()
                     try {
@@ -47,9 +57,14 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                     } catch (e: Exception) {
                         throw RepositoryException("unexpected error fetching ids $ids from $repo", e)
                     }
-                }
+                } else null
+            }
             val hasManyRelations = if (pkList != null) {
-                hasManyQueries.map { it.with(pkList.toTypedArray()).find(connectionProvider).toList() } // WIP
+                hasManyQueries.withIndex().map { (index, query) ->
+                    if (fetchRelations.contains(hasManyProperties[index])) query.with(pkList.toTypedArray())
+                        .find(connectionProvider).toList()
+                    else null
+                } // WIP
             } else null
             creator.toEntities(resultsList.asFlow(), belongsToRelations).collect {
                 emit(it)

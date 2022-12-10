@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.map
 import kotlin.reflect.KParameter
 
 internal interface EntityCreator<Entity : Any> {
-    fun toEntities(results: Flow<ResultLine>, relations: List<Map<PK, Any>> = listOf()): Flow<Entity>
+    fun toEntities(results: Flow<ResultLine>, relations: List<Map<PK, Any>?> = listOf()): Flow<Entity>
 }
 
 internal class StreamingEntityCreator<Entity : Any>(private val classInfo: ClassInfo<Entity>) : EntityCreator<Entity> {
-    override fun toEntities(results: Flow<ResultLine>, relations: List<Map<PK, Any>>): Flow<Entity> {
+    override fun toEntities(results: Flow<ResultLine>, relations: List<Map<PK, Any>?>): Flow<Entity> {
         return results.map { values ->
             val map = values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
                 val fieldInfo = classInfo.simpleFieldInfo[index]
@@ -23,8 +23,9 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
             }
             values.relations.withIndex().associateTo(map) { (index, value) ->
                 val fieldInfo = classInfo.belongsToRelations[index]
-                if (!fieldInfo.canBeLazy)
-                    Pair(fieldInfo.constructorParameter, relations[index][value as PK])
+                val relationValues = relations[index]
+                if (relationValues != null)
+                    Pair(fieldInfo.constructorParameter, relationValues[value as PK])
                 else
                     Pair(fieldInfo.constructorParameter,
                         BelongsTo.BelongsToNotLoaded(fieldInfo.relatedClass, value as PK))
