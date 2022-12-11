@@ -16,12 +16,16 @@ import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
 import kotlin.reflect.KProperty1
 
-class QueryFactory<T : Any> internal constructor(
-    internal var resultMapper: ResultMapper<T>,
-    private val repository: Repo<T>,
-    private val idHandler: IDHandler<T>,
-    private val idProperty: KProperty1<T, Any>,
-    classInfo: ClassInfo<T>
+interface Query<T : Any> {
+    fun with(vararg parameter: Any): QueryFactory<T>.QueryWithParameters
+}
+
+class QueryFactory<Entity : Any> internal constructor(
+    internal var resultMapper: ResultMapper<Entity>,
+    private val repository: Repo<Entity>,
+    private val idHandler: IDHandler<Entity>,
+    private val idProperty: KProperty1<Entity, Any>,
+    classInfo: ClassInfo<Entity>
 ) {
 
     private val dbFieldNameForProperty =
@@ -35,20 +39,20 @@ class QueryFactory<T : Any> internal constructor(
         OneParameterQuery(p1)
 
     fun <P1 : Any, P2 : Any> createQuery(p1: Condition<P1>, p2: Condition<P2>):
-        TwoParameterQuery<P1, P2> = TwoParameterQuery(p1, p2)
+            TwoParameterQuery<P1, P2> = TwoParameterQuery(p1, p2)
 
     fun <P1 : Any, P2 : Any, P3 : Any> createQuery(p1: Condition<P1>, p2: Condition<P2>, p3: Condition<P3>):
-        ThreeParameterQuery<P1, P2, P3> = ThreeParameterQuery(p1, p2, p3)
+            ThreeParameterQuery<P1, P2, P3> = ThreeParameterQuery(p1, p2, p3)
 
-    fun createQuery(queryString: String): Query {
-        return Query(queryString.toIndexedPlaceholders())
+    fun createQuery(queryString: String): Query<Entity> {
+        return QueryImpl(queryString.toIndexedPlaceholders())
     }
 
     @Suppress("unused")
     data class Condition<Type>(val conditionString: String, val prop: KProperty1<*, *>)
 
     inner class OneParameterQuery<P1 : Any> internal constructor(p1: Condition<P1>) {
-        private val query = Query(p1)
+        private val query = QueryImpl(p1)
         fun with(p1: P1): QueryWithParameters =
             query.with(p1)
     }
@@ -57,7 +61,7 @@ class QueryFactory<T : Any> internal constructor(
         p1: Condition<P1>,
         p2: Condition<P2>
     ) {
-        private val query = Query(p1, p2)
+        private val query = QueryImpl(p1, p2)
         fun with(p1: P1, p2: P2): QueryWithParameters =
             query.with(p1, p2)
     }
@@ -67,19 +71,19 @@ class QueryFactory<T : Any> internal constructor(
         p2: Condition<P2>,
         p3: Condition<P3>
     ) {
-        private val query = Query(p1, p2, p3)
+        private val query = QueryImpl(p1, p2, p3)
         fun with(p1: P1, p2: P2, p3: P3): QueryWithParameters =
             query.with(p1, p2, p3)
     }
 
     // internal api
-    inner class Query(private val queryString: String) {
+    inner class QueryImpl(private val queryString: String) : Query<Entity> {
         internal constructor(vararg conditions: Condition<*>) :
-            this(conditions.joinToString(separator = " and ") {
-                "${dbFieldNameForProperty[it.prop]} ${it.conditionString}"
-            }.toIndexedPlaceholders())
+                this(conditions.joinToString(separator = " and ") {
+                    "${dbFieldNameForProperty[it.prop]} ${it.conditionString}"
+                }.toIndexedPlaceholders())
 
-        fun with(vararg parameter: Any): QueryWithParameters {
+        override fun with(vararg parameter: Any): QueryWithParameters {
             val parameterValues =
                 parameter
                     // remove Unit parameters because conditions that have no parameters use it
@@ -102,14 +106,14 @@ class QueryFactory<T : Any> internal constructor(
         suspend fun find(
             connectionProvider: ConnectionProvider,
             fetchRelations: Set<KProperty1<*, Relation>> = setOf()
-        ): List<T> {
+        ): List<Entity> {
             return findAndTransform(connectionProvider, fetchRelations) { it.toList(mutableListOf()) }
         }
 
         suspend fun <R> findAndTransform(
             connectionProvider: ConnectionProvider,
             fetchRelations: Set<KProperty1<*, Relation>> = setOf(),
-            transform: suspend (Flow<T>) -> R
+            transform: suspend (Flow<Entity>) -> R
         ): R {
             return connectionProvider.withConnection { connection ->
                 val queryResult = connection.executeSelect(
@@ -123,7 +127,7 @@ class QueryFactory<T : Any> internal constructor(
         suspend fun findSingle(
             connectionProvider: ConnectionProvider,
             fetchRelations: Set<KProperty1<*, Relation>> = setOf()
-        ): T =
+        ): Entity =
             findAndTransform(connectionProvider, fetchRelations) { it.single() }
 
         suspend fun delete(connectionProvider: ConnectionProvider): Long =
@@ -134,7 +138,7 @@ class QueryFactory<T : Any> internal constructor(
                 ).rowsUpdated()
             }
 
-        suspend fun findOrCreate(connectionProvider: ConnectionProvider, creator: () -> T): T {
+        suspend fun findOrCreate(connectionProvider: ConnectionProvider, creator: () -> Entity): Entity {
             return connectionProvider.withConnection { connection ->
                 val existing =
                     resultMapper.mapQueryResult(
@@ -149,7 +153,7 @@ class QueryFactory<T : Any> internal constructor(
             }
         }
 
-        suspend fun createOrUpdate(connectionProvider: ConnectionProvider, entity: T): T {
+        suspend fun createOrUpdate(connectionProvider: ConnectionProvider, entity: Entity): Entity {
             return connectionProvider.withConnection { connection ->
 
                 val existing =

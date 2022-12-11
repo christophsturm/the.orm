@@ -14,6 +14,7 @@ import io.the.orm.mapper.RelationFetchingResultMapper
 import io.the.orm.mapper.ResultResolver
 import io.the.orm.mapper.StreamingEntityCreator
 import io.the.orm.query.Conditions.isEqualToCondition
+import io.the.orm.query.Query
 import io.the.orm.query.QueryFactory
 import io.the.orm.query.isIn
 import kotlin.reflect.KClass
@@ -122,7 +123,7 @@ class RepoImpl<Entity : Any> internal constructor(
                 })
         }
         if (classInfo.hasHasManyRelations || classInfo.hasBelongsToRelations) {
-            val hasManyQueries: List<QueryFactory<out Any>.Query> = classInfo.hasManyRelations.map {
+            val hasManyQueries: List<Query<*>> = classInfo.hasManyRelations.map {
                 it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
             }
             queryFactory.resultMapper = RelationFetchingResultMapper(

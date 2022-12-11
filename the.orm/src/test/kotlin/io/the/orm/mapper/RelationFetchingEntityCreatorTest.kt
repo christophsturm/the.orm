@@ -12,6 +12,7 @@ import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.exp.relations.LazyHasMany
 import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.query.Query
 import io.the.orm.query.QueryFactory
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.single
@@ -61,7 +62,7 @@ object RelationFetchingEntityCreatorTest {
                     )
                 )
             }
-            val queryMock = mock<QueryFactory<out Any>.Query> {
+            val queryMock = mock<Query<*>> {
                 method { with() }.returns(queryWithParameters)
             }
             val creator = RelationFetchingEntityCreator(

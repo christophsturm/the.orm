@@ -7,6 +7,7 @@ import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.Relation
 import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.query.Query
 import io.the.orm.query.QueryFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -19,7 +20,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     private val belongsToRepos: List<Repo<*>>,
     private val creator: StreamingEntityCreator<Entity>,
     private val classInfo: ClassInfo<Entity>,
-    private val hasManyQueries: List<QueryFactory<out Any>.Query>
+    private val hasManyQueries: List<Query<*>>
 ) {
     private val idFieldIndex = classInfo.simpleFieldInfo.indexOfFirst { it.dbFieldName == "id" }
     private val hasManyRemoteFields = classInfo.hasManyRelations.map { fieldInfo ->
