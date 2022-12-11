@@ -12,6 +12,7 @@ import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
 import io.the.orm.exp.relations.LazyHasMany
 import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.query.QueryFactory
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.single
 import kotlin.test.assertEquals
@@ -53,13 +54,21 @@ object RelationFetchingEntityCreatorTest {
             }
             val repoRegistry = RepoRegistry(setOf(Entity::class, ReferencedEntity::class))
             val classInfo = (repoRegistry.getRepo(Entity::class) as RepoImpl).classInfo
+            val queryWithParameters = mock<QueryFactory<out Any>.QueryWithParameters> {
+                method { findAndTransform<Map<PK, Set<Any>>>(connectionProvider, setOf()) { mapOf() } }.returns(
+                    mapOf(
+                        99L to setOf(referencedEntity1, referencedEntity2)
+                    )
+                )
+            }
+            val queryMock = mock<QueryFactory<out Any>.Query> {
+                method { with() }.returns(queryWithParameters)
+            }
             val creator = RelationFetchingEntityCreator(
                 listOf(),
                 StreamingEntityCreator(classInfo),
                 classInfo,
-                classInfo.hasManyRelations.map {
-                    it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
-                }
+                listOf(queryMock)
             )
             it("does not resolve has many relations when they are not contained in fetchRelations") {
                 val result = creator.toEntities(
@@ -76,5 +85,6 @@ object RelationFetchingEntityCreatorTest {
         }
     }
 }
+
 data class ReferencedEntity(val name: String, val entity: BelongsTo<Entity>, val id: PK? = null)
 data class Entity(val referencedEntities: HasMany<ReferencedEntity>, val id: PK? = null)
