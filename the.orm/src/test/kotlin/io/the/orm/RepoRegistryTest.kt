@@ -2,6 +2,7 @@ package io.the.orm
 
 import failgood.Test
 import failgood.describe
+import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
 
 @Test
@@ -16,7 +17,7 @@ class RepoRegistryTest {
         val recipes: HasMany<Recipe>
     )
 
-    data class Recipe(val id: Long?, val name: String, val description: String?, val page: Page)
+    data class Recipe(val id: Long?, val name: String, val description: String?, val page: BelongsTo<Page>)
 
     val context = describe<RepoRegistry> {
         it("can be created with classes that reference each other") {

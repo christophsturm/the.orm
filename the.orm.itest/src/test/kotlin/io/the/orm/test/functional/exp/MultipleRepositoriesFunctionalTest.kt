@@ -12,7 +12,6 @@ import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 import io.the.orm.transaction.RepoTransactionProvider
-import kotlin.test.assertNotNull
 
 private const val SCHEMA = """
     create sequence pages_id_seq no maxvalue;
@@ -81,7 +80,7 @@ object MultipleRepositoriesFunctionalTest {
 
     data class RecipeIngredient(
         val amount: String,
-        val recipe: Recipe,
+        val recipe: BelongsTo<Recipe> = belongsTo(),
         val ingredient: Ingredient,
         val id: PK? = null
     )
@@ -136,21 +135,18 @@ object MultipleRepositoriesFunctionalTest {
                     val gurke = findIngredientByName.with("gurke")
                         .findOrCreate(pageRepo.connectionProvider) { Ingredient("Gurke") }
                     val createdIngredient =
-                        recipeIngredientRepo.create(RecipeIngredient("100g", recipe, gurke))
+                        recipeIngredientRepo.create(RecipeIngredient("100g", belongsTo(recipe), gurke))
                     val reloadedIngredient = recipeIngredientRepo.findById(
                         createdIngredient.id!!
                     )
                     val recipeIngredient =
-                        recipeIngredientRepo.create(RecipeIngredient("2", recipe, gurke))
+                        recipeIngredientRepo.create(RecipeIngredient("2", belongsTo(recipe), gurke))
 //                    assertEquals(createdIngredient, reloadedIngredient)
-                    val reloadedRecipe = recipeRepo.findById(recipe.id!!)
+                    val reloadedRecipe =
+                        recipeRepo.findById(recipe.id!!, fetchRelations = setOf(Recipe::ingredients, Recipe::page))
 
-                    // HasMany side of 1:N relations is not yet fetched.
-                    if (System.getenv("NEXT") != null) {
-                        with(assertNotNull(reloadedRecipe.ingredients)) {
-                            assert(contains(recipeIngredient))
-                        }
-                    }
+                    assert(reloadedRecipe.ingredients.map { it.ingredient.name } == listOf("Gurke", "Gurke"))
+                    assert(reloadedRecipe.page.get().url == "url")
                 }
             }
         }

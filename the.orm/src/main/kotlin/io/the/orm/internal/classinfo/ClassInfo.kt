@@ -117,6 +117,7 @@ internal data class ClassInfo<T : Any>(
     }
 
     interface LocalFieldInfo : FieldInfo {
+        val name: String
         fun valueForDb(instance: Any): Any?
     }
 
@@ -151,7 +152,8 @@ internal data class ClassInfo<T : Any>(
         override val dbFieldName: String,
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
-        override val mutable: Boolean
+        override val mutable: Boolean,
+        override val name: String
     ) : LocalFieldInfo {
         override fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
     }
@@ -164,7 +166,8 @@ internal data class ClassInfo<T : Any>(
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
         override val relatedClass: KClass<*>,
-        override val canBeLazy: Boolean
+        override val canBeLazy: Boolean,
+        override val name: String
     ) : RelationFieldInfo, LocalFieldInfo {
         override fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
         override lateinit var repo: Repo<*>
@@ -230,12 +233,12 @@ internal data class ClassInfo<T : Any>(
                         mutable(property),
                         BelongsToConverter(IDHandler(kotlinClass)),
                         Long::class.java,
-                        kotlinClass, lazy
+                        kotlinClass, lazy, "$name.${property.name}"
                     )
                 } else when {
                     javaClass.isEnum -> SimpleLocalFieldInfo(
                         parameter, property, fieldName,
-                        EnumConverter(javaClass), String::class.java, mutable(property)
+                        EnumConverter(javaClass), String::class.java, mutable(property), "$name.${property.name}"
                     )
 
                     else -> {
@@ -243,7 +246,7 @@ internal data class ClassInfo<T : Any>(
                         if (isPK) {
                             SimpleLocalFieldInfo(
                                 parameter, property, fieldName,
-                                passThroughFieldConverter, Long::class.java, mutable(property)
+                                passThroughFieldConverter, Long::class.java, mutable(property), "$name.${property.name}"
                             )
                         } else {
                             val fieldConverter = fieldConverters[kotlinClass] ?: throw RepositoryException(
@@ -253,7 +256,7 @@ internal data class ClassInfo<T : Any>(
                             )
                             SimpleLocalFieldInfo(
                                 parameter, property, fieldName,
-                                fieldConverter, javaClass, mutable(property)
+                                fieldConverter, javaClass, mutable(property), "$name.${property.name}"
                             )
                         }
                     }

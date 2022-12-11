@@ -27,10 +27,14 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
             it.relatedClass == classInfo.kClass
         }
             ?: throw RepositoryException(
-                "Corresponding BelongsTo field for HasMany relation " +
+                "BelongsTo field for HasMany relation " +
                     "${classInfo.name}.${fieldInfo.property.name} not found in ${fieldInfo.classInfo.name}." +
                     " Currently you need to declare both sides of the relation"
             )
+        if (!remoteFieldInfo.canBeLazy)
+            throw RepositoryException("${remoteFieldInfo.name} " +
+                "must be lazy (BelongsTo<Type> instead of Type) to avoid circular dependencies")
+
         remoteFieldInfo.property
     }
 
@@ -87,8 +91,8 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                                     @Suppress("UNCHECKED_CAST")
                                     val prop: KProperty1<Any, BelongsTo.BelongsToNotLoaded<*>> =
                                         hasManyRemoteFields[index] as KProperty1<Any, BelongsTo.BelongsToNotLoaded<*>>
-                                    val any = prop(it).pk
-                                    val set = result.getOrPut(any) { mutableSetOf() }
+                                    val pk = prop(it).pk
+                                    val set = result.getOrPut(pk) { mutableSetOf() }
                                     set.add(it as Entity)
                                 }
                                 result
