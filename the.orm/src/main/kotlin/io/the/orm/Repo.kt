@@ -117,9 +117,11 @@ class RepoImpl<Entity : Any> internal constructor(
                 }, classInfo.hasManyRelations.map { fieldInfo ->
                     val classInfo1 = fieldInfo.classInfo
                     classInfo1.belongsToRelations.singleOrNull { it.relatedClass == kClass }
-                        ?: throw RepositoryException("Corresponding BelongsTo field for HasMany relation " +
-                            "${classInfo.name}.${fieldInfo.property.name} not found in ${fieldInfo.classInfo.name}." +
-                            " Currently you need to declare both sides of the relation")
+                        ?: throw RepositoryException(
+                            "BelongsTo field for HasMany relation ${classInfo.name}.${fieldInfo.property.name}" +
+                                " not found in ${fieldInfo.classInfo.name}." +
+                                " Currently you need to declare both sides of the relation"
+                        )
                 })
         }
         if (classInfo.hasHasManyRelations || classInfo.hasBelongsToRelations) {
@@ -158,7 +160,8 @@ class RepoImpl<Entity : Any> internal constructor(
         }
     }
 
-    private val byIdQuery by lazy { queryFactory.createQuery(isEqualToCondition(idProperty)) }
+    private val byIdQuery: QueryFactory<Entity>.OneParameterQuery<PK> =
+        queryFactory.createQuery(isEqualToCondition(idProperty))
     private val byIdsQuery: QueryFactory<Entity>.OneParameterQuery<Array<PK>>
         by lazy { queryFactory.createQuery(idProperty.isIn()) }
 

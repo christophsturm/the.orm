@@ -8,7 +8,6 @@ import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.Relation
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.query.Query
-import io.the.orm.query.QueryFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
@@ -77,19 +76,23 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
             }
             val hasManyRelations = if (pkList != null) {
                 hasManyQueries.withIndex().map { (index, query) ->
-                    if (fetchRelations.contains(hasManyProperties[index])) query.with(pkList.toTypedArray())
-                        .findAndTransform(connectionProvider, fetchRelations) { flow: Flow<Any> ->
-                            val result = LinkedHashMap<PK, MutableSet<Entity>>()
-                            flow.collect {
-                                @Suppress("UNCHECKED_CAST")
-                                val prop: KProperty1<Any, BelongsTo.BelongsToNotLoaded<*>> =
-                                    hasManyRemoteFields[index] as KProperty1<Any, BelongsTo.BelongsToNotLoaded<*>>
-                                val any = prop(it).pk
-                                val set = result.getOrPut(any) { mutableSetOf() }
-                                set.add(it as Entity)
+                    if (fetchRelations.contains(hasManyProperties[index]))
+                        query.with(pkList.toTypedArray())
+                            .findAndTransform<Map<PK, Set<Entity>>>(
+                                connectionProvider,
+                                fetchRelations
+                            ) { flow: Flow<Any> ->
+                                val result = LinkedHashMap<PK, MutableSet<Entity>>()
+                                flow.collect {
+                                    @Suppress("UNCHECKED_CAST")
+                                    val prop: KProperty1<Any, BelongsTo.BelongsToNotLoaded<*>> =
+                                        hasManyRemoteFields[index] as KProperty1<Any, BelongsTo.BelongsToNotLoaded<*>>
+                                    val any = prop(it).pk
+                                    val set = result.getOrPut(any) { mutableSetOf() }
+                                    set.add(it as Entity)
+                                }
+                                result
                             }
-                            result
-                        }
                     else null
                 }
             } else null

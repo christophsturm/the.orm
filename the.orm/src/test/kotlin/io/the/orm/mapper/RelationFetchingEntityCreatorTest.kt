@@ -13,7 +13,7 @@ import io.the.orm.exp.relations.HasMany
 import io.the.orm.exp.relations.LazyHasMany
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.query.Query
-import io.the.orm.query.QueryFactory
+import io.the.orm.query.QueryWithParameters
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.single
 import kotlin.test.assertEquals
@@ -55,7 +55,7 @@ object RelationFetchingEntityCreatorTest {
             }
             val repoRegistry = RepoRegistry(setOf(Entity::class, ReferencedEntity::class))
             val classInfo = (repoRegistry.getRepo(Entity::class) as RepoImpl).classInfo
-            val queryWithParameters = mock<QueryFactory<out Any>.QueryWithParameters> {
+            val queryWithParameters = mock<QueryWithParameters<*>> {
                 method { findAndTransform<Map<PK, Set<Any>>>(connectionProvider, setOf()) { mapOf() } }.returns(
                     mapOf(
                         99L to setOf(referencedEntity1, referencedEntity2)

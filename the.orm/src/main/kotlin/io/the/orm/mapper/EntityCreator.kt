@@ -13,7 +13,7 @@ internal interface EntityCreator<Entity : Any> {
     fun toEntities(
         results: Flow<ResultLine>,
         relations: List<Map<PK, Any>?> = listOf(),
-        hasManyRelations: List<LinkedHashMap<PK, MutableSet<Entity>>?>?
+        hasManyRelations: List<Map<PK, Set<Entity>>?>?
     ): Flow<Entity>
 }
 
@@ -23,7 +23,7 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
     override fun toEntities(
         results: Flow<ResultLine>,
         relations: List<Map<PK, Any>?>,
-        hasManyRelations: List<LinkedHashMap<PK, MutableSet<Entity>>?>?
+        hasManyRelations: List<Map<PK, Set<Entity>>?>?
     ): Flow<Entity> {
         return results.map { values ->
             val id = values.fields[idFieldIndex] as PK
