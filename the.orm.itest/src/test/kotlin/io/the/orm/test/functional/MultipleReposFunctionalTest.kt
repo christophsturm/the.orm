@@ -89,29 +89,19 @@ object MultipleReposFunctionalTest {
 
     val context =
         describeOnAllDbs(RepoTransactionProvider::class, DBS.databases, SCHEMA) {
+            val transactionProvider = it()
+
+            // here you list all entity classes
             val repoRegistry = RepoRegistry(
                 setOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
             )
-            val transactionProvider = it()
             val repoTransactionProvider = RepoTransactionProvider(repoRegistry, transactionProvider)
-            it("can write Entities that have BelongsTo relations") {
-                repoTransactionProvider.transaction(Page::class, Recipe::class) { pageRepo, recipeRepo ->
-                    val page = pageRepo
-                        .create(Page("url", "pageTitle", "description", "{}", "author"))
-                    assert(page.id != null)
-                    recipeRepo.create(
-                        Recipe(
-                            "Spaghetti Carbonara",
-                            "Wasser Salzen, Speck dazu, fertig",
-                            belongsTo(page)
-                        )
-                    )
-                }
-            }
             it("can write and query") {
+                // this is how to create a query
                 val findIngredientByName =
                     repoRegistry.getRepo<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
 
+                // here we start a transaction that involves Page and Recipe
                 repoTransactionProvider.transaction(
                     Page::class,
                     Recipe::class
@@ -133,6 +123,8 @@ object MultipleReposFunctionalTest {
                                     )))
                             )
                         )
+
+                    // fetchRelations indicates what relations should be loaded. relations are never loaded lazy
                     val reloadedRecipe =
                         recipeRepo.findById(recipe.id!!, fetchRelations = setOf(Recipe::ingredients, Recipe::page))
 
