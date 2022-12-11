@@ -15,7 +15,7 @@ import kotlin.reflect.KProperty1
 
 internal class RelationFetchingEntityCreator<Entity : Any>(
     // one repo for every field in relation, in the same order
-    private val repos: List<Repo<*>>,
+    private val belongsToRepos: List<Repo<*>>,
     private val creator: StreamingEntityCreator<Entity>,
     val classInfo: ClassInfo<Entity>
 ) {
@@ -29,8 +29,8 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
         }
             ?: throw RepositoryException(
                 "Corresponding BelongsTo field for HasMany relation " +
-                    "${classInfo.name}.${fieldInfo.property.name} not found in ${fieldInfo.classInfo.name}." +
-                    " Currently you need to declare both sides of the relation"
+                        "${classInfo.name}.${fieldInfo.property.name} not found in ${fieldInfo.classInfo.name}." +
+                        " Currently you need to declare both sides of the relation"
             )
         remoteFieldInfo.property
     }
@@ -47,7 +47,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     ): Flow<Entity> {
         return flow {
             val pkList = if (classInfo.hasHasManyRelations) mutableListOf<PK>() else null
-            val idLists = Array(repos.size) { idx ->
+            val idLists = Array(belongsToRepos.size) { idx ->
                 if (belongsToProperties[idx] == null || fetchRelations.contains(belongsToProperties[idx]))
                     mutableSetOf<PK>()
                 else
@@ -62,7 +62,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
             }
             val belongsToRelations = idLists.mapIndexed { index, longs ->
                 if (longs != null) {
-                    val repo = repos[index]
+                    val repo = belongsToRepos[index]
                     val ids = longs.toList()
                     val relatedEntities = try {
                         repo.findByIds(connectionProvider, ids)
@@ -91,7 +91,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                             result
                         }
                     else null
-                } // WIP
+                }
             } else null
             creator.toEntities(resultsList.asFlow(), belongsToRelations, hasManyRelations).collect {
                 emit(it)
