@@ -1,6 +1,5 @@
 package io.the.orm
 
-import failgood.Ignored
 import failgood.Test
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
@@ -70,23 +69,21 @@ create table sentences
                         "No small art is it to sleep:" + " it is necessary for that purpose to keep awake all day.",
                         "god is still doing pretty badly",
                         "sleeping is still not easy"
-
                     )
                 )
             }
         }
-        it(
-            "can load has many",
-            ignored = if (System.getenv("NEXT") == null) Ignored.Because("NEXT") else null
-        ) {
+        it("can load has many") {
             val holder = book()
             RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
                 val id = bookRepo.create(holder).id!!
-                val reloaded = bookRepo.findById(id, fetchRelations = setOf(Book::chapters))
-                assert(reloaded.chapters.map { it.book } == listOf(
-                    "Also Sprach Zarathustra",
-                    "Also Sprach Zarathustra"
-                ))
+                val reloaded = bookRepo.findById(id, fetchRelations = setOf(Book::chapters, Chapter::sentences))
+                assertEquals(setOf(
+                    "god is dead",
+                    "No small art is it to sleep:" + " it is necessary for that purpose to keep awake all day.",
+                    "god is still doing pretty badly",
+                    "sleeping is still not easy"
+                ), reloaded.chapters.flatMap { it.sentences.map { it.content } }.toSet())
             }
         }
         it("does not load has many when it is not specified to be fetched") {
