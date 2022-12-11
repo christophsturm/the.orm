@@ -26,6 +26,9 @@ interface DBResult {
     suspend fun getId(): Long {
         return this.map { row -> row.get("id", java.lang.Long::class.java)!!.toLong() }.single()
     }
+
+    fun asMapFlow(): Flow<Map<String, Any?>>
+    fun asListFlow(expectedLength: Int): Flow<List<Any?>>
 }
 
 interface DBRow {

@@ -27,10 +27,10 @@ object TestUtilConfig {
 }
 
 class DBTestUtil(val databaseName: String) {
-    val h2 = H2TestDatabase()
+    private val h2 = H2TestDatabase()
     val psql14 = PSQLContainer("postgres:14-alpine", databaseName, true)
-    val psql14R2DBC = R2DBCPostgresFactory(psql14)
-    val psql14Vertx = VertxPSQLTestDatabase(psql14)
+    private val psql14R2DBC = R2DBCPostgresFactory(psql14)
+    private val psql14Vertx = VertxPSQLTestDatabase(psql14)
     private val postgreSQLLegacyContainers = if (TestUtilConfig.ALL_PSQL) listOf(
         PSQLContainer("postgres:15beta4-alpine", databaseName, false),
         PSQLContainer("postgres:13-alpine", databaseName, false),

@@ -21,7 +21,7 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
                 "no copy function found for ${kClass.simpleName}." +
                     " Entities must be data classes"
             )) as KFunction<T>
-    private val idParameter = copyFunction.parameters.singleOrNull() { it.name == "id" }
+    private val idParameter = copyFunction.parameters.singleOrNull { it.name == "id" }
         ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")
     private val idField = kClass.declaredMemberProperties.single { it.name == "id" }
     private val instanceParameter = copyFunction.instanceParameter!!
@@ -46,7 +46,7 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
     }
 
     fun assignId(instance: T, id: PK): T {
-        val args = mapOf(idParameter to createId(id), instanceParameter to instance)
+        val args = mapOf(idParameter to id, instanceParameter to instance)
         return try {
             copyFunction.callBy(args)
         } catch (e: IllegalArgumentException) {
@@ -54,6 +54,9 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
         }
     }
 
+    /**
+     *  read the id field from an entity
+     *  */
     fun readId(instance: T): PK {
         when (val idResult = idField.getter.call(instance)) {
             is PK -> return idResult
@@ -61,7 +64,4 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
             else -> throw RepositoryException("unknown pk type for $instance")
         }
     }
-
-    fun createId(id: PK): Any = pkConstructor?.call(id) ?: id
-    fun getId(id: Any): PK = (pkIdGetter?.call(id) ?: id) as PK
 }

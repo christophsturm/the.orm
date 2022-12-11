@@ -23,16 +23,16 @@ class TransactionFunctionalTest {
                         transactionRepo.create(User(name = "a user", email = "with email"))
                     // the created user is visible in the same connection
                     expectThat(
-                        userNameLike.with(transactionRepo.connectionProvider, "%").findSingle()
+                        userNameLike.with("%").findSingle(transactionRepo.connectionProvider)
                     ).isEqualTo(user)
                     // but the outer connection does not see it
                     expectThat(
-                        userNameLike.with(connectionProvider, "%").find().count()
+                        userNameLike.with("%").find(connectionProvider).count()
                     ).isEqualTo(0)
                     user
                 }
                 // now the outer connection sees them too
-                expectThat(userNameLike.with(connectionProvider, "%").findSingle()).isEqualTo(
+                expectThat(userNameLike.with("%").findSingle(connectionProvider)).isEqualTo(
                     user
                 )
             }
@@ -45,7 +45,7 @@ class TransactionFunctionalTest {
                     }
                 } catch (_: Exception) {
                 }
-                expectThat(userNameLike.with(connectionProvider, "%").find().count()).isEqualTo(0)
+                expectThat(userNameLike.with("%").find(connectionProvider).count()).isEqualTo(0)
             }
         }
 
@@ -56,16 +56,16 @@ class TransactionFunctionalTest {
                         repo.create(transactionConnectionProvider, User(name = "a user", email = "with email"))
                     // the created user is visible in the same connection
                     expectThat(
-                        userNameLike.with(transactionConnectionProvider, "%").findSingle()
+                        userNameLike.with("%").findSingle(transactionConnectionProvider)
                     ).isEqualTo(user)
                     // but the outer connection does not see it
                     expectThat(
-                        userNameLike.with(connectionProvider, "%").find().count()
+                        userNameLike.with("%").find(connectionProvider).count()
                     ).isEqualTo(0)
                     user
                 }
                 // now the outer connection sees them too
-                expectThat(userNameLike.with(connectionProvider, "%").findSingle()).isEqualTo(
+                expectThat(userNameLike.with("%").findSingle(connectionProvider)).isEqualTo(
                     user
                 )
             }
@@ -77,7 +77,7 @@ class TransactionFunctionalTest {
                     }
                 } catch (_: Exception) {
                 }
-                expectThat(userNameLike.with(connectionProvider, "%").find().count()).isEqualTo(0)
+                expectThat(userNameLike.with("%").find(connectionProvider).count()).isEqualTo(0)
             }
         }
     }

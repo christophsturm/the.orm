@@ -6,6 +6,7 @@ import failgood.mock.call
 import failgood.mock.getCalls
 import failgood.mock.mock
 import io.the.orm.PK
+import io.the.orm.Repo
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
@@ -28,12 +29,12 @@ object HasManyInserterTest {
         val rootSimpleInserter = mock<Inserter<Entity>> {
             method { create(connection, entity) }.returns(entityWithId)
         }
-        val belongingInserter = mock<Inserter<Belonging>>()
+        val belongingRepo = mock<Repo<Belonging>>()
         val subject =
             HasManyInserter(
                 rootSimpleInserter,
                 ClassInfo(Entity::class, setOf(Belonging::class)),
-                listOf(belongingInserter),
+                listOf(belongingRepo),
                 listOf(ClassInfo(Belonging::class, setOf(Entity::class)).belongsToRelations.single())
 
             )
@@ -45,7 +46,7 @@ object HasManyInserterTest {
             subject.create(connection, entity)
             val belongingWithId = belonging.copy(entity = BelongsTo.Auto<Entity>().apply { id = 42 })
             assertEquals(
-                getCalls(belongingInserter).singleOrNull(),
+                getCalls(belongingRepo).singleOrNull(),
                 call(Inserter<Belonging>::create, connection, belongingWithId)
             )
         }

@@ -9,7 +9,7 @@ import io.the.orm.dbio.Statement
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-class MockConnectionProvider(val dbConnection: DBConnection = MockDbConnection()) : ConnectionProvider {
+class MockConnectionProvider(private val dbConnection: DBConnection = MockDbConnection()) : ConnectionProvider {
     override suspend fun <T> withConnection(function: suspend (DBConnection) -> T): T = function(dbConnection)
 }
 
@@ -56,6 +56,13 @@ class MockStatement(val sql: String) : Statement {
 data class MockDBResult(val rows: List<DBRow> = listOf(), val rowsUpdated: Long = 0, val id: Long = 0) : DBResult {
     override suspend fun rowsUpdated(): Long = rowsUpdated
     override suspend fun getId(): Long = id
+    override fun asMapFlow(): Flow<Map<String, Any?>> {
+        return flowOf()
+    }
+
+    override fun asListFlow(expectedLength: Int): Flow<List<Any?>> {
+        return flowOf()
+    }
 
     override suspend fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T> {
         return flowOf()

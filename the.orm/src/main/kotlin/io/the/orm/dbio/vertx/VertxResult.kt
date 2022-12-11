@@ -15,4 +15,22 @@ class VertxResult(private val rows: RowSet<Row>) : DBResult {
         val flow: Flow<Row> = rows.asFlow()
         return flow.map { mappingFunction(VertxRow(it)) }
     }
+
+    override fun asMapFlow(): Flow<Map<String, Any?>> {
+        val names = rows.columnsNames().map { it.lowercase() }
+        return rows.asFlow().map { row ->
+            names.withIndex().associateTo(HashMap()) { (index, name) ->
+                name to row.get(Any::class.java, index)
+            }
+        }
+    }
+
+    override fun asListFlow(expectedLength: Int): Flow<List<Any?>> {
+        return rows.asFlow().map { row ->
+            val r = ArrayList<Any?>(expectedLength)
+            for (idx in 0 until expectedLength)
+                r.add(row.getValue(idx))
+            r
+        }
+    }
 }

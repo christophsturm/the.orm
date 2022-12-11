@@ -3,15 +3,15 @@ package io.the.orm.test.functional.exp
 import failgood.Test
 import io.the.orm.PK
 import io.the.orm.RepoRegistry
+import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
+import io.the.orm.exp.relations.belongsTo
 import io.the.orm.exp.relations.hasMany
 import io.the.orm.getRepo
 import io.the.orm.query.isEqualTo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 import io.the.orm.transaction.RepoTransactionProvider
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 private const val SCHEMA = """
     create sequence pages_id_seq no maxvalue;
@@ -73,14 +73,14 @@ object MultipleRepositoriesFunctionalTest {
     data class Recipe(
         val name: String,
         val description: String?,
-        val page: Page,
+        val page: BelongsTo<Page>,
         val ingredients: HasMany<RecipeIngredient> = hasMany(),
         val id: PK? = null
     )
 
     data class RecipeIngredient(
         val amount: String,
-        val recipe: Recipe,
+        val recipe: BelongsTo<Recipe> = belongsTo(),
         val ingredient: Ingredient,
         val id: PK? = null
     )
@@ -103,7 +103,7 @@ object MultipleRepositoriesFunctionalTest {
                         Recipe(
                             "Spaghetti Carbonara",
                             "Wasser Salzen, Speck dazu, fertig",
-                            page
+                            belongsTo(page)
                         )
                     )
                 }
@@ -129,27 +129,24 @@ object MultipleRepositoriesFunctionalTest {
                             Recipe(
                                 "Spaghetti Carbonara",
                                 "Wasser Salzen, Speck dazu, fertig",
-                                page
+                                belongsTo(page)
                             )
                         )
-                    val gurke = findIngredientByName.with(pageRepo.connectionProvider, "gurke")
-                        .findOrCreate { Ingredient("Gurke") }
+                    val gurke = findIngredientByName.with("gurke")
+                        .findOrCreate(pageRepo.connectionProvider) { Ingredient("Gurke") }
                     val createdIngredient =
-                        recipeIngredientRepo.create(RecipeIngredient("100g", recipe, gurke))
+                        recipeIngredientRepo.create(RecipeIngredient("100g", belongsTo(recipe), gurke))
                     val reloadedIngredient = recipeIngredientRepo.findById(
                         createdIngredient.id!!
                     )
                     val recipeIngredient =
-                        recipeIngredientRepo.create(RecipeIngredient("2", recipe, gurke))
-                    assertEquals(createdIngredient, reloadedIngredient)
-                    val reloadedRecipe = recipeRepo.findById(recipe.id!!)
+                        recipeIngredientRepo.create(RecipeIngredient("2", belongsTo(recipe), gurke))
+//                    assertEquals(createdIngredient, reloadedIngredient)
+                    val reloadedRecipe =
+                        recipeRepo.findById(recipe.id!!, fetchRelations = setOf(Recipe::ingredients, Recipe::page))
 
-                    // HasMany side of 1:N relations is not yet fetched.
-                    if (System.getenv("NEXT") != null) {
-                        with(assertNotNull(reloadedRecipe.ingredients)) {
-                            assert(contains(recipeIngredient))
-                        }
-                    }
+                    assert(reloadedRecipe.ingredients.map { it.ingredient.name } == listOf("Gurke", "Gurke"))
+                    assert(reloadedRecipe.page.get().url == "url")
                 }
             }
         }

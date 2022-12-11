@@ -1,7 +1,7 @@
 package io.the.orm.test.functional.exp
 
+import failgood.Ignored
 import failgood.Test
-import failgood.assert.containsExactlyInAnyOrder
 import io.the.orm.dbio.DBResult
 import io.the.orm.mapper.SimpleResultMapper
 import io.the.orm.test.DBS
@@ -9,6 +9,7 @@ import io.the.orm.test.describeOnAllDbs
 import io.the.orm.test.functional.USERS_SCHEMA
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.toList
+import kotlin.test.assertEquals
 
 @Test
 object SchemaLoadingTest {
@@ -17,10 +18,28 @@ object SchemaLoadingTest {
             "detecting the table structure",
             DBS.databases,
             USERS_SCHEMA,
-            ignored = UnlessEnv("NEXT")
+            ignored = Ignored.Because("Unfinished")
+            // the current problem is that it finds properties of all databases, instead only of the current database.
+            // (needs to filter by table_catalog)
         ) { createConnectionProvider ->
+            val connectionProvider = createConnectionProvider()
+            it("prints result", ignored = Ignored.Because("only for debugging")) {
+                connectionProvider.withConnection { conn ->
+                    println(
+                        conn.createStatement(
+                            "select column_name, data_type, table_catalog, character_maximum_length," +
+                                " column_default, is_nullable " +
+                                "from INFORMATION_SCHEMA.COLUMNS where lower(table_name) = 'users'"
+                        ).execute().asMapFlow().toList()
+                    )
+                    println(
+                        conn.createStatement(
+                            "select database()"
+                        ).execute().asMapFlow().toList()
+                    )
+                }
+            }
             it("can get the table structure") {
-                val connectionProvider = createConnectionProvider()
                 connectionProvider.withConnection { conn ->
                     val columns = conn.createStatement(
                         "select column_name, data_type, character_maximum_length, column_default, is_nullable\n" +
@@ -38,9 +57,10 @@ object SchemaLoadingTest {
         balance        decimal(5, 2)
 
                      */
-                    assert(
-                        columns.map { it.columnName.lowercase() }.containsExactlyInAnyOrder(
+                    assertEquals(
+                        listOf(
                             "id",
+                            "name",
                             "email",
                             "is_cool",
                             "bio",
@@ -48,7 +68,8 @@ object SchemaLoadingTest {
                             "birthday",
                             "weight",
                             "balance"
-                        )
+                        ).sorted(),
+                        columns.map { it.columnName.lowercase() }.sorted()
                     )
                 }
             }

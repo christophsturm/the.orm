@@ -1,8 +1,10 @@
 package io.the.orm
 
+import failgood.Ignored
 import failgood.Test
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.HasMany
+import io.the.orm.exp.relations.LazyHasMany
 import io.the.orm.exp.relations.belongsTo
 import io.the.orm.exp.relations.hasMany
 import io.the.orm.test.describeOnAllDbs
@@ -47,56 +49,74 @@ create table sentences
     content           text not null
 );
 
-"""
-    /*
+"""/*
     for has many we really need recursive saving because we don't know the id when we create the objects
      */
 
     val context = describeOnAllDbs<HasMany<*>>(schema = SCHEMA) {
         val repo = RepoRegistry(setOf(Sentence::class, Chapter::class, Book::class))
         it("can create an page with nested entities") {
-            val chapters: Set<Chapter> = setOf(
-                Chapter(
-                    "page 1", hasMany(
-                        setOf(
-                            Sentence("god is dead"),
-                            Sentence(
-                                "No small art is it to sleep:" +
-                                    " it is necessary for that purpose to keep awake all day."
-                            )
-                        )
-                    )
-                ),
-                Chapter(
-                    "page 2",
-                    hasMany(
-                        setOf(
-                            Sentence("god is still doing pretty badly"),
-                            Sentence("sleeping is still not easy")
-                        )
-                    )
-                )
-            )
-            val holder = Book(
-                "Also Sprach Zarathustra",
-                hasMany(chapters)
-            )
+            // the whole hierarchy is created outside the transaction and needs no access to a repo
+            val holder = book()
             RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
                 bookRepo.create(holder)
-                // this is a hack to load all entities. query api really needs to be rethought
                 val result = bookRepo.connectionProvider.withConnection { conn ->
                     conn.createStatement("select content from SENTENCES").execute()
                         .map { it.get("content", String::class.java)!! }.toSet()
                 }
                 assertEquals(
                     result, setOf(
-                        "god is dead", "No small art is it to sleep:" +
-                            " it is necessary for that purpose to keep awake all day.",
-                        "god is still doing pretty badly", "sleeping is still not easy"
+                        "god is dead",
+                        "No small art is it to sleep:" + " it is necessary for that purpose to keep awake all day.",
+                        "god is still doing pretty badly",
+                        "sleeping is still not easy"
 
                     )
                 )
             }
         }
+        it(
+            "can load has many",
+            ignored = if (System.getenv("NEXT") == null) Ignored.Because("NEXT") else null
+        ) {
+            val holder = book()
+            RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
+                val id = bookRepo.create(holder).id!!
+                val reloaded = bookRepo.findById(id, fetchRelations = setOf(Book::chapters))
+                assert(reloaded.chapters.map { it.book } == listOf(
+                    "Also Sprach Zarathustra",
+                    "Also Sprach Zarathustra"
+                ))
+            }
+        }
+        it("does not load has many when it is not specified to be fetched") {
+            val holder = book()
+            RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
+                val id = bookRepo.create(holder).id!!
+                val reloaded = bookRepo.findById(id, fetchRelations = setOf())
+                assert(reloaded.chapters is LazyHasMany)
+            }
+        }
+    }
+
+    private fun book(): Book {
+        val chapters: Set<Chapter> = setOf(
+            Chapter(
+                "page 1", hasMany(
+                    setOf(
+                        Sentence("god is dead"), Sentence(
+                            "No small art is it to sleep:" + " it is necessary for that purpose to keep awake all day."
+                        )
+                    )
+                )
+            ), Chapter(
+                "page 2", hasMany(
+                    setOf(
+                        Sentence("god is still doing pretty badly"), Sentence("sleeping is still not easy")
+                    )
+                )
+            )
+        )
+        return Book("Also Sprach Zarathustra", hasMany(chapters))
     }
 }

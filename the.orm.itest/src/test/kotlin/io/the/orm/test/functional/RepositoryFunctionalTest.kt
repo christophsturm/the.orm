@@ -136,7 +136,7 @@ class RepositoryFunctionalTest {
                         .isA<io.the.orm.NotFoundException>()
                         .message
                         .isNotNull()
-                        .isEqualTo("No users found for id 1")
+                        .isEqualTo("No User found for id 1")
                 }
             }
             context("updating objects") {
