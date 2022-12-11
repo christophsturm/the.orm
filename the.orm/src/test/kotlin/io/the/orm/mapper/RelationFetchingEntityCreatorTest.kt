@@ -34,7 +34,10 @@ object RelationFetchingEntityCreatorTest {
                 val creator = RelationFetchingEntityCreator(
                     listOf(repository),
                     StreamingEntityCreator(classInfo),
-                    classInfo
+                    classInfo,
+                    classInfo.hasManyRelations.map {
+                        it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
+                    }
                 )
                 val result = creator.toEntities(
                     flowOf(ResultLine(listOf(99L), listOf(10L))), setOf(), connectionProvider
@@ -53,7 +56,10 @@ object RelationFetchingEntityCreatorTest {
             val creator = RelationFetchingEntityCreator(
                 listOf(),
                 StreamingEntityCreator(classInfo),
-                classInfo
+                classInfo,
+                classInfo.hasManyRelations.map {
+                    it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
+                }
             )
             it("does not resolve has many relations when they are not contained in fetchRelations") {
                 val result = creator.toEntities(
@@ -67,7 +73,6 @@ object RelationFetchingEntityCreatorTest {
                 )
                 assertEquals(Entity(LazyHasMany(setOf(referencedEntity1, referencedEntity2)), 99), result.single())
             }
-
         }
     }
 }

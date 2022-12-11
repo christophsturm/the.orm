@@ -7,6 +7,7 @@ import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.Relation
 import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.query.QueryFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
@@ -17,20 +18,18 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     // one repo for every field in relation, in the same order
     private val belongsToRepos: List<Repo<*>>,
     private val creator: StreamingEntityCreator<Entity>,
-    val classInfo: ClassInfo<Entity>
+    private val classInfo: ClassInfo<Entity>,
+    private val hasManyQueries: List<QueryFactory<out Any>.Query>
 ) {
     private val idFieldIndex = classInfo.simpleFieldInfo.indexOfFirst { it.dbFieldName == "id" }
-    private val hasManyQueries = classInfo.hasManyRelations.map {
-        it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
-    }
     private val hasManyRemoteFields = classInfo.hasManyRelations.map { fieldInfo ->
         val remoteFieldInfo = fieldInfo.classInfo.belongsToRelations.singleOrNull {
             it.relatedClass == classInfo.kClass
         }
             ?: throw RepositoryException(
                 "Corresponding BelongsTo field for HasMany relation " +
-                        "${classInfo.name}.${fieldInfo.property.name} not found in ${fieldInfo.classInfo.name}." +
-                        " Currently you need to declare both sides of the relation"
+                    "${classInfo.name}.${fieldInfo.property.name} not found in ${fieldInfo.classInfo.name}." +
+                    " Currently you need to declare both sides of the relation"
             )
         remoteFieldInfo.property
     }

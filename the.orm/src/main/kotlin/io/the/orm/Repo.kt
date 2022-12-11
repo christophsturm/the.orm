@@ -122,12 +122,16 @@ class RepoImpl<Entity : Any> internal constructor(
                 })
         }
         if (classInfo.hasHasManyRelations || classInfo.hasBelongsToRelations) {
+            val hasManyQueries: List<QueryFactory<out Any>.Query> = classInfo.hasManyRelations.map {
+                it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
+            }
             queryFactory.resultMapper = RelationFetchingResultMapper(
                 ResultResolver(classInfo),
                 RelationFetchingEntityCreator(
                     classInfo.belongsToRelations.map { it.repo },
                     StreamingEntityCreator(classInfo),
-                    classInfo
+                    classInfo,
+                    hasManyQueries
                 )
             )
         }
