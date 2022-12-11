@@ -1,4 +1,4 @@
-package io.the.orm.test.functional.exp
+package io.the.orm.test.functional
 
 import failgood.Test
 import io.the.orm.PK
@@ -13,7 +13,9 @@ import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 import io.the.orm.transaction.RepoTransactionProvider
 
-private const val SCHEMA = """
+@Test
+object MultipleReposFunctionalTest {
+    private const val SCHEMA = """
     create sequence pages_id_seq no maxvalue;
     create table pages
     (
@@ -58,30 +60,28 @@ private const val SCHEMA = """
 
 """
 
-@Test
-object MultipleRepositoriesFunctionalTest {
     data class Page(
         val url: String,
         val title: String?,
         val description: String?,
         val ldJson: String?,
         val author: String?,
-        val recipes: HasMany<Recipe> = hasMany(), // TODO equals and has many. (possibly unfetched)
+        val recipes: HasMany<Recipe> = hasMany(),
         val id: PK? = null
     )
 
     data class Recipe(
         val name: String,
         val description: String?,
-        val page: BelongsTo<Page>,
+        val page: BelongsTo<Page> = belongsTo(),
         val ingredients: HasMany<RecipeIngredient> = hasMany(),
         val id: PK? = null
     )
 
     data class RecipeIngredient(
         val amount: String,
-        val recipe: BelongsTo<Recipe> = belongsTo(),
         val ingredient: Ingredient,
+        val recipe: BelongsTo<Recipe> = belongsTo(),
         val id: PK? = null
     )
 
@@ -112,14 +112,10 @@ object MultipleRepositoriesFunctionalTest {
                 val findIngredientByName =
                     repoRegistry.getRepo<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
 
-//                val findPageByUrl = repo.repository.queryFactory.createQuery(Page::url.isEqualTo())
                 repoTransactionProvider.transaction(
                     Page::class,
-                    Recipe::class,
-                    RecipeIngredient::class
-                ) { pageRepo, recipeRepo, recipeIngredientRepo ->
-                    // recipe hasMany RecipeIngredient(s)
-                    // recipe hasMany Ingredients through RecipeIngredients
+                    Recipe::class
+                ) { pageRepo, recipeRepo ->
                     val page = pageRepo
                         .create(
                             Page("url", "pageTitle", "description", "{}", "author")
@@ -129,23 +125,19 @@ object MultipleRepositoriesFunctionalTest {
                             Recipe(
                                 "Spaghetti Carbonara",
                                 "Wasser Salzen, Speck dazu, fertig",
-                                belongsTo(page)
+                                belongsTo(page),
+                                ingredients = hasMany(setOf(RecipeIngredient("1", findIngredientByName.with("Gurke")
+                                    .findOrCreate(pageRepo.connectionProvider) { Ingredient("Gurke") }
+                                ), RecipeIngredient("100g", findIngredientByName.with("Butter")
+                                        .findOrCreate(pageRepo.connectionProvider) { Ingredient("Butter") }
+                                    )))
                             )
                         )
-                    val gurke = findIngredientByName.with("gurke")
-                        .findOrCreate(pageRepo.connectionProvider) { Ingredient("Gurke") }
-                    val createdIngredient =
-                        recipeIngredientRepo.create(RecipeIngredient("100g", belongsTo(recipe), gurke))
-                    val reloadedIngredient = recipeIngredientRepo.findById(
-                        createdIngredient.id!!
-                    )
-                    val recipeIngredient =
-                        recipeIngredientRepo.create(RecipeIngredient("2", belongsTo(recipe), gurke))
-//                    assertEquals(createdIngredient, reloadedIngredient)
                     val reloadedRecipe =
                         recipeRepo.findById(recipe.id!!, fetchRelations = setOf(Recipe::ingredients, Recipe::page))
 
-                    assert(reloadedRecipe.ingredients.map { it.ingredient.name } == listOf("Gurke", "Gurke"))
+                    assert(reloadedRecipe.ingredients.map { it.amount + " " + it.ingredient.name }
+                        == listOf("1 Gurke", "100g Butter"))
                     assert(reloadedRecipe.page.get().url == "url")
                 }
             }

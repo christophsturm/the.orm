@@ -47,19 +47,25 @@ create table sentences
         val id: PK? = null
     )
 
-    data class Book(val name: String, val chapters: HasMany<Chapter>, val id: PK? = null)
-
+    data class Book(val name: String, val chapters: HasMany<Chapter> = hasMany(), val id: PK? = null)
 
     /*
     for has many we really need recursive saving because we don't know the id when we create the objects
      */
     val context = describeOnAllDbs<HasMany<*>>(schema = SCHEMA) {
         val repo = RepoRegistry(setOf(Sentence::class, Chapter::class, Book::class))
-        it("can create an page with nested entities") {
+        val transactionProvider = it()
+        it("can write and read an entity with an empty has many relation") {
+            RepoTransactionProvider(repo, transactionProvider).transaction(Book::class) { bookRepo ->
+                val book = bookRepo.create(Book("a book without chapters"))
+                bookRepo.findById(book.id!!)
+            }
+        }
+        it("can create an entity with nested has many relations") {
             // the whole hierarchy is created outside the transaction and needs no access to a repo
-            val holder = book()
-            RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
-                bookRepo.create(holder)
+            val book = book()
+            RepoTransactionProvider(repo, transactionProvider).transaction(Book::class) { bookRepo ->
+                bookRepo.create(book)
                 val result = bookRepo.connectionProvider.withConnection { conn ->
                     conn.createStatement("select content from SENTENCES").execute()
                         .map { it.get("content", String::class.java)!! }.toSet()
@@ -76,7 +82,7 @@ create table sentences
         }
         it("can load has many") {
             val holder = book()
-            RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
+            RepoTransactionProvider(repo, transactionProvider).transaction(Book::class) { bookRepo ->
                 val id = bookRepo.create(holder).id!!
                 val reloaded = bookRepo.findById(id, fetchRelations = setOf(Book::chapters, Chapter::sentences))
                 assertEquals(setOf(
@@ -89,7 +95,7 @@ create table sentences
         }
         it("does not load has many when it is not specified to be fetched") {
             val holder = book()
-            RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
+            RepoTransactionProvider(repo, transactionProvider).transaction(Book::class) { bookRepo ->
                 val id = bookRepo.create(holder).id!!
                 val reloaded = bookRepo.findById(id, fetchRelations = setOf())
                 assert(reloaded.chapters is LazyHasMany)

@@ -41,7 +41,7 @@ create table serializable_users
 """
 
 @Test
-class RepositoryFunctionalTest {
+class RepoFunctionalTest {
     private val characters = ('A'..'Z').toList() + (('a'..'z').toList()).plus(' ')
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
     val context = describeOnAllDbs("the repository class", DBS.databases,

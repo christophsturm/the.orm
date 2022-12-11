@@ -25,7 +25,7 @@ import java.lang.Long
 /**
  * this is just the R2DBC playground that started this project.
  *
- * @see io.the.orm.test.functional.RepositoryFunctionalTest for api usage.
+ * @see io.the.orm.test.functional.RepoFunctionalTest for api usage.
  */
 
 private const val SCHEMA = """
