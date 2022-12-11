@@ -71,7 +71,7 @@ object BelongsToTest {
             }
             it("can load recursive belongs to relations when specified in fetchRelations") {
                 repoProvider.transaction(
-                    Sentence::class,
+                    Sentence::class
                 ) { sentenceRepo ->
                     val loadedSentence =
                         sentenceRepo.findById(sentence.id!!, fetchRelations = setOf(Sentence::chapter, Chapter::book))

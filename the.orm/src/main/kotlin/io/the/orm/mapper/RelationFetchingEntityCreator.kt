@@ -4,6 +4,7 @@ import io.the.orm.PK
 import io.the.orm.Repo
 import io.the.orm.RepositoryException
 import io.the.orm.dbio.ConnectionProvider
+import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.exp.relations.Relation
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlinx.coroutines.flow.Flow
@@ -52,11 +53,15 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                 if (longs != null) {
                     val repo = repos[index]
                     val ids = longs.toList()
-                    try {
+                    val relatedEntities = try {
                         repo.findByIds(connectionProvider, ids)
                     } catch (e: Exception) {
                         throw RepositoryException("unexpected error fetching ids $ids from $repo", e)
                     }
+                    if (belongsToProperties[index] == null)
+                        relatedEntities
+                    else
+                        relatedEntities.mapValues { BelongsTo.BelongsToImpl(it.value) }
                 } else null
             }
             val hasManyRelations = if (pkList != null) {

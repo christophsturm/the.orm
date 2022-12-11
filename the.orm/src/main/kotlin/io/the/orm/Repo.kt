@@ -81,6 +81,7 @@ class RepoImpl<Entity : Any> internal constructor(
             ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")) as
             KProperty1<Entity, PK>
 
+    @Suppress("UNCHECKED_CAST")
     internal val classInfo: ClassInfo<Entity> = classInfos[kClass] as ClassInfo<Entity>
     private val idHandler = classInfo.idHandler!!
 
