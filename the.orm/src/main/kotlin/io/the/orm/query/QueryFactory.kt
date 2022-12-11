@@ -99,8 +99,11 @@ class QueryFactory<T : Any> internal constructor(
         private val parameterValues: List<Any>
     ) {
 
-        suspend fun find(connectionProvider: ConnectionProvider): List<T> {
-            return findAndTransform(connectionProvider) { it.toList(mutableListOf()) }
+        suspend fun find(
+            connectionProvider: ConnectionProvider,
+            fetchRelations: Set<KProperty1<*, Relation>> = setOf()
+        ): List<T> {
+            return findAndTransform(connectionProvider, fetchRelations) { it.toList(mutableListOf()) }
         }
 
         suspend fun <R> findAndTransform(

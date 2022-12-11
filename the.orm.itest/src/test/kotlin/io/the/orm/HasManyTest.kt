@@ -75,8 +75,10 @@ create table sentences
                 )
             }
         }
-        it("can load has many",
-            ignored = if (System.getenv("NEXT") == null) Ignored.Because("NEXT") else null) {
+        it(
+            "can load has many",
+            ignored = if (System.getenv("NEXT") == null) Ignored.Because("NEXT") else null
+        ) {
             val holder = book()
             RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
                 val id = bookRepo.create(holder).id!!
@@ -87,8 +89,7 @@ create table sentences
                 ))
             }
         }
-        it("does not load has many unless it is specified",
-            ignored = if (System.getenv("NEXT") == null) Ignored.Because("NEXT") else null) {
+        it("does not load has many when it is not specified to be fetched") {
             val holder = book()
             RepoTransactionProvider(repo, it()).transaction(Book::class) { bookRepo ->
                 val id = bookRepo.create(holder).id!!

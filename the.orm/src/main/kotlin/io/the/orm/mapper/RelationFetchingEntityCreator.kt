@@ -67,7 +67,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
             val hasManyRelations = if (pkList != null) {
                 hasManyQueries.withIndex().map { (index, query) ->
                     if (fetchRelations.contains(hasManyProperties[index])) query.with(pkList.toTypedArray())
-                        .find(connectionProvider).toList()
+                        .find(connectionProvider, fetchRelations).toList()
                     else null
                 } // WIP
             } else null
