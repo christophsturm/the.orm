@@ -22,7 +22,7 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
 
     override fun toEntities(
         results: Flow<ResultLine>,
-        relations: List<Map<PK, Any>?>,
+        belongsToRelations: List<Map<PK, Any>?>,
         hasManyRelations: List<Map<PK, Set<Entity>>?>?
     ): Flow<Entity> {
         return results.map { values ->
@@ -34,7 +34,7 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
             }
             values.relations.withIndex().associateTo(map) { (index, value) ->
                 val fieldInfo = classInfo.belongsToRelations[index]
-                val relationValues = relations[index]
+                val relationValues = belongsToRelations[index]
                 if (relationValues != null)
                     Pair(fieldInfo.constructorParameter, relationValues[value as PK])
                 else
@@ -47,8 +47,8 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
                 val loadedEntries = hasManyRelations?.get(index)
                 if (loadedEntries != null)
                     Pair(it.constructorParameter, LazyHasMany<Any>(loadedEntries[id]))
-
-                Pair(it.constructorParameter, LazyHasMany<Any>())
+                else
+                    Pair(it.constructorParameter, LazyHasMany<Any>())
             }
         }.map {
             try {
