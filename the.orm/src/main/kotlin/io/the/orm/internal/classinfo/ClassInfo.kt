@@ -75,6 +75,7 @@ object DoubleConverter : FieldConverter {
 }
 
 internal data class ClassInfo<T : Any>(
+    val kClass: KClass<T>,
     val table: Table,
     val name: String,
     val constructor: KFunction<T>,
@@ -260,6 +261,7 @@ internal data class ClassInfo<T : Any>(
             }
             val localFieldInfo = fieldInfo.filterIsInstance<LocalFieldInfo>()
             return ClassInfo(
+                kClass,
                 table,
                 name!!,
                 constructor,

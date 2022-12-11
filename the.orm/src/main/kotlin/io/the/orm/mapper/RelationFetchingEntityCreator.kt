@@ -23,6 +23,17 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     private val hasManyQueries = classInfo.hasManyRelations.map {
         it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
     }
+    private val hasManyRemoteFields = classInfo.hasManyRelations.map { fieldInfo ->
+        val remoteFieldInfo = fieldInfo.classInfo.belongsToRelations.singleOrNull {
+            it.relatedClass == classInfo.kClass
+        }
+            ?: throw RepositoryException(
+                "Corresponding BelongsTo field for HasMany relation " +
+                    "${classInfo.name}.${fieldInfo.property.name} not found in ${fieldInfo.classInfo.name}." +
+                    " Currently you need to declare both sides of the relation"
+            )
+        remoteFieldInfo.property
+    }
 
     // properties for every relation. they will only be fetched when contained in fetchRelations
     private val hasManyProperties = classInfo.hasManyRelations.map { it.property }
@@ -67,7 +78,18 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
             val hasManyRelations = if (pkList != null) {
                 hasManyQueries.withIndex().map { (index, query) ->
                     if (fetchRelations.contains(hasManyProperties[index])) query.with(pkList.toTypedArray())
-                        .find(connectionProvider, fetchRelations).toList()
+                        .findAndTransform(connectionProvider, fetchRelations) { flow: Flow<Any> ->
+                            val result = LinkedHashMap<PK, MutableSet<Entity>>()
+                            flow.collect {
+                                @Suppress("UNCHECKED_CAST")
+                                val prop: KProperty1<Any, BelongsTo.BelongsToNotLoaded<*>> =
+                                    hasManyRemoteFields[index] as KProperty1<Any, BelongsTo.BelongsToNotLoaded<*>>
+                                val any = prop(it).pk
+                                val set = result.getOrPut(any) { mutableSetOf() }
+                                set.add(it as Entity)
+                            }
+                            result
+                        }
                     else null
                 } // WIP
             } else null
