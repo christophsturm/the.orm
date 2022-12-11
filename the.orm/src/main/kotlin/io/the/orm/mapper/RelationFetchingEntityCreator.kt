@@ -93,7 +93,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                     else null
                 } // WIP
             } else null
-            creator.toEntities(resultsList.asFlow(), belongsToRelations).collect {
+            creator.toEntities(resultsList.asFlow(), belongsToRelations, hasManyRelations).collect {
                 emit(it)
             }
         }

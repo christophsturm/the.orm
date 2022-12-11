@@ -21,6 +21,6 @@ class DefaultResultMapper<Entity : Any> internal constructor(
 
     override suspend fun mapQueryResult(queryResult: DBResult): Flow<Entity> {
         val parameters: Flow<ResultLine> = resultResolver.getResolvedValues(queryResult)
-        return entityCreator.toEntities(parameters, listOf())
+        return entityCreator.toEntities(parameters, listOf(), listOf())
     }
 }

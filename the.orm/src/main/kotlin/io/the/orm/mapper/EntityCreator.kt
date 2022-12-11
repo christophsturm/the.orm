@@ -10,12 +10,23 @@ import kotlinx.coroutines.flow.map
 import kotlin.reflect.KParameter
 
 internal interface EntityCreator<Entity : Any> {
-    fun toEntities(results: Flow<ResultLine>, relations: List<Map<PK, Any>?> = listOf()): Flow<Entity>
+    fun toEntities(
+        results: Flow<ResultLine>,
+        relations: List<Map<PK, Any>?> = listOf(),
+        hasManyRelations: List<LinkedHashMap<PK, MutableSet<Entity>>?>?
+    ): Flow<Entity>
 }
 
 internal class StreamingEntityCreator<Entity : Any>(private val classInfo: ClassInfo<Entity>) : EntityCreator<Entity> {
-    override fun toEntities(results: Flow<ResultLine>, relations: List<Map<PK, Any>?>): Flow<Entity> {
+    private val idFieldIndex = classInfo.simpleFieldInfo.indexOfFirst { it.dbFieldName == "id" }
+
+    override fun toEntities(
+        results: Flow<ResultLine>,
+        relations: List<Map<PK, Any>?>,
+        hasManyRelations: List<LinkedHashMap<PK, MutableSet<Entity>>?>?
+    ): Flow<Entity> {
         return results.map { values ->
+            val id = values.fields[idFieldIndex] as PK
             val map = values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
                 val fieldInfo = classInfo.simpleFieldInfo[index]
                 val parameterValue = fieldInfo.fieldConverter.dbValueToParameter(value)
@@ -27,10 +38,18 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
                 if (relationValues != null)
                     Pair(fieldInfo.constructorParameter, relationValues[value as PK])
                 else
-                    Pair(fieldInfo.constructorParameter,
-                        BelongsTo.BelongsToNotLoaded(fieldInfo.relatedClass, value as PK))
+                    Pair(
+                        fieldInfo.constructorParameter,
+                        BelongsTo.BelongsToNotLoaded(fieldInfo.relatedClass, value as PK)
+                    )
             }
-            classInfo.hasManyRelations.associateTo(map) { Pair(it.constructorParameter, LazyHasMany<Any>()) }
+            classInfo.hasManyRelations.withIndex().associateTo(map) { (index, it) ->
+                val loadedEntries = hasManyRelations?.get(index)
+                if (loadedEntries != null)
+                    Pair(it.constructorParameter, LazyHasMany<Any>(loadedEntries[id]))
+
+                Pair(it.constructorParameter, LazyHasMany<Any>())
+            }
         }.map {
             try {
                 classInfo.constructor.callBy(it)
@@ -42,5 +61,6 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
         }
     }
 }
+
 fun Map<KParameter, Any?>.friendlyString() =
     entries.joinToString { """${it.key.name}=>${it.value}(${it.key.type})""" }
