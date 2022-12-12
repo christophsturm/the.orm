@@ -24,7 +24,7 @@ interface QueryWithParameters<Entity : Any> {
     suspend fun find(
         connectionProvider: ConnectionProvider,
         fetchRelations: Set<KProperty1<*, Relation>> = setOf()
-    ): List<Any>
+    ): List<Entity>
 
     suspend fun <R> findAndTransform(
         connectionProvider: ConnectionProvider,

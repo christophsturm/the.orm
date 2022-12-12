@@ -63,12 +63,12 @@ class QueryFactoryFunctionalTest {
                     val findByUserNameLikeAndBirthdayBetween =
                         repo.queryFactory.createQuery(User::name.like(), User::birthday.between())
 
-                    expectThat(
-                        findByUserNameLikeAndBirthdayBetween.with(
-                            "%",
-                            Pair(LocalDate.of(2000, 4, 2), LocalDate.of(2000, 6, 2))
-                        ).find(connectionProvider)
-                    ).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
+                    val result: List<User> = findByUserNameLikeAndBirthdayBetween.with(
+                        "%",
+                        Pair(LocalDate.of(2000, 4, 2), LocalDate.of(2000, 6, 2))
+                    ).find(connectionProvider)
+
+                    expectThat(result).containsExactlyInAnyOrder(usersPerMonth[4], usersPerMonth[5])
                 }
                 it("can query by sql") {
                     val findByUserNameLikeAndBirthdayBetween =
