@@ -53,7 +53,7 @@ create table sentences
     for has many we really need recursive saving because we don't know the id when we create the objects
      */
     val context = describeOnAllDbs<HasMany<*>>(schema = SCHEMA) {
-        val transactionProvider = it()
+        val transactionProvider = it
         val repo = RepoRegistry(setOf(Sentence::class, Chapter::class, Book::class))
         it("can write and read an entity with an empty has many relation") {
             RepoTransactionProvider(repo, transactionProvider).transaction(Book::class) { bookRepo ->

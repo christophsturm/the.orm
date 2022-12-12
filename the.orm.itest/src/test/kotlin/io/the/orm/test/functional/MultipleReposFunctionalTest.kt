@@ -88,7 +88,7 @@ object MultipleReposFunctionalTest {
     val context =
         // testing support to run the tests on all supported databases
         describeOnAllDbs(RepoTransactionProvider::class, DBS.databases, SCHEMA) {
-            val transactionProvider = it()
+            val transactionProvider = it
 
             // the RepoRegistry is created at startup and lists all entity classes
             val repoRegistry = RepoRegistry(

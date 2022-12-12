@@ -4,7 +4,7 @@ import io.the.orm.test.describeOnAllDbs
 
 object TransactionProviderTest {
     val context = describeOnAllDbs<TransactionProvider> {
-        val transactionProvider = it()
+        val transactionProvider = it
         // nothing here yet
     }
 }

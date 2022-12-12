@@ -21,8 +21,7 @@ object SchemaLoadingTest {
             ignored = Ignored.Because("Unfinished")
             // the current problem is that it finds properties of all databases, instead only of the current database.
             // (needs to filter by table_catalog)
-        ) { createConnectionProvider ->
-            val connectionProvider = createConnectionProvider()
+        ) { connectionProvider ->
             it("prints result", ignored = Ignored.Because("only for debugging")) {
                 connectionProvider.withConnection { conn ->
                     println(
