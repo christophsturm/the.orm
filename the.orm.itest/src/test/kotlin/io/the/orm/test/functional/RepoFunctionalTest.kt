@@ -39,6 +39,9 @@ create table serializable_users
 
 
 """
+/*
+this test is from the very early days of the project. don't take it as inspiration how to use the api
+ */
 
 @Test
 class RepoFunctionalTest {
@@ -46,8 +49,8 @@ class RepoFunctionalTest {
     private val reallyLongString = (1..20000).map { characters.random() }.joinToString("")
     val context = describeOnAllDbs("the repository class", DBS.databases,
         SCHEMA
-    ) { createConnectionProvider ->
-        val connection: TransactionProvider by dependency({ createConnectionProvider() })
+    ) {
+        val connection: TransactionProvider = it()
         context("with a user class") {
             val repo = Repo.create<User>()
             context("Creating Rows") {

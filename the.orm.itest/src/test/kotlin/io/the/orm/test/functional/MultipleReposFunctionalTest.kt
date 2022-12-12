@@ -23,7 +23,6 @@ object MultipleReposFunctionalTest {
         url         varchar(4096) not null unique,
         title       varchar(2048),
         description text,
-        ld_json     text,
         author      varchar(2048)
     );
 
@@ -64,7 +63,6 @@ object MultipleReposFunctionalTest {
         val url: String,
         val title: String?,
         val description: String?,
-        val ldJson: String?,
         val author: String?,
         val recipes: HasMany<Recipe> = hasMany(),
         val id: PK? = null
@@ -106,19 +104,19 @@ object MultipleReposFunctionalTest {
                 repoTransactionProvider.transaction(Page::class, Recipe::class) { pageRepo, recipeRepo ->
                     val page = pageRepo
                         .create(
-                            Page("url", "pageTitle", "description", "{}", "author")
+                            Page("url", "pageTitle", "description", "author")
                         )
-                    // create or
                     val ingredients = setOf(RecipeIngredient("1", findIngredientByName.with("Gurke")
                         .findOrCreate(pageRepo.connectionProvider) { Ingredient("Gurke") }
                     ), RecipeIngredient("100g", findIngredientByName.with("Butter")
                             .findOrCreate(pageRepo.connectionProvider) { Ingredient("Butter") }
                         ))
+
                     val recipe =
                         recipeRepo.create(
                             Recipe(
                                 "Spaghetti Carbonara",
-                                "Wasser Salzen, Speck dazu, fertig",
+                                "Salt the water, add bacon, done",
                                 belongsTo(page),
                                 ingredients = hasMany(ingredients)
                             )
