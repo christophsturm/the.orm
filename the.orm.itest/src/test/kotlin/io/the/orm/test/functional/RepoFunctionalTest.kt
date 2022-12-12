@@ -50,7 +50,7 @@ class RepoFunctionalTest {
     val context = describeOnAllDbs("the repository class", DBS.databases,
         SCHEMA
     ) {
-        val connection: TransactionProvider = it()
+        val connection: TransactionProvider = it
         context("with a user class") {
             val repo = Repo.create<User>()
             context("Creating Rows") {

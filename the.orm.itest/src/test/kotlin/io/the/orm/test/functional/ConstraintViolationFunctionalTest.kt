@@ -14,9 +14,9 @@ import java.time.LocalDate
 @Test
 class ConstraintViolationFunctionalTest {
     val context =
-        describeOnAllDbs("constraint error handling", DBS.databases, USERS_SCHEMA) { createConnectionProvider ->
+        describeOnAllDbs("constraint error handling", DBS.databases, USERS_SCHEMA) { connectionProvider ->
 
-            val repo by dependency({ ConnectedRepo.create<User>(createConnectionProvider()) })
+            val repo by dependency({ ConnectedRepo.create<User>(connectionProvider) })
 
             it("throws DataIntegrityViolationException exception on constraint violation") {
                 val user = User(

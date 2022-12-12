@@ -33,13 +33,12 @@ class ActiveRecordFunctionalTest {
 
     val context = describeOnAllDbs("Active Record API", DBS.databases, USERS_SCHEMA) { connectionProvider ->
         it("just works") {
-            val connection = connectionProvider()
             val user = User(
                 name = "chris",
                 email = "email",
                 birthday = LocalDate.parse("2020-06-20")
             )
-            user.create(connection)
+            user.create(connectionProvider)
         }
     }
 }

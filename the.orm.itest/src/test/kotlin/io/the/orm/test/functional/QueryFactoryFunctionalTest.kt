@@ -39,8 +39,7 @@ create table vegetables
 
 @Test
 class QueryFactoryFunctionalTest {
-    val context = describeOnAllDbs("support for querying data", DBS.databases, SCHEMA) { createConnectionProvider ->
-        val connectionProvider by dependency({ createConnectionProvider() })
+    val context = describeOnAllDbs("support for querying data", DBS.databases, SCHEMA) { connectionProvider ->
 
         val repo = Repo.create<User>()
         suspend fun create(instance: User) = repo.create(connectionProvider, instance)

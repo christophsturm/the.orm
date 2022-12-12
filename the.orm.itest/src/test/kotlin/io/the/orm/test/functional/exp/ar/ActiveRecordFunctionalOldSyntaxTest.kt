@@ -14,14 +14,13 @@ import java.time.LocalDate
 object ActiveRecordFunctionalOldSyntaxTest {
     val context = describe("Active Record API", ignored = Ignored.Because("just an example")) {
         forAllDatabases(DBS.databases, USERS_SCHEMA) { connectionProvider ->
-            val connection = connectionProvider()
             it("just works") {
                 val user = User(
                     name = "chris",
                     email = "email",
                     birthday = LocalDate.parse("2020-06-20")
                 )
-                user.create(connection)
+                user.create(connectionProvider)
             }
         }
     }

@@ -11,8 +11,7 @@ import kotlin.test.assertNotNull
 object BelongsToTest {
     // this test uses the same schema as the HasManyTest but declared as BelongsTo instead of hasMany
 
-    val context = describeOnAllDbs<BelongsTo<*>>(schema = HasManyTest.SCHEMA) {
-        val connection = it()
+    val context = describeOnAllDbs<BelongsTo<*>>(schema = HasManyTest.SCHEMA) { connection ->
         describe("with always eager loading (declared as the Entity instead of BelongsTo<Entity>)") {
             data class Book(val name: String, val id: PK? = null)
             data class Chapter(val name: String, val book: Book, val id: PK? = null)

@@ -7,6 +7,8 @@ import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
+import io.the.orm.dbio.DBConnection
+import io.the.orm.dbio.DBConnectionFactory
 import io.the.orm.dbio.TransactionProvider
 import io.the.orm.dbio.TransactionalConnectionProvider
 import io.the.orm.dbio.r2dbc.R2DbcDBConnectionFactory
@@ -102,11 +104,11 @@ class DBTestUtil(val databaseName: String) {
 class VertxConnectionProviderFactory(private val poolOptions: PgConnectOptions, private val db: AutoCloseable) :
     ConnectionProviderFactory {
     private val pools = mutableListOf<PgPool>()
-    override suspend fun create(): TransactionProvider {
+    override suspend fun create(): DBConnectionFactory {
         val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(TEST_POOL_SIZE))
         pools.add(client)
 
-        return TransactionalConnectionProvider(VertxDBConnectionFactory(client))
+        return VertxDBConnectionFactory(client)
     }
 
     override suspend fun close() {
@@ -122,7 +124,7 @@ class R2dbcConnectionProviderFactory(
     private val closable: AutoCloseable? = null
 ) : ConnectionProviderFactory {
     private val pools = mutableListOf<ConnectionPool>()
-    override suspend fun create(): TransactionProvider {
+    override suspend fun create(): DBConnectionFactory {
         val pool = ConnectionPool(
             ConnectionPoolConfiguration.builder(connectionFactory)
                 .maxIdleTime(Duration.ofMillis(1000))
@@ -130,8 +132,7 @@ class R2dbcConnectionProviderFactory(
                 .build()
         )
         pools.add(pool)
-        val dbConnectionFactory = R2DbcDBConnectionFactory(pool)
-        return TransactionalConnectionProvider(dbConnectionFactory)
+        return R2DbcDBConnectionFactory(pool)
     }
 
     override suspend fun close() {
@@ -155,14 +156,14 @@ class R2dbcConnectionProviderFactory(
 }
 
 interface ConnectionProviderFactory {
-    suspend fun create(): TransactionProvider
+    suspend fun create(): DBConnectionFactory
     suspend fun close()
 }
 
 suspend fun ContextDSL<*>.forAllDatabases(
     databases: List<DBTestUtil.TestDatabase>,
     schema: String,
-    tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
+    tests: suspend ContextDSL<*>.(TransactionProvider) -> Unit
 ) {
     databases.map { db ->
         withDb(db, schema, tests)
@@ -172,7 +173,7 @@ suspend fun ContextDSL<*>.forAllDatabases(
 suspend fun ContextDSL<*>.withDb(
     db: DBTestUtil.TestDatabase,
     schema: String,
-    tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
+    tests: suspend ContextDSL<*>.(TransactionProvider) -> Unit
 ) {
     context("on ${db.name}") {
         withDbInternal(db, schema, tests)
@@ -182,32 +183,45 @@ suspend fun ContextDSL<*>.withDb(
 private suspend fun ContextDSL<Unit>.withDbInternal(
     db: DBTestUtil.TestDatabase,
     schema: String?,
-    tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
+    tests: suspend ContextDSL<*>.(TransactionProvider) -> Unit
 ) {
     val createDB by dependency({ db.createDB() }) { it.close() }
-    val connectionFactory: suspend () -> TransactionProvider =
-        {
-            val transactionProvider = createDB.create()
-            if (schema == null) transactionProvider else transactionProvider.also { t ->
-                t.withConnection { dbConnection ->
-                    dbConnection.execute(schema)
-                }
+    val dbConnection: DBConnectionFactory = LazyDBConnectionFactory(createDB, schema)
+
+    tests(TransactionalConnectionProvider(dbConnection))
+}
+
+class LazyDBConnectionFactory(val db: ConnectionProviderFactory, val schema: String?) : DBConnectionFactory {
+    var factory: DBConnectionFactory? = null
+    override suspend fun getConnection(): DBConnection {
+        if (factory != null)
+            return factory!!.getConnection()
+
+        val dbConnectionFactory = db.create()
+        val transactionProvider = TransactionalConnectionProvider(dbConnectionFactory)
+        if (schema == null) transactionProvider else transactionProvider.also { t ->
+            t.withConnection { dbConnection ->
+                dbConnection.execute(schema)
             }
         }
-    tests(connectionFactory)
+        factory = dbConnectionFactory
+        return dbConnectionFactory.getConnection()
+    }
 }
+
 inline fun <reified Subject> describeOnAllDbs(
     databases: List<DBTestUtil.TestDatabase> = DBS.databases,
     schema: String? = null,
     ignored: Ignored? = null,
-    noinline tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
+    noinline tests: suspend ContextDSL<*>.(TransactionProvider) -> Unit
 ) = describeOnAllDbs(Subject::class, databases, schema, ignored, tests)
+
 fun describeOnAllDbs(
     subject: KClass<*>,
     databases: List<DBTestUtil.TestDatabase> = DBS.databases,
     schema: String? = null,
     ignored: Ignored? = null,
-    tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
+    tests: suspend ContextDSL<*>.(TransactionProvider) -> Unit
 ) = describeOnAllDbs("the ${subject.simpleName!!}", databases, schema, ignored, tests)
 
 fun describeOnAllDbs(
@@ -215,7 +229,7 @@ fun describeOnAllDbs(
     databases: List<DBTestUtil.TestDatabase> = DBS.databases,
     schema: String? = null,
     ignored: Ignored? = null,
-    tests: suspend ContextDSL<*>.(suspend () -> TransactionProvider) -> Unit
+    tests: suspend ContextDSL<*>.(TransactionProvider) -> Unit
 ): List<RootContext> {
     return databases.mapIndexed { index, testDB ->
         RootContext("$contextName (running on ${testDB.name})", ignored, order = index) {
