@@ -4,9 +4,9 @@ import failgood.Test
 import failgood.assert.containsExactlyInAnyOrder
 import failgood.describe
 import io.the.orm.PK
-import io.the.orm.exp.relations.BelongsTo
-import io.the.orm.exp.relations.HasMany
-import io.the.orm.exp.relations.belongsTo
+import io.the.orm.relations.BelongsTo
+import io.the.orm.relations.HasMany
+import io.the.orm.relations.belongsTo
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo

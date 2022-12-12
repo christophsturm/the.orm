@@ -3,12 +3,12 @@ package io.the.orm.test.functional
 import failgood.Test
 import io.the.orm.PK
 import io.the.orm.RepoRegistry
-import io.the.orm.exp.relations.BelongsTo
-import io.the.orm.exp.relations.HasMany
-import io.the.orm.exp.relations.belongsTo
-import io.the.orm.exp.relations.hasMany
 import io.the.orm.getRepo
 import io.the.orm.query.isEqualTo
+import io.the.orm.relations.BelongsTo
+import io.the.orm.relations.HasMany
+import io.the.orm.relations.belongsTo
+import io.the.orm.relations.hasMany
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
 import io.the.orm.transaction.RepoTransactionProvider
@@ -88,10 +88,11 @@ object MultipleReposFunctionalTest {
     data class Ingredient(val name: String, val id: Long? = null)
 
     val context =
+        // testing support to run the tests on all supported databases
         describeOnAllDbs(RepoTransactionProvider::class, DBS.databases, SCHEMA) {
             val transactionProvider = it()
 
-            // here you list all entity classes
+            // the RepoRegistry is created at startup and lists all entity classes
             val repoRegistry = RepoRegistry(
                 setOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
             )
@@ -102,25 +103,24 @@ object MultipleReposFunctionalTest {
                     repoRegistry.getRepo<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
 
                 // here we start a transaction that involves Page and Recipe
-                repoTransactionProvider.transaction(
-                    Page::class,
-                    Recipe::class
-                ) { pageRepo, recipeRepo ->
+                repoTransactionProvider.transaction(Page::class, Recipe::class) { pageRepo, recipeRepo ->
                     val page = pageRepo
                         .create(
                             Page("url", "pageTitle", "description", "{}", "author")
                         )
+                    // create or
+                    val ingredients = setOf(RecipeIngredient("1", findIngredientByName.with("Gurke")
+                        .findOrCreate(pageRepo.connectionProvider) { Ingredient("Gurke") }
+                    ), RecipeIngredient("100g", findIngredientByName.with("Butter")
+                            .findOrCreate(pageRepo.connectionProvider) { Ingredient("Butter") }
+                        ))
                     val recipe =
                         recipeRepo.create(
                             Recipe(
                                 "Spaghetti Carbonara",
                                 "Wasser Salzen, Speck dazu, fertig",
                                 belongsTo(page),
-                                ingredients = hasMany(setOf(RecipeIngredient("1", findIngredientByName.with("Gurke")
-                                    .findOrCreate(pageRepo.connectionProvider) { Ingredient("Gurke") }
-                                ), RecipeIngredient("100g", findIngredientByName.with("Butter")
-                                        .findOrCreate(pageRepo.connectionProvider) { Ingredient("Butter") }
-                                    )))
+                                ingredients = hasMany(ingredients)
                             )
                         )
 

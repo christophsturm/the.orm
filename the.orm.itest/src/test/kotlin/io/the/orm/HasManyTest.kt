@@ -1,11 +1,11 @@
 package io.the.orm
 
 import failgood.Test
-import io.the.orm.exp.relations.BelongsTo
-import io.the.orm.exp.relations.HasMany
-import io.the.orm.exp.relations.LazyHasMany
-import io.the.orm.exp.relations.belongsTo
-import io.the.orm.exp.relations.hasMany
+import io.the.orm.relations.BelongsTo
+import io.the.orm.relations.HasMany
+import io.the.orm.relations.LazyHasMany
+import io.the.orm.relations.belongsTo
+import io.the.orm.relations.hasMany
 import io.the.orm.test.describeOnAllDbs
 import io.the.orm.transaction.RepoTransactionProvider
 import kotlinx.coroutines.flow.toSet

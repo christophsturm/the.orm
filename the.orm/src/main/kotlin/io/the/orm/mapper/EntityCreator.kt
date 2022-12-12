@@ -2,9 +2,9 @@ package io.the.orm.mapper
 
 import io.the.orm.PK
 import io.the.orm.RepositoryException
-import io.the.orm.exp.relations.BelongsTo
-import io.the.orm.exp.relations.LazyHasMany
 import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.relations.BelongsTo
+import io.the.orm.relations.LazyHasMany
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.reflect.KParameter

@@ -1,8 +1,8 @@
 package io.the.orm.internal.classinfo
 
 import io.the.orm.PK
-import io.the.orm.exp.relations.BelongsTo
 import io.the.orm.internal.IDHandler
+import io.the.orm.relations.BelongsTo
 
 internal class BelongsToConverter<Reference : Any>(private val idHandler: IDHandler<Reference>) : FieldConverter {
     override fun dbValueToParameter(value: Any?): Any? = null

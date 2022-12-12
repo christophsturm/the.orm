@@ -5,11 +5,11 @@ import io.r2dbc.spi.Clob
 import io.the.orm.Repo
 import io.the.orm.RepoImpl
 import io.the.orm.RepositoryException
-import io.the.orm.exp.relations.BelongsTo
-import io.the.orm.exp.relations.HasMany
 import io.the.orm.getRepo
 import io.the.orm.internal.IDHandler
 import io.the.orm.internal.Table
+import io.the.orm.relations.BelongsTo
+import io.the.orm.relations.HasMany
 import io.the.orm.util.toSnakeCase
 import io.vertx.sqlclient.data.Numeric
 import java.lang.reflect.ParameterizedType

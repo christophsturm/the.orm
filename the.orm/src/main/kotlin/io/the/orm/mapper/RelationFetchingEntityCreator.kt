@@ -4,10 +4,10 @@ import io.the.orm.PK
 import io.the.orm.Repo
 import io.the.orm.RepositoryException
 import io.the.orm.dbio.ConnectionProvider
-import io.the.orm.exp.relations.BelongsTo
-import io.the.orm.exp.relations.Relation
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.query.Query
+import io.the.orm.relations.BelongsTo
+import io.the.orm.relations.Relation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow

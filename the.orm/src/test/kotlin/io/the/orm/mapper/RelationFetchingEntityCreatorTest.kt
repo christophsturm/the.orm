@@ -8,12 +8,12 @@ import io.the.orm.Repo
 import io.the.orm.RepoImpl
 import io.the.orm.RepoRegistry
 import io.the.orm.dbio.ConnectionProvider
-import io.the.orm.exp.relations.BelongsTo
-import io.the.orm.exp.relations.HasMany
-import io.the.orm.exp.relations.LazyHasMany
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.query.Query
 import io.the.orm.query.QueryWithParameters
+import io.the.orm.relations.BelongsTo
+import io.the.orm.relations.HasMany
+import io.the.orm.relations.LazyHasMany
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.single
 import kotlin.test.assertEquals

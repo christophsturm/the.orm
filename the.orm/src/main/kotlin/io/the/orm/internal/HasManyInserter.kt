@@ -2,9 +2,9 @@ package io.the.orm.internal
 
 import io.the.orm.Repo
 import io.the.orm.dbio.ConnectionProvider
-import io.the.orm.exp.relations.BelongsTo
-import io.the.orm.exp.relations.HasMany
 import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.relations.BelongsTo
+import io.the.orm.relations.HasMany
 
 internal class HasManyInserter<Entity : Any>(
     private val rootSimpleInserter: Inserter<Entity>,

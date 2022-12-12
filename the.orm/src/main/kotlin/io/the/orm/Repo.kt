@@ -1,7 +1,6 @@
 package io.the.orm
 
 import io.the.orm.dbio.ConnectionProvider
-import io.the.orm.exp.relations.Relation
 import io.the.orm.internal.ExceptionInspector
 import io.the.orm.internal.HasManyInserter
 import io.the.orm.internal.Inserter
@@ -17,6 +16,7 @@ import io.the.orm.query.Conditions.isEqualToCondition
 import io.the.orm.query.Query
 import io.the.orm.query.QueryFactory
 import io.the.orm.query.isIn
+import io.the.orm.relations.Relation
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties

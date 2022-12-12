@@ -2,8 +2,8 @@ package io.the.orm
 
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.TransactionProvider
-import io.the.orm.exp.relations.Relation
 import io.the.orm.query.QueryFactory
+import io.the.orm.relations.Relation
 import kotlin.reflect.KProperty1
 
 interface ConnectedRepo<T : Any> {

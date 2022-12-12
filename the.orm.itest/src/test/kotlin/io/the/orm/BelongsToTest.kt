@@ -1,8 +1,8 @@
 package io.the.orm
 
 import failgood.Test
-import io.the.orm.exp.relations.BelongsTo
-import io.the.orm.exp.relations.belongsTo
+import io.the.orm.relations.BelongsTo
+import io.the.orm.relations.belongsTo
 import io.the.orm.test.describeOnAllDbs
 import io.the.orm.transaction.RepoTransactionProvider
 import kotlin.test.assertNotNull

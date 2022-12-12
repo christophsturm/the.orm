@@ -1,4 +1,4 @@
-package io.the.orm.exp.relations
+package io.the.orm.relations
 
 import io.the.orm.PK
 import io.the.orm.RepositoryException

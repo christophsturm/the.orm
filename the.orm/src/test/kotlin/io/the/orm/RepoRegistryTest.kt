@@ -2,8 +2,8 @@ package io.the.orm
 
 import failgood.Test
 import failgood.describe
-import io.the.orm.exp.relations.BelongsTo
-import io.the.orm.exp.relations.HasMany
+import io.the.orm.relations.BelongsTo
+import io.the.orm.relations.HasMany
 
 @Test
 class RepoRegistryTest {

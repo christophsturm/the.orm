@@ -1,11 +1,11 @@
 @file:Suppress("unused", "UNUSED_PARAMETER")
 
-package io.the.orm.exp.relations
+package io.the.orm.relations
 
 import io.the.orm.RepositoryException
 
 /*
-Relations support, not yet finished
+Relations support
  */
 
 interface HasMany<Entity : Any> : Set<Entity>, Relation

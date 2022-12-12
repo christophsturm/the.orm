@@ -8,11 +8,11 @@ import failgood.mock.mock
 import io.the.orm.PK
 import io.the.orm.Repo
 import io.the.orm.dbio.ConnectionProvider
-import io.the.orm.exp.relations.BelongsTo
-import io.the.orm.exp.relations.HasMany
-import io.the.orm.exp.relations.belongsTo
-import io.the.orm.exp.relations.hasMany
 import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.relations.BelongsTo
+import io.the.orm.relations.HasMany
+import io.the.orm.relations.belongsTo
+import io.the.orm.relations.hasMany
 import kotlin.test.assertEquals
 
 @Test
