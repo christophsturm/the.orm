@@ -7,6 +7,7 @@ import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
+import io.the.orm.dbio.DBConnectionFactory
 import io.the.orm.dbio.TransactionProvider
 import io.the.orm.dbio.TransactionalConnectionProvider
 import io.the.orm.dbio.r2dbc.R2DbcDBConnectionFactory
@@ -102,11 +103,11 @@ class DBTestUtil(val databaseName: String) {
 class VertxConnectionProviderFactory(private val poolOptions: PgConnectOptions, private val db: AutoCloseable) :
     ConnectionProviderFactory {
     private val pools = mutableListOf<PgPool>()
-    override suspend fun create(): TransactionProvider {
+    override suspend fun create(): DBConnectionFactory {
         val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(TEST_POOL_SIZE))
         pools.add(client)
 
-        return TransactionalConnectionProvider(VertxDBConnectionFactory(client))
+        return VertxDBConnectionFactory(client)
     }
 
     override suspend fun close() {
@@ -122,7 +123,7 @@ class R2dbcConnectionProviderFactory(
     private val closable: AutoCloseable? = null
 ) : ConnectionProviderFactory {
     private val pools = mutableListOf<ConnectionPool>()
-    override suspend fun create(): TransactionProvider {
+    override suspend fun create(): DBConnectionFactory {
         val pool = ConnectionPool(
             ConnectionPoolConfiguration.builder(connectionFactory)
                 .maxIdleTime(Duration.ofMillis(1000))
@@ -130,8 +131,7 @@ class R2dbcConnectionProviderFactory(
                 .build()
         )
         pools.add(pool)
-        val dbConnectionFactory = R2DbcDBConnectionFactory(pool)
-        return TransactionalConnectionProvider(dbConnectionFactory)
+        return R2DbcDBConnectionFactory(pool)
     }
 
     override suspend fun close() {
@@ -155,7 +155,7 @@ class R2dbcConnectionProviderFactory(
 }
 
 interface ConnectionProviderFactory {
-    suspend fun create(): TransactionProvider
+    suspend fun create(): DBConnectionFactory
     suspend fun close()
 }
 
@@ -187,7 +187,7 @@ private suspend fun ContextDSL<Unit>.withDbInternal(
     val createDB by dependency({ db.createDB() }) { it.close() }
     val connectionFactory: suspend () -> TransactionProvider =
         {
-            val transactionProvider = createDB.create()
+            val transactionProvider = TransactionalConnectionProvider(createDB.create())
             if (schema == null) transactionProvider else transactionProvider.also { t ->
                 t.withConnection { dbConnection ->
                     dbConnection.execute(schema)
