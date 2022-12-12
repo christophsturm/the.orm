@@ -191,18 +191,19 @@ private suspend fun ContextDSL<Unit>.withDbInternal(
     tests(TransactionalConnectionProvider(dbConnection))
 }
 
-class LazyDBConnectionFactory(val db: ConnectionProviderFactory, val schema: String?) : DBConnectionFactory {
-    var factory: DBConnectionFactory? = null
+/*
+ speed up the tests by creating the database as late as possible, when it is first accessed.
+ */
+class LazyDBConnectionFactory(private val db: ConnectionProviderFactory, private val schema: String?) :
+    DBConnectionFactory {
+    private var factory: DBConnectionFactory? = null
     override suspend fun getConnection(): DBConnection {
         if (factory != null)
             return factory!!.getConnection()
 
         val dbConnectionFactory = db.create()
-        val transactionProvider = TransactionalConnectionProvider(dbConnectionFactory)
-        if (schema == null) transactionProvider else transactionProvider.also { t ->
-            t.withConnection { dbConnection ->
-                dbConnection.execute(schema)
-            }
+        if (schema != null) TransactionalConnectionProvider(dbConnectionFactory).withConnection { dbConnection ->
+            dbConnection.execute(schema)
         }
         factory = dbConnectionFactory
         return dbConnectionFactory.getConnection()

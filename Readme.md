@@ -1,17 +1,17 @@
 # the.orm
 
-A non-blocking ORM library for Kotlin that supports H2SQL and PostgreSQL via Vert.x and R2DBC
+A non-blocking ORM library for Kotlin that supports H2SQL and PostgreSQL via Vert.x and R2DBC.
 
 # In a nutshell:
 * Entities are normal data classes
-* No Annotations
+* Does not use Annotations
 * Supports immutable entities
 * HasMany and BelongsTo Relations
-* Really fast testing support with a real database.
+* Really fast testing support with a real database
 
 ## Is this for me?
 
-the.orm is very opinionated and not for you if you
+The.orm is very opinionated and not the best ORM for you if you
 need to support a legacy database structure or if you really want to be super creative with your sql schema.
 it's more like rails' active-record and less like sql-alchemy.
 

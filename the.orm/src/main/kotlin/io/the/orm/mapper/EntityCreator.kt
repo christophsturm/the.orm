@@ -48,7 +48,7 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
                 if (loadedEntries != null)
                     Pair(it.constructorParameter, LazyHasMany<Any>(loadedEntries[id]))
                 else
-                    Pair(it.constructorParameter, LazyHasMany<Any>())
+                    Pair(it.constructorParameter, LazyHasMany())
             }
         }.map {
             try {

@@ -106,7 +106,7 @@ create table sentences
     private fun book(): Book {
         val chapters: Set<Chapter> = setOf(
             Chapter(
-                "page 1", hasMany(
+                "first chapter", hasMany(
                     setOf(
                         Sentence("god is dead"), Sentence(
                             "No small art is it to sleep:" + " it is necessary for that purpose to keep awake all day."
@@ -114,7 +114,7 @@ create table sentences
                     )
                 )
             ), Chapter(
-                "page 2", hasMany(
+                "second chapter", hasMany(
                     setOf(
                         Sentence("god is still doing pretty badly"), Sentence("sleeping is still not easy")
                     )
