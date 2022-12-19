@@ -88,7 +88,7 @@ class DBConnectionTest {
             it("produces stacktraces that contain the caller") {
                 val result = runCatching {
                     connectionProvider.withConnection { connection ->
-                        connection.createInsertStatement("insert into blah").execute().asMapFlow()
+                        connection.createInsertStatement("insert into blah").execute().asMapFlow().toList()
                     }
                 }
                 val ex = assertNotNull(result.exceptionOrNull())
