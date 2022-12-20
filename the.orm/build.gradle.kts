@@ -47,18 +47,13 @@ dependencies {
     testRuntimeOnly("io.r2dbc:r2dbc-h2:1.0.0.RELEASE")
     testImplementation(kotlin("test"))
 }
-val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal
 val testMain = tasks.register("testMain", JavaExec::class) {
     mainClass.set("io.the.orm.test.AllTestsKt")
     classpath = sourceSets["test"].runtimeClasspath
-    if (needsRedefinition)
-        jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
 }
 tasks.register("autoTest", JavaExec::class) {
     mainClass.set("io.the.orm.test.AutoTestKt")
     classpath = sourceSets["test"].runtimeClasspath
-    if (needsRedefinition)
-        jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
 }
 
 tasks.check {

@@ -64,12 +64,9 @@ dependencies {
     testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version")
     testImplementation(kotlin("test"))
 }
-val needsRedefinition = JavaVersion.current().ordinal >= JavaVersion.VERSION_13.ordinal
 val testMain = tasks.register("testMain", JavaExec::class) {
     mainClass.set("io.the.orm.test.functional.AllTestsKt")
     classpath = sourceSets["test"].runtimeClasspath
-    if (needsRedefinition)
-        jvmArgs = mutableListOf("-XX:+AllowRedefinitionToAddDeleteMethods")
 }
 
 tasks.withType<Test> {
