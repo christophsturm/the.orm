@@ -10,7 +10,7 @@ data class RepoRegistry(private val entityRepos: Map<KClass<out Any>, Repo<out A
             val entityRepos: Map<KClass<out Any>, RepoImpl<out Any>> =
                 classes.associateBy({ it }, { RepoImpl(it, classInfos) })
             classInfos.values.forEach { it.afterInit(entityRepos) }
-            entityRepos.values.forEach { it.afterInit(entityRepos) }
+            entityRepos.values.forEach { it.afterInit() }
             return RepoRegistry(entityRepos)
         }
     }

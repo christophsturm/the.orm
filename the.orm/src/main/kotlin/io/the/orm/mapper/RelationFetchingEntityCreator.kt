@@ -93,6 +93,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                                         hasManyRemoteFields[index] as KProperty1<Any, BelongsTo.BelongsToNotLoaded<*>>
                                     val pk = prop(it).pk
                                     val set = result.getOrPut(pk) { mutableSetOf() }
+                                    @Suppress("UNCHECKED_CAST")
                                     set.add(it as Entity)
                                 }
                                 result

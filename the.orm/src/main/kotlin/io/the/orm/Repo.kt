@@ -106,7 +106,7 @@ class RepoImpl<Entity : Any> internal constructor(
      * the repo is first created as a repo that can not fetch relations
      * when all repos are created they are upgraded to repos that can fetch relations
      */
-    fun afterInit(repos: Map<KClass<*>, RepoImpl<*>>) {
+    fun afterInit() {
         if (classInfo.hasHasManyRelations) {
             val simpleInserter = inserter
             inserter = HasManyInserter(

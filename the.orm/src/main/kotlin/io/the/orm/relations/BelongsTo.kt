@@ -2,7 +2,7 @@ package io.the.orm.relations
 
 import io.the.orm.PK
 import io.the.orm.RepositoryException
-import kotlin.reflect.KClass
+
 interface Relation
 
 sealed interface BelongsTo<Entity : Any> : Relation {
@@ -12,7 +12,7 @@ sealed interface BelongsTo<Entity : Any> : Relation {
             return entity
         }
     }
-    class BelongsToNotLoaded<Entity : Any>(c: KClass<Entity>, val pk: PK) : BelongsTo<Entity> {
+    class BelongsToNotLoaded<Entity : Any>(val pk: PK) : BelongsTo<Entity> {
         override fun get(): Entity {
             throw RelationNotLoadedException()
         }

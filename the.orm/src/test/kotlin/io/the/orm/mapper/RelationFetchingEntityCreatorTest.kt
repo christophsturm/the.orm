@@ -48,11 +48,8 @@ object RelationFetchingEntityCreatorTest {
             }
         }
         describe("has many relations") {
-            val referencedEntity1 = ReferencedEntity("blah", BelongsTo.BelongsToNotLoaded(Entity::class, 10), 10)
-            val referencedEntity2 = ReferencedEntity("blah", BelongsTo.BelongsToNotLoaded(Entity::class, 10), 10)
-            val repository = mock<Repo<ReferencedEntity>> {
-//                method { findByIds(any(), any()) }.returns(mapOf(10L to referencedEntity))
-            }
+            val referencedEntity1 = ReferencedEntity("blah", BelongsTo.BelongsToNotLoaded(10), 10)
+            val referencedEntity2 = ReferencedEntity("blah", BelongsTo.BelongsToNotLoaded(10), 10)
             val repoRegistry = RepoRegistry(setOf(Entity::class, ReferencedEntity::class))
             val classInfo = (repoRegistry.getRepo(Entity::class) as RepoImpl).classInfo
             val queryWithParameters = mock<QueryWithParameters<*>> {

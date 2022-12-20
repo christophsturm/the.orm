@@ -3,7 +3,6 @@ package io.the.orm.query
 import failgood.Test
 import failgood.describe
 import failgood.mock.mock
-import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.IDHandler
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.mapper.ResultMapper
@@ -21,7 +20,6 @@ class QueryFactoryTest {
                 mock(),
                 ClassInfo(Entity::class, setOf())
             )
-        val connection = mock<ConnectionProvider>()
         val condition = Entity::id.isEqualTo()
         test("can create query with one parameter") {
             val query = queryFactory.createQuery(condition)
