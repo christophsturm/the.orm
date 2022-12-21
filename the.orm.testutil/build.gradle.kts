@@ -10,7 +10,7 @@ plugins {
     id("the.orm.common")
     java
     kotlin("jvm")
-    id("org.jmailen.kotlinter") version "3.12.0"
+    id("org.jmailen.kotlinter") version "3.13.0"
     id("com.bnorm.power.kotlin-power-assert")
 }
 
