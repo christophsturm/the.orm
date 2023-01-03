@@ -16,7 +16,7 @@ plugins {
     id("info.solidsoft.pitest") version("1.9.11")
     `maven-publish`
     kotlin("plugin.serialization")
-    id("org.jmailen.kotlinter") version "3.12.0"
+    id("org.jmailen.kotlinter")
     id("com.bnorm.power.kotlin-power-assert")
 }
 
