@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import kotlin.test.assertNotNull
 
 private const val SCHEMA = """
     create sequence users_id_seq no maxvalue;
@@ -25,46 +26,37 @@ class DBConnectionTest {
     val context = describeOnAllDbs<DBConnection>(DBS.databases, SCHEMA) { connectionProvider ->
         describe("inserting with autoincrement") {
             it("works when all fields are non-null") {
-                val result =
-                    connectionProvider.withConnection { connection ->
-                        connection.createInsertStatement("insert into users(name) values ($1)")
-                            .execute(listOf(String::class.java), listOf("belle")).getId()
-                    }
+                val result = connectionProvider.withConnection { connection ->
+                    connection.createInsertStatement("insert into users(name) values ($1)")
+                        .execute(listOf(String::class.java), listOf("belle")).getId()
+                }
                 expectThat(result).isEqualTo(1)
             }
             it("even works when some fields are null") {
-                val result =
-                    connectionProvider.withConnection { connection ->
-                        connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
-                            .execute(listOf(String::class.java, String::class.java), listOf("belle", null))
-                            .getId()
-                    }
+                val result = connectionProvider.withConnection { connection ->
+                    connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
+                        .execute(listOf(String::class.java, String::class.java), listOf("belle", null)).getId()
+                }
                 expectThat(result).isEqualTo(1)
             }
         }
         describe("inserting multiple rows in a batch") {
             it("works when all types are not null") {
-                val result =
-                    connectionProvider.withConnection { connection ->
-                        connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
-                            .executeBatch(
-                                listOf(String::class.java, String::class.java),
-                                listOf(listOf("belle", "belle@bs.com"), listOf("sebastian", "seb@bs.com"))
-                            )
-                            .map { it.getId() }.toList()
-                    }
+                val result = connectionProvider.withConnection { connection ->
+                    connection.createInsertStatement("insert into users(name, email) values ($1, $2)").executeBatch(
+                        listOf(String::class.java, String::class.java),
+                        listOf(listOf("belle", "belle@bs.com"), listOf("sebastian", "seb@bs.com"))
+                    ).map { it.getId() }.toList()
+                }
                 expectThat(result).isEqualTo(listOf(1, 2))
             }
             it("even works for null values") {
-                val result =
-                    connectionProvider.withConnection { connection ->
-                        connection.createInsertStatement("insert into users(name, email) values ($1, $2)")
-                            .executeBatch(
-                                listOf(String::class.java, String::class.java),
-                                listOf(listOf("belle", null), listOf("sebastian", null))
-                            )
-                            .map { it.getId() }.toList()
-                    }
+                val result = connectionProvider.withConnection { connection ->
+                    connection.createInsertStatement("insert into users(name, email) values ($1, $2)").executeBatch(
+                        listOf(String::class.java, String::class.java),
+                        listOf(listOf("belle", null), listOf("sebastian", null))
+                    ).map { it.getId() }.toList()
+                }
                 expectThat(result).isEqualTo(listOf(1, 2))
             }
         }
@@ -92,5 +84,17 @@ class DBConnectionTest {
                 assert(result[1] == listOf(2L, "belle", null, bio))
             }
         }
+        describe("error handling") {
+            it("produces stacktraces that contain the caller") {
+                val result = runCatching {
+                    connectionProvider.withConnection { connection ->
+                        connection.createInsertStatement("insert into blah").execute().asMapFlow().toList()
+                    }
+                }
+                val ex = assertNotNull(result.exceptionOrNull())
+                assert(ex.stackTraceToString().contains("DBConnectionTest")) { ex.stackTraceToString() }
+            }
+        }
+
     }
 }
