@@ -248,7 +248,9 @@ class LazyDBConnectionFactory(private val db: ConnectionProviderFactory, private
 
         val dbConnectionFactory = db.create()
         if (schema != null) TransactionalConnectionProvider(dbConnectionFactory).withConnection { dbConnection ->
-            dbConnection.execute(schema)
+            Counters.createSchema.add {
+                dbConnection.execute(schema)
+            }
         }
         factory = dbConnectionFactory
         return dbConnectionFactory.getConnection()
