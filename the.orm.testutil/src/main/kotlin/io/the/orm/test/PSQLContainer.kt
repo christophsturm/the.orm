@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package io.the.orm.test
 
 import io.vertx.core.Vertx
@@ -9,6 +11,7 @@ import kotlinx.coroutines.runBlocking
 import org.testcontainers.containers.PostgreSQLContainer
 import java.util.UUID
 import kotlin.time.measureTimedValue
+import kotlin.time.ExperimentalTime
 
 class LazyPSQLContainer(
     val dockerImage: String,
@@ -57,7 +60,9 @@ class PostgresqlContainer(
 
 data class PostgresDb(val databaseName: String, val port: Int, val host: String, val pool: PgPool) : AutoCloseable {
     suspend fun createDb() {
-        executeSql("create database $databaseName")
+        Counters.createDatabase.add {
+            executeSql("create database $databaseName")
+        }
     }
 
     private suspend fun dropDb() {
