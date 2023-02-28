@@ -30,11 +30,11 @@ object TestUtilConfig {
 
 class DBTestUtil(val databaseName: String) {
     private val h2 = H2TestDatabase()
-    val psql14 = PSQLContainer("postgres:14-alpine", databaseName, true)
-    private val psql14R2DBC = R2DBCPostgresFactory(psql14)
-    private val psql14Vertx = VertxPSQLTestDatabase(psql14)
+    val psql15 = PSQLContainer("postgres:15-alpine", databaseName, true)
+    private val psql15R2DBC = R2DBCPostgresFactory(psql15)
+    private val psql15Vertx = VertxPSQLTestDatabase(psql15)
     private val postgreSQLLegacyContainers = if (TestUtilConfig.ALL_PSQL) listOf(
-        PSQLContainer("postgres:15beta4-alpine", databaseName, false),
+        PSQLContainer("postgres:14-alpine", databaseName, false),
         PSQLContainer("postgres:13-alpine", databaseName, false),
         PSQLContainer("postgres:12-alpine", databaseName, false),
         PSQLContainer("postgres:11-alpine", databaseName, false),
@@ -45,7 +45,7 @@ class DBTestUtil(val databaseName: String) {
 
     val databases = if (TestUtilConfig.H2_ONLY) {
         listOf(h2)
-    } else listOf(h2, psql14R2DBC, psql14Vertx) +
+    } else listOf(h2, psql15R2DBC, psql15Vertx) +
         postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
 
     @Suppress("unused")
