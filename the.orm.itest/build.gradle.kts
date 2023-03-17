@@ -48,7 +48,7 @@ dependencies {
     testRuntimeOnly("com.h2database:h2:2.1.214")
 
     // database creation uses jdbc currently. not sure if it should use vert or r2dbc
-    testRuntimeOnly("org.postgresql:postgresql:42.5.3")
+    testRuntimeOnly("org.postgresql:postgresql:42.6.0")
     testRuntimeOnly("org.postgresql:r2dbc-postgresql:1.0.1.RELEASE")
     testImplementation("com.christophsturm:randolf:0.2.2")
 
