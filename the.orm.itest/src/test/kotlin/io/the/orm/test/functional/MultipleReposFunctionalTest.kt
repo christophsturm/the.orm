@@ -109,8 +109,8 @@ object MultipleReposFunctionalTest {
                     val ingredients = setOf(RecipeIngredient("1", findIngredientByName.with("Gurke")
                         .findOrCreate(pageRepo.connectionProvider) { Ingredient("Gurke") }
                     ), RecipeIngredient("100g", findIngredientByName.with("Butter")
-                            .findOrCreate(pageRepo.connectionProvider) { Ingredient("Butter") }
-                        ))
+                        .findOrCreate(pageRepo.connectionProvider) { Ingredient("Butter") }
+                    ))
 
                     val recipe =
                         recipeRepo.create(

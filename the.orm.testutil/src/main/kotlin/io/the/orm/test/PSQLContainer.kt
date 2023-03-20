@@ -14,13 +14,13 @@ class PSQLContainer(
     }
 
     private val dockerContainer: PostgreSQLContainer<Nothing> by
-    lazy {
-        PostgreSQLContainer<Nothing>(dockerImage).apply {
+        lazy {
+            PostgreSQLContainer<Nothing>(dockerImage).apply {
 // WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
-            withReuse(reuse)
-            start()
+                withReuse(reuse)
+                start()
+            }
         }
-    }
 
     fun preparePostgresDB(): PostgresDb {
         Class.forName("org.postgresql.Driver")

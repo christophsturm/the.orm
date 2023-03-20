@@ -51,8 +51,8 @@ object RepoTransactionProviderTest {
             val result = r.transaction(
                 Entity1::class, Entity2::class, Entity3::class
             ) { entity1Repo: ConnectedRepo<Entity1>,
-                entity2Repo: ConnectedRepo<Entity2>,
-                entity3Repo: ConnectedRepo<Entity3> ->
+                    entity2Repo: ConnectedRepo<Entity2>,
+                    entity3Repo: ConnectedRepo<Entity3> ->
                 delay(0)
                 passedRepo1 = entity1Repo
                 passedRepo2 = entity2Repo
