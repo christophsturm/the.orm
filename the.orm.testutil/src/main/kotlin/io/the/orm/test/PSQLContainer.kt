@@ -10,7 +10,7 @@ import java.util.UUID
 
 class PSQLContainer(
     val dockerImage: String,
-    private val databasePrefix: String = "r2dbc-testdatabase",
+    private val databasePrefix: String,
     private val reuse: Boolean
 ) {
     fun prepare() {
@@ -27,7 +27,7 @@ class PSQLContainer(
         }
 
     suspend fun preparePostgresDB(): PostgresDb {
-        val uuid = UUID.randomUUID()
+        val uuid = UUID.randomUUID().toString().take(5)
         val databaseName = "$databasePrefix$uuid".replace("-", "_")
         // testcontainers says that it returns an ip address, but it returns a host name.
         val host = dockerContainer.host.let { if (it == "localhost") "127.0.0.1" else it }
