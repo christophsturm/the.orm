@@ -25,6 +25,7 @@ import kotlin.reflect.KClass
 object TestUtilConfig {
     val ALL_PSQL = System.getenv("ALL_PSQL") != null
     val H2_ONLY = System.getenv("H2_ONLY") != null
+    val VERTX_ONLY = System.getenv("VERTX_ONLY") != null
     const val TEST_POOL_SIZE = 2
 }
 
@@ -45,8 +46,8 @@ class DBTestUtil(val databaseName: String) {
 
     val databases = if (TestUtilConfig.H2_ONLY) {
         listOf(h2)
-    } else listOf(h2, psql15R2DBC, psql15Vertx) +
-        postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
+    } else if (TestUtilConfig.VERTX_ONLY) listOf(psql15Vertx) else listOf(h2, psql15R2DBC, psql15Vertx) +
+            postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
 
     @Suppress("unused")
     val unstableDatabases: List<TestDatabase> = listOf()
