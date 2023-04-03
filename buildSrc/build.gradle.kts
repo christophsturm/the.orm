@@ -24,3 +24,4 @@ idea {
 }
 
 
+tasks.withType<Jar> { duplicatesStrategy = DuplicatesStrategy.EXCLUDE }
