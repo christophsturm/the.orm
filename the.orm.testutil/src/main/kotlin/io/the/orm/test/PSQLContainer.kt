@@ -1,7 +1,11 @@
 package io.the.orm.test
 
+import io.vertx.core.Vertx
+import io.vertx.kotlin.coroutines.await
+import io.vertx.pgclient.PgConnectOptions
+import io.vertx.pgclient.PgConnection
+import kotlinx.coroutines.runBlocking
 import org.testcontainers.containers.PostgreSQLContainer
-import java.sql.DriverManager
 import java.util.UUID
 
 class PSQLContainer(
@@ -22,8 +26,7 @@ class PSQLContainer(
             }
         }
 
-    fun preparePostgresDB(): PostgresDb {
-        Class.forName("org.postgresql.Driver")
+    suspend fun preparePostgresDB(): PostgresDb {
         val uuid = UUID.randomUUID()
         val databaseName = "$databasePrefix$uuid".replace("-", "_")
         // testcontainers says that it returns an ip address, but it returns a host name.
@@ -36,27 +39,35 @@ class PSQLContainer(
 }
 
 data class PostgresDb(val databaseName: String, val host: String, val port: Int) : AutoCloseable {
-    fun createDb() {
+    suspend fun createDb() {
         executeSql("create database $databaseName")
     }
 
-    private fun dropDb() {
+    private suspend fun dropDb() {
         executeSql("drop database $databaseName")
     }
 
-    private fun executeSql(command: String) {
-        val db =
-            DriverManager.getConnection(
-                "jdbc:postgresql://$host:$port/postgres",
-                "test",
-                "test"
-            )
-        @Suppress("SqlNoDataSourceInspection")
-        db.createStatement().executeUpdate(command)
-        db.close()
+    private suspend fun executeSql(command: String) {
+        val vertx = Vertx.vertx()
+        val connection = PgConnection.connect(
+            vertx, PgConnectOptions()
+                .setPort(port)
+                .setHost(host)
+                .setDatabase("postgres")
+                .setUser("test")
+                .setPassword("test")
+        ).await()
+        try {
+            connection.query(command).execute().await()
+        } finally {
+            connection.close().await()
+            vertx.close()
+        }
     }
 
     override fun close() {
-        dropDb()
+        runBlocking {
+            dropDb()
+        }
     }
 }
