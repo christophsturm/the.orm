@@ -68,10 +68,6 @@ val testMain = tasks.register("testMain", JavaExec::class) {
     classpath = sourceSets["test"].runtimeClasspath
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-    outputs.upToDateWhen { false }
-}
 configure<com.adarshr.gradle.testlogger.TestLoggerExtension> {
     theme = MOCHA_PARALLEL
     showSimpleNames = true

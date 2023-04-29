@@ -47,17 +47,9 @@ dependencies {
     testRuntimeOnly("io.r2dbc:r2dbc-h2:1.0.0.RELEASE")
     testImplementation(kotlin("test"))
 }
-val testMain = tasks.register("testMain", JavaExec::class) {
-    mainClass.set("io.the.orm.test.AllTestsKt")
-    classpath = sourceSets["test"].runtimeClasspath
-}
 tasks.register("autoTest", JavaExec::class) {
     mainClass.set("io.the.orm.test.AutoTestKt")
     classpath = sourceSets["test"].runtimeClasspath
-}
-
-tasks.check {
-    dependsOn(testMain)
 }
 
 configure<com.bnorm.power.PowerAssertGradleExtension> {

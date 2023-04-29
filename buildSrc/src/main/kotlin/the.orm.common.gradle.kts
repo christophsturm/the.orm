@@ -6,6 +6,10 @@ plugins {
     `maven-publish`
     signing
 }
+tasks.withType<Test> {
+    useJUnitPlatform()
+    outputs.upToDateWhen { false }
+}
 
 val pub = "mavenJava"
 
