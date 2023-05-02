@@ -9,7 +9,7 @@ import kotlinx.coroutines.runBlocking
 import org.testcontainers.containers.PostgreSQLContainer
 import java.util.UUID
 
-class PSQLContainer(
+class LazyPSQLContainer(
     val dockerImage: String,
     private val databasePrefix: String,
     private val reuse: Boolean
@@ -17,14 +17,21 @@ class PSQLContainer(
     fun prepare() {
         dockerContainer
     }
-
-    private val dockerContainer: PostgreSQLContainer<Nothing> by
-        lazy {
-            PostgreSQLContainer<Nothing>(dockerImage).apply {
+    val dockerContainer: PostgresqlContainer by lazy {
+        PostgresqlContainer(dockerImage, databasePrefix, reuse)
+    }
+    suspend fun preparePostgresDB(): PostgresDb = dockerContainer.preparePostgresDB()
+}
+class PostgresqlContainer(
+    dockerImage: String,
+    private val databasePrefix: String,
+    private val reuse: Boolean
+) {
+    private val dockerContainer: PostgreSQLContainer<Nothing> =
+        PostgreSQLContainer<Nothing>(dockerImage).apply {
 // WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
-                withReuse(reuse)
-                start()
-            }
+            withReuse(reuse)
+            start()
         }
 
     private val vertx = Vertx.vertx()
@@ -36,8 +43,7 @@ class PSQLContainer(
         .setDatabase("postgres")
         .setUser("test")
         .setPassword("test")
-    private val pool = PgPool.pool(vertx, connectOptions, PoolOptions())!!
-
+    private val pool = PgPool.pool(vertx, connectOptions, PoolOptions().setMaxSize(2))!!
     suspend fun preparePostgresDB(): PostgresDb {
         val uuid = UUID.randomUUID().toString().take(5)
         val databaseName = "$databasePrefix$uuid".replace("-", "_")

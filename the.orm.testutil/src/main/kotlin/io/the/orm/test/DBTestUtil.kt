@@ -31,23 +31,28 @@ object TestUtilConfig {
 
 class DBTestUtil(val databaseName: String) {
     private val h2 = H2TestDatabase()
-    val psql15 = PSQLContainer("postgres:15-alpine", databaseName, true)
+    val psql15 = LazyPSQLContainer("postgres:15-alpine", databaseName, true)
     private val psql15R2DBC = R2DBCPostgresFactory(psql15)
     private val psql15Vertx = VertxPSQLTestDatabase(psql15)
     private val postgreSQLLegacyContainers = if (TestUtilConfig.ALL_PSQL) listOf(
-        PSQLContainer("postgres:14-alpine", databaseName, false),
-        PSQLContainer("postgres:13-alpine", databaseName, false),
-        PSQLContainer("postgres:12-alpine", databaseName, false),
-        PSQLContainer("postgres:11-alpine", databaseName, false),
-        PSQLContainer("postgres:10-alpine", databaseName, false),
-        PSQLContainer("postgres:9-alpine", databaseName, false)
+        LazyPSQLContainer("postgres:14-alpine", databaseName, false),
+        LazyPSQLContainer("postgres:13-alpine", databaseName, false),
+        LazyPSQLContainer("postgres:12-alpine", databaseName, false),
+        LazyPSQLContainer("postgres:11-alpine", databaseName, false),
+        LazyPSQLContainer("postgres:10-alpine", databaseName, false),
+        LazyPSQLContainer("postgres:9-alpine", databaseName, false)
     )
     else listOf()
 
     val databases = if (TestUtilConfig.H2_ONLY) {
         listOf(h2)
-    } else if (TestUtilConfig.VERTX_ONLY) listOf(psql15Vertx) else listOf(h2, psql15R2DBC, psql15Vertx) +
-        postgreSQLLegacyContainers.flatMap { listOf(R2DBCPostgresFactory(it), VertxPSQLTestDatabase(it)) }
+    } else (if (TestUtilConfig.VERTX_ONLY) listOf(psql15Vertx) else listOf(h2, psql15R2DBC, psql15Vertx)) +
+        postgreSQLLegacyContainers.flatMap {
+            if (TestUtilConfig.VERTX_ONLY) listOf(VertxPSQLTestDatabase(it)) else listOf(
+                R2DBCPostgresFactory(it),
+                VertxPSQLTestDatabase(it)
+            )
+        }
 
     @Suppress("unused")
     val unstableDatabases: List<TestDatabase> = listOf()
@@ -70,7 +75,7 @@ class DBTestUtil(val databaseName: String) {
         }
     }
 
-    class R2DBCPostgresFactory(private val psqlContainer: PSQLContainer) : TestDatabase {
+    class R2DBCPostgresFactory(private val psqlContainer: LazyPSQLContainer) : TestDatabase {
         override val name = "R2DBC-${psqlContainer.dockerImage}"
 
         override suspend fun createDB(): ConnectionProviderFactory {
@@ -82,7 +87,7 @@ class DBTestUtil(val databaseName: String) {
         }
     }
 
-    inner class VertxPSQLTestDatabase(private val psql: PSQLContainer) : TestDatabase {
+    inner class VertxPSQLTestDatabase(private val psql: LazyPSQLContainer) : TestDatabase {
         override val name = "Vertx-${psql.dockerImage}"
         override suspend fun createDB(): ConnectionProviderFactory {
             val database = psql.preparePostgresDB()
