@@ -17,9 +17,9 @@ dependencies {
 
 idea {
     module {
-        generatedSourceDirs.add(File(buildDir, "generated-sources/kotlin-dsl-accessors/kotlin"))
-        generatedSourceDirs.add(File(buildDir, "generated-sources/kotlin-dsl-plugins/kotlin"))
-        generatedSourceDirs.add(File(buildDir, "generated-sources/kotlin-dsl-external-plugin-spec-builders/kotlin"))
+        generatedSourceDirs.add(File(layout.buildDirectory.get().asFile, "generated-sources/kotlin-dsl-accessors/kotlin"))
+        generatedSourceDirs.add(File(layout.buildDirectory.get().asFile, "generated-sources/kotlin-dsl-plugins/kotlin"))
+        generatedSourceDirs.add(File(layout.buildDirectory.get().asFile, "generated-sources/kotlin-dsl-external-plugin-spec-builders/kotlin"))
     }
 }
 
