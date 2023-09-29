@@ -13,7 +13,7 @@ plugins {
     id("the.orm.common")
     java
     kotlin("jvm")
-    id("info.solidsoft.pitest") version("1.9.11")
+    id("info.solidsoft.pitest") version("1.15.0")
     `maven-publish`
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
