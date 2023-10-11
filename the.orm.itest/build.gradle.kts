@@ -13,7 +13,7 @@ import io.the.orm.versions.vertxVersion
 
 plugins {
     id("the.orm.common")
-    id("com.adarshr.test-logger") version "3.2.0"
+    id("com.adarshr.test-logger") version "4.0.0"
     java
     kotlin("jvm")
     kotlin("plugin.serialization")
