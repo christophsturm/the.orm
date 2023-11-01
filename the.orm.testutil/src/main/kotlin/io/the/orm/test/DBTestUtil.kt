@@ -3,6 +3,7 @@ package io.the.orm.test
 import failgood.ContextDSL
 import failgood.Ignored
 import failgood.RootContext
+import failgood.describe
 import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
 import io.r2dbc.spi.ConnectionFactories
@@ -53,7 +54,6 @@ class DBTestUtil(val databaseName: String) {
                 VertxPSQLTestDatabase(it)
             )
         }
-
     @Suppress("unused")
     val unstableDatabases: List<TestDatabase> = listOf()
 
@@ -239,7 +239,8 @@ fun describeOnAllDbs(
     tests: suspend ContextDSL<*>.(TransactionProvider) -> Unit
 ): List<RootContext> {
     return databases.mapIndexed { index, testDB ->
-        RootContext("$contextName (running on ${testDB.name})", ignored, order = index) {
+        val subjectDescription = if (databases.size == 1) contextName else "$contextName (running on ${testDB.name})"
+        describe(subjectDescription, ignored, order = index) {
             withDbInternal(testDB, schema, tests)
         }
     }
