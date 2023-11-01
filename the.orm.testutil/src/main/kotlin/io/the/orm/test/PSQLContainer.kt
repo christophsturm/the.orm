@@ -8,6 +8,7 @@ import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.runBlocking
 import org.testcontainers.containers.PostgreSQLContainer
 import java.util.UUID
+import kotlin.time.measureTimedValue
 
 class LazyPSQLContainer(
     val dockerImage: String,
@@ -28,12 +29,13 @@ class PostgresqlContainer(
     private val reuse: Boolean
 ) {
     private val dockerContainer: PostgreSQLContainer<Nothing> =
-        PostgreSQLContainer<Nothing>(dockerImage).apply {
+        measureTimedValue {
+            PostgreSQLContainer<Nothing>(dockerImage).apply {
 // WIP           setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=200")
-            withReuse(reuse)
-            start()
-        }
-
+                withReuse(reuse)
+                start()
+            }
+        }.also { println("creating docker container took ${it.duration}") }.value
     private val vertx = Vertx.vertx()
     private val host = dockerContainer.host.let { if (it == "localhost") "127.0.0.1" else it }!!
     private val port = dockerContainer.getMappedPort(5432)!!

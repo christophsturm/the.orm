@@ -15,6 +15,7 @@ import io.the.orm.dbio.TransactionalConnectionProvider
 import io.the.orm.dbio.r2dbc.R2DbcDBConnectionFactory
 import io.the.orm.dbio.vertx.VertxDBConnectionFactory
 import io.the.orm.test.TestUtilConfig.TEST_POOL_SIZE
+import io.vertx.core.Vertx
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
@@ -27,33 +28,41 @@ object TestUtilConfig {
     val ALL_PSQL = System.getenv("ALL_PSQL") != null
     val H2_ONLY = System.getenv("H2_ONLY") != null
     val VERTX_ONLY = System.getenv("VERTX_ONLY") != null
+    val LOCAL_VERTX_ONLY = System.getenv("LOCAL_VERTX_ONLY") != null
     const val TEST_POOL_SIZE = 2
 }
 
-class DBTestUtil(val databaseName: String) {
+class DBTestUtil(val databasePrefix: String) {
     private val h2 = H2TestDatabase()
-    val psql15 = LazyPSQLContainer("postgres:15-alpine", databaseName, true)
+    val psql15 = LazyPSQLContainer("postgres:15-alpine", databasePrefix, true)
     private val psql15R2DBC = R2DBCPostgresFactory(psql15)
     private val psql15Vertx = VertxPSQLTestDatabase(psql15)
     private val postgreSQLLegacyContainers = if (TestUtilConfig.ALL_PSQL) listOf(
-        LazyPSQLContainer("postgres:14-alpine", databaseName, false),
-        LazyPSQLContainer("postgres:13-alpine", databaseName, false),
-        LazyPSQLContainer("postgres:12-alpine", databaseName, false),
-        LazyPSQLContainer("postgres:11-alpine", databaseName, false),
-        LazyPSQLContainer("postgres:10-alpine", databaseName, false),
-        LazyPSQLContainer("postgres:9-alpine", databaseName, false)
+        LazyPSQLContainer("postgres:14-alpine", databasePrefix, false),
+        LazyPSQLContainer("postgres:13-alpine", databasePrefix, false),
+        LazyPSQLContainer("postgres:12-alpine", databasePrefix, false),
+        LazyPSQLContainer("postgres:11-alpine", databasePrefix, false),
+        LazyPSQLContainer("postgres:10-alpine", databasePrefix, false),
+        LazyPSQLContainer("postgres:9-alpine", databasePrefix, false)
     )
     else listOf()
 
-    val databases = if (TestUtilConfig.H2_ONLY) {
+    val databases: List<TestDatabase> = if (TestUtilConfig.H2_ONLY) {
         listOf(h2)
-    } else (if (TestUtilConfig.VERTX_ONLY) listOf(psql15Vertx) else listOf(h2, psql15R2DBC, psql15Vertx)) +
+    } else if (TestUtilConfig.LOCAL_VERTX_ONLY) listOf(
+        VertxLocalPsqlTestDatabase(
+            databasePrefix,
+            5432,
+            "localhost"
+        )
+    ) else (if (TestUtilConfig.VERTX_ONLY) listOf(psql15Vertx) else listOf(h2, psql15R2DBC, psql15Vertx)) +
         postgreSQLLegacyContainers.flatMap {
             if (TestUtilConfig.VERTX_ONLY) listOf(VertxPSQLTestDatabase(it)) else listOf(
                 R2DBCPostgresFactory(it),
                 VertxPSQLTestDatabase(it)
             )
         }
+
     @Suppress("unused")
     val unstableDatabases: List<TestDatabase> = listOf()
 
@@ -69,7 +78,7 @@ class DBTestUtil(val databaseName: String) {
 
         override suspend fun createDB(): ConnectionProviderFactory {
             val uuid = UUID.randomUUID()
-            val databaseName = "$databaseName$uuid"
+            val databaseName = "$databasePrefix$uuid"
             val connectionFactory = ConnectionFactories.get("r2dbc:h2:mem:///$databaseName;DB_CLOSE_DELAY=-1")
             return R2dbcConnectionProviderFactory(connectionFactory)
         }
@@ -103,6 +112,36 @@ class DBTestUtil(val databaseName: String) {
 
         override fun prepare() {
             psql.prepare()
+        }
+    }
+
+    inner class VertxLocalPsqlTestDatabase(databasePrefix: String, val port: Int, val host: String) : TestDatabase {
+        private val connectOptions = PgConnectOptions()
+            .setPort(port)
+            .setHost(host)
+            .setDatabase("postgres")
+            .setUser("postgres")
+        private val pool = PgPool.pool(Vertx.vertx(), connectOptions, PoolOptions().setMaxSize(2))!!
+
+        override val name = "Vertx-local"
+        suspend fun preparePostgresDB(): PostgresDb {
+            val uuid = UUID.randomUUID().toString().take(5)
+            val databaseName = "$databasePrefix$uuid".replace("-", "_")
+            val postgresDb = PostgresDb(databaseName, port, host, pool)
+            postgresDb.createDb()
+            return postgresDb
+        }
+
+        override suspend fun createDB(): ConnectionProviderFactory {
+            val database = preparePostgresDB()
+            val connectOptions = PgConnectOptions()
+                .setPort(database.port)
+                .setHost(database.host)
+                .setDatabase(database.databaseName)
+                .setUser("test")
+                .setPassword("test")
+
+            return VertxConnectionProviderFactory(connectOptions, database)
         }
     }
 }
