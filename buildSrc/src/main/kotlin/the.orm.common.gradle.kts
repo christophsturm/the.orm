@@ -22,9 +22,9 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions {
             jvmTarget = "1.8"
-            freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
-            languageVersion = "1.6"
-            apiVersion = "1.6"
+            freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn", "-progressive")
+            languageVersion = "1.9"
+            apiVersion = "1.9"
         }
     }
 }
