@@ -67,6 +67,7 @@ class DBTestUtil(val databasePrefix: String) {
     val unstableDatabases: List<TestDatabase> = listOf()
 
     interface TestDatabase {
+        val driverType: DriverType
         val name: String
 
         suspend fun createDB(): ConnectionProviderFactory
@@ -74,6 +75,8 @@ class DBTestUtil(val databasePrefix: String) {
     }
 
     inner class H2TestDatabase : TestDatabase {
+        override val driverType = DriverType.H2
+
         override val name = "H2"
 
         override suspend fun createDB(): ConnectionProviderFactory {
@@ -85,6 +88,8 @@ class DBTestUtil(val databasePrefix: String) {
     }
 
     class R2DBCPostgresFactory(private val psqlContainer: LazyPSQLContainer) : TestDatabase {
+        override val driverType: DriverType = DriverType.R2DBC
+
         override val name = "R2DBC-${psqlContainer.dockerImage}"
 
         override suspend fun createDB(): ConnectionProviderFactory {
@@ -97,6 +102,7 @@ class DBTestUtil(val databasePrefix: String) {
     }
 
     inner class VertxPSQLTestDatabase(private val psql: LazyPSQLContainer) : TestDatabase {
+        override val driverType: DriverType = DriverType.VERTX
         override val name = "Vertx-${psql.dockerImage}"
         override suspend fun createDB(): ConnectionProviderFactory {
             val database = psql.preparePostgresDB()
@@ -115,7 +121,12 @@ class DBTestUtil(val databasePrefix: String) {
         }
     }
 
-    inner class VertxLocalPsqlTestDatabase(val databasePrefix: String, val port: Int, val host: String) : TestDatabase {
+    /**
+     * vertx on a locally running database, without docker
+     */
+    inner class VertxLocalPsqlTestDatabase(private val databasePrefix: String, private val port: Int, private val host: String) : TestDatabase {
+        override val driverType: DriverType = DriverType.VERTX
+
         private val connectOptions = PgConnectOptions()
             .setPort(port)
             .setHost(host)
@@ -138,6 +149,11 @@ class DBTestUtil(val databasePrefix: String) {
             return VertxConnectionProviderFactory(connectOptions, database)
         }
     }
+}
+
+enum class DriverType {
+    H2,VERTX,R2DBC
+
 }
 
 class VertxConnectionProviderFactory(private val poolOptions: PgConnectOptions, private val db: AutoCloseable) :
