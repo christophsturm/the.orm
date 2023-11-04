@@ -10,8 +10,8 @@ import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.runBlocking
 import org.testcontainers.containers.PostgreSQLContainer
 import java.util.UUID
-import kotlin.time.measureTimedValue
 import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
 class LazyPSQLContainer(
     val dockerImage: String,
@@ -49,13 +49,14 @@ class PostgresqlContainer(
         .setUser("test")
         .setPassword("test")
     private val pool = PgPool.pool(vertx, connectOptions, PoolOptions().setMaxSize(2))!!
-    suspend fun preparePostgresDB(): PostgresDb {
-        val uuid = UUID.randomUUID().toString().take(5)
-        val databaseName = "$databasePrefix$uuid".replace("-", "_")
-        val postgresDb = PostgresDb(databaseName, port, host, pool)
-        postgresDb.createDb()
-        return postgresDb
-    }
+    suspend fun preparePostgresDB(): PostgresDb = postgresDb(databasePrefix, port, host, pool)
+}
+internal suspend fun postgresDb(prefix: String, port: Int, host: String, pool: PgPool): PostgresDb {
+    val uuid = UUID.randomUUID().toString().take(5)
+    val databaseName = "$prefix$uuid".replace("-", "_")
+    val postgresDb = PostgresDb(databaseName, port, host, pool)
+    postgresDb.createDb()
+    return postgresDb
 }
 
 data class PostgresDb(val databaseName: String, val port: Int, val host: String, val pool: PgPool) : AutoCloseable {

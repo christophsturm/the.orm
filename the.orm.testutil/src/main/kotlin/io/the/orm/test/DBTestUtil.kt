@@ -115,7 +115,7 @@ class DBTestUtil(val databasePrefix: String) {
         }
     }
 
-    inner class VertxLocalPsqlTestDatabase(databasePrefix: String, val port: Int, val host: String) : TestDatabase {
+    inner class VertxLocalPsqlTestDatabase(val databasePrefix: String, val port: Int, val host: String) : TestDatabase {
         private val connectOptions = PgConnectOptions()
             .setPort(port)
             .setHost(host)
@@ -124,13 +124,7 @@ class DBTestUtil(val databasePrefix: String) {
         private val pool = PgPool.pool(Vertx.vertx(), connectOptions, PoolOptions().setMaxSize(2))!!
 
         override val name = "Vertx-local"
-        suspend fun preparePostgresDB(): PostgresDb {
-            val uuid = UUID.randomUUID().toString().take(5)
-            val databaseName = "$databasePrefix$uuid".replace("-", "_")
-            val postgresDb = PostgresDb(databaseName, port, host, pool)
-            postgresDb.createDb()
-            return postgresDb
-        }
+        suspend fun preparePostgresDB(): PostgresDb = postgresDb(databasePrefix, port, host, pool)
 
         override suspend fun createDB(): ConnectionProviderFactory {
             val database = preparePostgresDB()
