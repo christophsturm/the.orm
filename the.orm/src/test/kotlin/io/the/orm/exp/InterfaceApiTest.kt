@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.the.orm.exp
 
 /* interface based api, to support inheritance.

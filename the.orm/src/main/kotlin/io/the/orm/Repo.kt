@@ -89,7 +89,7 @@ class RepoImpl<Entity : Any> internal constructor(
     private var inserter: Inserter<Entity> =
         SimpleInserter(idHandler, ExceptionInspector(classInfo.table, kClass), classInfo)
 
-    private val updater = Updater(idHandler, idProperty, classInfo)
+    private val updater = Updater(idProperty, classInfo)
 
     override val queryFactory: QueryFactory<Entity> =
         QueryFactory(

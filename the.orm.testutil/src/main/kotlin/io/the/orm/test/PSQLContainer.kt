@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package io.the.orm.test
 
 import io.vertx.core.Vertx
@@ -10,7 +8,6 @@ import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.runBlocking
 import org.testcontainers.containers.PostgreSQLContainer
 import java.util.UUID
-import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
 class LazyPSQLContainer(

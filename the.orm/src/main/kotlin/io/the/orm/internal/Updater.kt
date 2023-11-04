@@ -6,7 +6,6 @@ import io.the.orm.internal.classinfo.ClassInfo
 import kotlin.reflect.KProperty1
 
 internal class Updater<T : Any>(
-    private val idHandler: IDHandler<T>,
     private val idProperty: KProperty1<T, Any>,
     classInfo: ClassInfo<T>
 ) {
