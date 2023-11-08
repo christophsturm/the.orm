@@ -9,7 +9,7 @@ suspend inline fun <reified E1 : Any, Result> RepoTransactionProvider.transactio
     noinline t: suspend (ConnectedRepo<E1>) -> Result
 ): Result = transaction(E1::class, t)
 
-class RepoTransactionProvider(private val repos: RepoRegistry, private val transactionProvider: TransactionProvider) {
+class RepoTransactionProvider(private val repos: RepoRegistry, val transactionProvider: TransactionProvider) {
     suspend fun <Entity : Any, Result> transaction(
         clazz: KClass<Entity>,
         t: suspend (ConnectedRepo<Entity>) -> Result
