@@ -87,7 +87,7 @@ class DBTestUtil(val databasePrefix: String) {
         }
     }
 
-    class R2DBCPostgresFactory(private val psqlContainer: LazyPSQLContainer) : TestDatabase {
+    class R2DBCPostgresFactory(val psqlContainer: LazyPSQLContainer) : TestDatabase {
         override val driverType: DriverType = DriverType.R2DBC
 
         override val name = "R2DBC-${psqlContainer.dockerImage}"
@@ -101,7 +101,7 @@ class DBTestUtil(val databasePrefix: String) {
         }
     }
 
-    inner class VertxPSQLTestDatabase(private val psql: LazyPSQLContainer) : TestDatabase {
+    inner class VertxPSQLTestDatabase(val psql: LazyPSQLContainer) : TestDatabase {
         override val driverType: DriverType = DriverType.VERTX
         override val name = "Vertx-${psql.dockerImage}"
         override suspend fun createDB(): ConnectionProviderFactory {
@@ -121,10 +121,12 @@ class DBTestUtil(val databasePrefix: String) {
         }
     }
 
-    /**
-     * vertx on a locally running database, without docker
-     */
-    inner class VertxLocalPsqlTestDatabase(private val databasePrefix: String, private val port: Int, private val host: String) : TestDatabase {
+    /** vertx on a locally running database, without docker */
+    inner class VertxLocalPsqlTestDatabase(
+        private val databasePrefix: String,
+        private val port: Int,
+        private val host: String
+    ) : TestDatabase {
         override val driverType: DriverType = DriverType.VERTX
 
         private val connectOptions = PgConnectOptions()
@@ -152,8 +154,7 @@ class DBTestUtil(val databasePrefix: String) {
 }
 
 enum class DriverType {
-    H2,VERTX,R2DBC
-
+    H2, VERTX, R2DBC
 }
 
 class VertxConnectionProviderFactory(private val poolOptions: PgConnectOptions, private val db: AutoCloseable) :
@@ -241,7 +242,7 @@ private suspend fun ContextDSL<Unit>.withDbInternal(
     tests: suspend ContextDSL<*>.(TransactionProvider) -> Unit
 ) {
     val createDB by dependency({ db.createDB() }) { it.close() }
-    val dbConnection: DBConnectionFactory = LazyDBConnectionFactory(createDB, schema)
+    val dbConnection: DBConnectionFactory = LazyDBConnectionFactory(createDB, schema, db)
 
     tests(TransactionalConnectionProvider(dbConnection))
 }
@@ -249,7 +250,11 @@ private suspend fun ContextDSL<Unit>.withDbInternal(
 /*
  speed up the tests by creating the database as late as possible, when it is first accessed.
  */
-class LazyDBConnectionFactory(private val db: ConnectionProviderFactory, private val schema: String?) :
+class LazyDBConnectionFactory(
+    private val db: ConnectionProviderFactory,
+    private val schema: String?,
+    val testDatabase: DBTestUtil.TestDatabase
+) :
     DBConnectionFactory {
     private var factory: DBConnectionFactory? = null
     override suspend fun getConnection(): DBConnection {

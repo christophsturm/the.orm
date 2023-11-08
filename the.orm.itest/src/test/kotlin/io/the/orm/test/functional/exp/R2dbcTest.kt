@@ -8,6 +8,7 @@ import io.r2dbc.spi.ConnectionFactories
 import io.the.orm.dbio.TransactionalConnectionProvider
 import io.the.orm.dbio.r2dbc.R2dbcConnection
 import io.the.orm.test.DBS
+import io.the.orm.test.DriverType
 import io.the.orm.test.TestUtilConfig
 import io.the.orm.test.describeOnAllDbs
 import kotlinx.coroutines.flow.map
@@ -42,7 +43,8 @@ create table users
 class R2dbcTest {
     val context = describeOnAllDbs(
         "the r2dbc api",
-        DBS.databases.filterNot { it.name.startsWith("Vertx") }, SCHEMA) { connection ->
+        DBS.databases.filter { it.driverType == DriverType.R2DBC }, SCHEMA
+    ) { connection ->
         it("can batch insert values and select result") {
             val dbConnectionFactory = (connection as TransactionalConnectionProvider).dbConnectionFactory
             val conn = (dbConnectionFactory.getConnection() as R2dbcConnection).connection
