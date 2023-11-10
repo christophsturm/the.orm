@@ -29,7 +29,7 @@ class VertxTest {
         "vertx sql client api",
         ignored = if (TestUtilConfig.H2_ONLY) Ignored.Because("Running in h2 only mode") else null
     ) {
-        val db by dependency({ DBS.psql15.preparePostgresDB() }) { it.close() }
+        val db by dependency({ DBS.psql16.preparePostgresDB() }) { it.close() }
 
         val client: SqlClient by dependency({
             PgPool.pool(

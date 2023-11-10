@@ -34,10 +34,11 @@ object TestUtilConfig {
 
 class DBTestUtil(val databasePrefix: String) {
     private val h2 = H2TestDatabase()
-    val psql15 = LazyPSQLContainer("postgres:15-alpine", databasePrefix, true)
-    private val psql15R2DBC = R2DBCPostgresFactory(psql15)
-    private val psql15Vertx = VertxPSQLTestDatabase(psql15)
+    val psql16 = LazyPSQLContainer("postgres:16-alpine", databasePrefix, true)
+    private val psql16R2DBC = R2DBCPostgresFactory(psql16)
+    private val psql16Vertx = VertxPSQLTestDatabase(psql16)
     private val postgreSQLLegacyContainers = if (TestUtilConfig.ALL_PSQL) listOf(
+        LazyPSQLContainer("postgres:15-alpine", databasePrefix, false),
         LazyPSQLContainer("postgres:14-alpine", databasePrefix, false),
         LazyPSQLContainer("postgres:13-alpine", databasePrefix, false),
         LazyPSQLContainer("postgres:12-alpine", databasePrefix, false),
@@ -55,7 +56,7 @@ class DBTestUtil(val databasePrefix: String) {
             5432,
             "localhost"
         )
-    ) else (if (TestUtilConfig.VERTX_ONLY) listOf(psql15Vertx) else listOf(h2, psql15R2DBC, psql15Vertx)) +
+    ) else (if (TestUtilConfig.VERTX_ONLY) listOf(psql16Vertx) else listOf(h2, psql16R2DBC, psql16Vertx)) +
         postgreSQLLegacyContainers.flatMap {
             if (TestUtilConfig.VERTX_ONLY) listOf(VertxPSQLTestDatabase(it)) else listOf(
                 R2DBCPostgresFactory(it),
