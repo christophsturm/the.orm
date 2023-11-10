@@ -5,14 +5,14 @@ import kotlin.time.Duration
 import kotlin.time.measureTime
 
 class Timer {
-    fun add(time: Duration) {
-        durations += time
-    }
-
     suspend fun add(block: suspend () -> Unit) {
         add(measureTime {
             block()
         })
+    }
+
+    private fun add(time: Duration) {
+        durations += time
     }
 
     private fun totalTime() = durations.fold(Duration.ZERO) { acc, duration -> acc.plus(duration) }
