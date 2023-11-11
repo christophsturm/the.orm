@@ -1,21 +1,13 @@
 package io.the.orm.internal.classinfo
 
-import io.r2dbc.spi.Blob
-import io.r2dbc.spi.Clob
 import io.the.orm.Repo
 import io.the.orm.RepoImpl
-import io.the.orm.RepositoryException
-import io.the.orm.getRepo
 import io.the.orm.internal.IDHandler
 import io.the.orm.internal.Table
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.HasMany
 import io.the.orm.util.toSnakeCase
-import io.vertx.sqlclient.data.Numeric
 import java.lang.reflect.ParameterizedType
-import java.math.BigDecimal
-import java.nio.ByteBuffer
-import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
@@ -24,55 +16,6 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaType
-
-private val passThroughFieldConverter = PassThroughConverter
-
-internal interface FieldConverter {
-    fun dbValueToParameter(value: Any?): Any? = value
-    fun propertyToDBValue(value: Any?): Any? = value
-}
-
-object PassThroughConverter : FieldConverter
-
-// from the r2dbc spec: https://r2dbc.io/spec/0.8.4.RELEASE/spec/html/#datatypes
-private val fieldConverters = mapOf<KClass<*>, FieldConverter>(
-    String::class to passThroughFieldConverter,
-    Clob::class to passThroughFieldConverter,
-    Boolean::class to passThroughFieldConverter,
-    ByteBuffer::class to passThroughFieldConverter,
-    Blob::class to passThroughFieldConverter,
-    Int::class to IntConverter,
-    Byte::class to passThroughFieldConverter,
-    Short::class to passThroughFieldConverter,
-    Long::class to LongConverter,
-    Double::class to DoubleConverter,
-    BigDecimal::class to BigDecimalConverter,
-    LocalDate::class to passThroughFieldConverter
-)
-
-object IntConverter : FieldConverter {
-    override fun dbValueToParameter(value: Any?): Int? {
-        return (value as Number?)?.toInt()
-    }
-}
-
-object LongConverter : FieldConverter {
-    override fun dbValueToParameter(value: Any?): Long? {
-        return (value as Number?)?.toLong()
-    }
-}
-
-object BigDecimalConverter : FieldConverter {
-    override fun dbValueToParameter(value: Any?): Any? {
-        return if (value is Numeric) value.bigDecimalValue() else value
-    }
-}
-
-object DoubleConverter : FieldConverter {
-    override fun dbValueToParameter(value: Any?): Any? {
-        return (value as Number?)?.toDouble()
-    }
-}
 
 @Suppress("UNCHECKED_CAST")
 private fun <T : Any> Map<KClass<*>, RepoImpl<*>>.getRepo(c: KClass<T>): RepoImpl<T> = get(c) as RepoImpl<T>
@@ -105,7 +48,7 @@ internal data class ClassInfo<T : Any>(
     val hasBelongsToRelations = belongsToRelations.isNotEmpty()
     val hasHasManyRelations = hasManyRelations.isNotEmpty()
 
-    sealed interface FieldInfo {
+    internal sealed interface FieldInfo {
         val constructorParameter: KParameter
         val property: KProperty1<*, *>
         val fieldConverter: FieldConverter
@@ -147,18 +90,6 @@ internal data class ClassInfo<T : Any>(
         override lateinit var classInfo: ClassInfo<*>
         override val canBeLazy: Boolean
             get() = true
-    }
-
-    data class SimpleLocalFieldInfo(
-        override val constructorParameter: KParameter,
-        override val property: KProperty1<*, *>,
-        override val dbFieldName: String,
-        override val fieldConverter: FieldConverter,
-        override val type: Class<*>,
-        override val mutable: Boolean,
-        override val name: String
-    ) : LocalFieldInfo {
-        override fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
     }
 
     class LocalRelationFieldInfo(
@@ -252,14 +183,9 @@ internal data class ClassInfo<T : Any>(
                                 passThroughFieldConverter, Long::class.java, mutable(property), "$name.${property.name}"
                             )
                         } else {
-                            val fieldConverter = fieldConverters[kotlinClass] ?: throw RepositoryException(
-                                "type ${kotlinClass.simpleName} not supported." +
-                                    " class: ${kClass.simpleName}," +
-                                    " otherClasses: ${otherClasses.map { it.simpleName }}"
-                            )
                             SimpleLocalFieldInfo(
                                 parameter, property, fieldName,
-                                fieldConverter, javaClass, mutable(property), "$name.${property.name}"
+                                kotlinClass, javaClass, mutable(property), "$name.${property.name}", otherClasses
                             )
                         }
                     }
