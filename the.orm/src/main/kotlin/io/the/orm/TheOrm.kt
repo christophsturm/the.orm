@@ -11,6 +11,9 @@ import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
 import java.time.Duration
 
+/**
+ * utility method for creasting connection factories for vertx and r2dbc
+ */
 @Suppress("unused")
 object TheOrm {
     fun openR2dbcUrl(r2dbcUrl: String): DBConnectionFactory {

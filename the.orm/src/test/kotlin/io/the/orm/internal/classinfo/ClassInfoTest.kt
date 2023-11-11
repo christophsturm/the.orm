@@ -16,7 +16,7 @@ import kotlin.test.assertNotNull
 class ClassInfoTest {
     val context = describe(ClassInfo::class, isolation = false) {
 
-        describe("for a single class") {
+        describe("for a single immutable class without relations") {
             data class Entity(val name: String, val id: Long? = null)
 
             val classInfo = ClassInfo(Entity::class, setOf())

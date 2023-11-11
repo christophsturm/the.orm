@@ -74,6 +74,9 @@ object DoubleConverter : FieldConverter {
     }
 }
 
+@Suppress("UNCHECKED_CAST")
+private fun <T : Any> Map<KClass<*>, RepoImpl<*>>.getRepo(c: KClass<T>): RepoImpl<T> = get(c) as RepoImpl<T>
+
 internal data class ClassInfo<T : Any>(
     val kClass: KClass<T>,
     val table: Table,

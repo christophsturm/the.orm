@@ -3,8 +3,16 @@ package io.the.orm
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlin.reflect.KClass
 
-data class RepoRegistry(private val entityRepos: Map<KClass<out Any>, Repo<out Any>>) {
+/**
+ * The Repo Registry knows about all the classes in your model
+ * classes can have relations to other classes inside the registry
+ */
+
+class RepoRegistry private constructor(private val entityRepos: Map<KClass<out Any>, Repo<out Any>>) {
     companion object {
+        /**
+         * create a repo registry from a set of classes
+         */
         operator fun invoke(classes: Set<KClass<out Any>>): RepoRegistry {
             val classInfos = classes.associateBy({ it }) { ClassInfo(it, classes) }
             val entityRepos: Map<KClass<out Any>, RepoImpl<out Any>> =
@@ -20,6 +28,3 @@ data class RepoRegistry(private val entityRepos: Map<KClass<out Any>, Repo<out A
 }
 
 inline fun <reified T : Any> RepoRegistry.getRepo() = getRepo(T::class)
-
-@Suppress("UNCHECKED_CAST")
-fun <T : Any> Map<KClass<*>, RepoImpl<*>>.getRepo(c: KClass<T>): RepoImpl<T> = get(c) as RepoImpl<T>
