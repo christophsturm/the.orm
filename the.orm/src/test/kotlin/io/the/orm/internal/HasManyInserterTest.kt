@@ -5,7 +5,7 @@ import failgood.describe
 import failgood.mock.call
 import failgood.mock.getCalls
 import failgood.mock.mock
-import io.the.orm.PK
+import io.the.orm.PKType
 import io.the.orm.Repo
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.classinfo.ClassInfo
@@ -17,8 +17,8 @@ import kotlin.test.assertEquals
 
 @Test
 object HasManyInserterTest {
-    data class Belonging(val name: String, val entity: BelongsTo<Entity> = belongsTo(), val id: PK? = null)
-    data class Entity(val name: String, val belongings: HasMany<Belonging>, val id: PK? = null)
+    data class Belonging(val name: String, val entity: BelongsTo<Entity> = belongsTo(), val id: PKType? = null)
+    data class Entity(val name: String, val belongings: HasMany<Belonging>, val id: PKType? = null)
 
     val context = describe<HasManyInserter<Entity>> {
         val connection = mock<ConnectionProvider>()

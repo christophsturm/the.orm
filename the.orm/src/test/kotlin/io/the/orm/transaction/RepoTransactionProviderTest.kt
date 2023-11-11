@@ -3,7 +3,7 @@ package io.the.orm.transaction
 import failgood.Test
 import failgood.describe
 import io.the.orm.ConnectedRepo
-import io.the.orm.PK
+import io.the.orm.PKType
 import io.the.orm.RepoRegistry
 import io.the.orm.exp.testing.MockConnectionProvider
 import io.the.orm.exp.testing.MockTransactionProvider
@@ -13,9 +13,9 @@ import kotlin.test.assertEquals
 @Test
 object RepoTransactionProviderTest {
     val context = describe<RepoTransactionProvider> {
-        data class Entity1(val name: String, val id: PK?)
-        data class Entity2(val name: String, val id: PK?)
-        data class Entity3(val name: String, val id: PK?)
+        data class Entity1(val name: String, val id: PKType?)
+        data class Entity2(val name: String, val id: PKType?)
+        data class Entity3(val name: String, val id: PKType?)
 
         var passedRepo1: ConnectedRepo<Entity1>? = null
         var passedRepo2: ConnectedRepo<Entity2>? = null

@@ -1,7 +1,7 @@
 package io.the.orm.test.functional
 
 import failgood.Test
-import io.the.orm.PK
+import io.the.orm.PKType
 import io.the.orm.Repo
 import io.the.orm.test.DBS
 import io.the.orm.test.describeOnAllDbs
@@ -21,7 +21,7 @@ import java.time.LocalDate
 
 @Serializable
 data class SerializableUser(
-    val id: PK? = null,
+    val id: PKType? = null,
     val name: String,
     val email: String?
 )

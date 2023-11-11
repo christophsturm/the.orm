@@ -1,6 +1,6 @@
 package io.the.orm.mapper
 
-import io.the.orm.PK
+import io.the.orm.PKType
 import io.the.orm.Repo
 import io.the.orm.RepositoryException
 import io.the.orm.dbio.ConnectionProvider
@@ -49,18 +49,18 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
         connectionProvider: ConnectionProvider
     ): Flow<Entity> {
         return flow {
-            val pkList = if (classInfo.hasHasManyRelations) mutableListOf<PK>() else null
+            val pkList = if (classInfo.hasHasManyRelations) mutableListOf<PKType>() else null
             val idLists = Array(belongsToRepos.size) { idx ->
                 if (belongsToProperties[idx] == null || fetchRelations.contains(belongsToProperties[idx]))
-                    mutableSetOf<PK>()
+                    mutableSetOf<PKType>()
                 else
                     null
             }
             val resultsList = results.toList()
             resultsList.forEach { resultLine ->
-                pkList?.add(resultLine.fields[idFieldIndex] as PK)
+                pkList?.add(resultLine.fields[idFieldIndex] as PKType)
                 resultLine.relations.forEachIndexed { idx, v ->
-                    idLists[idx]?.add(v as PK)
+                    idLists[idx]?.add(v as PKType)
                 }
             }
             val belongsToRelations = idLists.mapIndexed { index, longs ->
@@ -82,11 +82,11 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                 hasManyQueries.withIndex().map { (index, query) ->
                     if (fetchRelations.contains(hasManyProperties[index]))
                         query.with(pkList.toTypedArray())
-                            .findAndTransform<Map<PK, Set<Entity>>>(
+                            .findAndTransform<Map<PKType, Set<Entity>>>(
                                 connectionProvider,
                                 fetchRelations
                             ) { flow: Flow<Any> ->
-                                val result = LinkedHashMap<PK, MutableSet<Entity>>()
+                                val result = LinkedHashMap<PKType, MutableSet<Entity>>()
                                 flow.collect {
                                     @Suppress("UNCHECKED_CAST")
                                     val prop: KProperty1<Any, BelongsTo.BelongsToNotLoaded<*>> =

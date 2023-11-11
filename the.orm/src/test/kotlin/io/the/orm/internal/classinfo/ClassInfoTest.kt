@@ -3,7 +3,7 @@ package io.the.orm.internal.classinfo
 import failgood.Test
 import failgood.assert.containsExactlyInAnyOrder
 import failgood.describe
-import io.the.orm.PK
+import io.the.orm.PKType
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.HasMany
 import io.the.orm.relations.belongsTo
@@ -118,7 +118,7 @@ class ClassInfoTest {
                 data class HolderOfNestedEntity(
                     val name: String,
                     val nestedEntities: HasMany<NestedEntity>,
-                    val id: PK? = null
+                    val id: PKType? = null
                 )
                 it("works without specifying the nested entity as referenced class") {
                     ClassInfo(HolderOfNestedEntity::class)

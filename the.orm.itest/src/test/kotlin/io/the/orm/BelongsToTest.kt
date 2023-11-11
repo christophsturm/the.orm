@@ -13,9 +13,9 @@ object BelongsToTest {
 
     val context = describeOnAllDbs<BelongsTo<*>>(schema = HasManyTest.SCHEMA) { connection ->
         describe("with always eager loading (declared as the Entity instead of BelongsTo<Entity>)") {
-            data class Book(val name: String, val id: PK? = null)
-            data class Chapter(val name: String, val book: Book, val id: PK? = null)
-            data class Sentence(val content: String, val chapter: Chapter, val id: PK? = null)
+            data class Book(val name: String, val id: PKType? = null)
+            data class Chapter(val name: String, val book: Book, val id: PKType? = null)
+            data class Sentence(val content: String, val chapter: Chapter, val id: PKType? = null)
 
             val repo = RepoRegistry(setOf(Chapter::class, Book::class, Sentence::class))
             val repoProvider = RepoTransactionProvider(repo, connection)
@@ -40,9 +40,9 @@ object BelongsToTest {
             }
         }
         describe("when lazy loading is supported (BelongsTo<Entity>)") {
-            data class Book(val name: String, val id: PK? = null)
-            data class Chapter(val name: String, val book: BelongsTo<Book>, val id: PK? = null)
-            data class Sentence(val content: String, val chapter: BelongsTo<Chapter>, val id: PK? = null)
+            data class Book(val name: String, val id: PKType? = null)
+            data class Chapter(val name: String, val book: BelongsTo<Book>, val id: PKType? = null)
+            data class Sentence(val content: String, val chapter: BelongsTo<Chapter>, val id: PKType? = null)
 
             val repo = RepoRegistry(setOf(Chapter::class, Book::class, Sentence::class))
             val repoProvider = RepoTransactionProvider(repo, connection)

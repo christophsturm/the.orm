@@ -1,6 +1,6 @@
 package io.the.orm.relations
 
-import io.the.orm.PK
+import io.the.orm.PKType
 import io.the.orm.RepositoryException
 
 interface Relation
@@ -12,12 +12,12 @@ sealed interface BelongsTo<Entity : Any> : Relation {
             return entity
         }
     }
-    class BelongsToNotLoaded<Entity : Any>(val pk: PK) : BelongsTo<Entity> {
+    class BelongsToNotLoaded<Entity : Any>(val pk: PKType) : BelongsTo<Entity> {
         override fun get(): Entity {
             throw RelationNotLoadedException()
         }
     }
-    data class Auto<Entity : Any>(var id: PK? = null) : BelongsTo<Entity> {
+    data class Auto<Entity : Any>(var id: PKType? = null) : BelongsTo<Entity> {
         override fun get(): Entity {
             throw RelationNotLoadedException()
         }

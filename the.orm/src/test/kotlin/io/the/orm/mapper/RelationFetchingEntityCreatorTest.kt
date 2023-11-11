@@ -3,7 +3,7 @@ package io.the.orm.mapper
 import failgood.Test
 import failgood.describe
 import failgood.mock.mock
-import io.the.orm.PK
+import io.the.orm.PKType
 import io.the.orm.Repo
 import io.the.orm.RepoImpl
 import io.the.orm.RepoRegistry
@@ -25,8 +25,8 @@ object RelationFetchingEntityCreatorTest {
         val connectionProvider = mock<ConnectionProvider>()
         describe("belongs to relation") {
             it("resolves belongs to entities that do not support lazy loading") {
-                data class ReferencedEntity(val name: String, val id: PK? = null)
-                data class Entity(val referencedEntity: ReferencedEntity, val id: PK? = null)
+                data class ReferencedEntity(val name: String, val id: PKType? = null)
+                data class Entity(val referencedEntity: ReferencedEntity, val id: PKType? = null)
 
                 val referencedEntity = ReferencedEntity("blah", 10)
                 val repository = mock<Repo<ReferencedEntity>> {
@@ -53,7 +53,7 @@ object RelationFetchingEntityCreatorTest {
             val repoRegistry = RepoRegistry(setOf(Entity::class, ReferencedEntity::class))
             val classInfo = (repoRegistry.getRepo(Entity::class) as RepoImpl).classInfo
             val queryWithParameters = mock<QueryWithParameters<*>> {
-                method { findAndTransform<Map<PK, Set<Any>>>(connectionProvider, setOf()) { mapOf() } }.returns(
+                method { findAndTransform<Map<PKType, Set<Any>>>(connectionProvider, setOf()) { mapOf() } }.returns(
                     mapOf(
                         99L to setOf(referencedEntity1, referencedEntity2)
                     )
@@ -84,5 +84,5 @@ object RelationFetchingEntityCreatorTest {
     }
 }
 
-data class ReferencedEntity(val name: String, val entity: BelongsTo<Entity>, val id: PK? = null)
-data class Entity(val referencedEntities: HasMany<ReferencedEntity>, val id: PK? = null)
+data class ReferencedEntity(val name: String, val entity: BelongsTo<Entity>, val id: PKType? = null)
+data class Entity(val referencedEntities: HasMany<ReferencedEntity>, val id: PKType? = null)

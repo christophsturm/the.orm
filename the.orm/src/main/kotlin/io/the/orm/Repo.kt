@@ -21,7 +21,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
-typealias PK = Long
+typealias PKType = Long
 
 internal val pKClass = Long::class
 
@@ -55,7 +55,7 @@ interface Repo<Entity : Any> {
      */
     suspend fun findById(
         connectionProvider: ConnectionProvider,
-        id: PK,
+        id: PKType,
         fetchRelations: Set<KProperty1<*, Relation>> = setOf()
     ): Entity
 
@@ -64,7 +64,7 @@ interface Repo<Entity : Any> {
      *
      * @param [ids] the primary key of the objects to load
      */
-    suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, Entity>
+    suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PKType>): Map<PKType, Entity>
 }
 
 class RepoImpl<Entity : Any> internal constructor(
@@ -80,7 +80,7 @@ class RepoImpl<Entity : Any> internal constructor(
     private val idProperty =
         (properties["id"]
             ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")) as
-            KProperty1<Entity, PK>
+            KProperty1<Entity, PKType>
 
     @Suppress("UNCHECKED_CAST")
     internal val classInfo: ClassInfo<Entity> = classInfos[kClass] as ClassInfo<Entity>
@@ -160,9 +160,9 @@ class RepoImpl<Entity : Any> internal constructor(
         }
     }
 
-    private val byIdQuery: QueryFactory<Entity>.OneParameterQuery<PK> =
+    private val byIdQuery: QueryFactory<Entity>.OneParameterQuery<PKType> =
         queryFactory.createQuery(isEqualToCondition(idProperty))
-    private val byIdsQuery: QueryFactory<Entity>.OneParameterQuery<Array<PK>>
+    private val byIdsQuery: QueryFactory<Entity>.OneParameterQuery<Array<PKType>>
         by lazy { queryFactory.createQuery(idProperty.isIn()) }
 
     /**
@@ -172,7 +172,7 @@ class RepoImpl<Entity : Any> internal constructor(
      */
     override suspend fun findById(
         connectionProvider: ConnectionProvider,
-        id: PK,
+        id: PKType,
         fetchRelations: Set<KProperty1<*, Relation>>
     ): Entity {
         return try {
@@ -182,9 +182,9 @@ class RepoImpl<Entity : Any> internal constructor(
         }
     }
 
-    override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PK>): Map<PK, Entity> {
+    override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PKType>): Map<PKType, Entity> {
         return byIdsQuery.with(ids.toTypedArray()).findAndTransform(connectionProvider) { flow ->
-            val result = LinkedHashMap<PK, Entity>(ids.size)
+            val result = LinkedHashMap<PKType, Entity>(ids.size)
             flow.collect {
                 result[idProperty(it)] = it
             }

@@ -1,6 +1,6 @@
 package io.the.orm.mapper
 
-import io.the.orm.PK
+import io.the.orm.PKType
 import io.the.orm.RepositoryException
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.relations.BelongsTo
@@ -12,8 +12,8 @@ import kotlin.reflect.KParameter
 internal interface EntityCreator<Entity : Any> {
     fun toEntities(
         results: Flow<ResultLine>,
-        relations: List<Map<PK, Any>?> = listOf(),
-        hasManyRelations: List<Map<PK, Set<Entity>>?>?
+        relations: List<Map<PKType, Any>?> = listOf(),
+        hasManyRelations: List<Map<PKType, Set<Entity>>?>?
     ): Flow<Entity>
 }
 
@@ -22,11 +22,11 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
 
     override fun toEntities(
         results: Flow<ResultLine>,
-        relations: List<Map<PK, Any>?>,
-        hasManyRelations: List<Map<PK, Set<Entity>>?>?
+        relations: List<Map<PKType, Any>?>,
+        hasManyRelations: List<Map<PKType, Set<Entity>>?>?
     ): Flow<Entity> {
         return results.map { values ->
-            val id = values.fields[idFieldIndex] as PK
+            val id = values.fields[idFieldIndex] as PKType
             val map = values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
                 val fieldInfo = classInfo.simpleFieldInfo[index]
                 val parameterValue = fieldInfo.fieldConverter.dbValueToParameter(value)
@@ -36,11 +36,11 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
                 val fieldInfo = classInfo.belongsToRelations[index]
                 val relationValues = relations[index]
                 if (relationValues != null)
-                    Pair(fieldInfo.constructorParameter, relationValues[value as PK])
+                    Pair(fieldInfo.constructorParameter, relationValues[value as PKType])
                 else
                     Pair(
                         fieldInfo.constructorParameter,
-                        BelongsTo.BelongsToNotLoaded<Any>(value as PK)
+                        BelongsTo.BelongsToNotLoaded<Any>(value as PKType)
                     )
             }
             classInfo.hasManyRelations.withIndex().associateTo(map) { (index, it) ->
