@@ -39,6 +39,7 @@ create table sentences
 );
 
 """
+
     data class Sentence(val content: String, val chapter: BelongsTo<Chapter> = belongsTo(), val id: PK? = null)
     data class Chapter(
         val name: String,
@@ -52,8 +53,7 @@ create table sentences
     /*
     for has many we really need recursive saving because we don't know the id when we create the objects
      */
-    val context = describeOnAllDbs<HasMany<*>>(schema = SCHEMA) {
-        val transactionProvider = it
+    val context = describeOnAllDbs<HasMany<*>>(schema = SCHEMA) { transactionProvider ->
         val repo = RepoRegistry(setOf(Sentence::class, Chapter::class, Book::class))
         it("can write and read an entity with an empty has many relation") {
             RepoTransactionProvider(repo, transactionProvider).transaction(Book::class) { bookRepo ->
@@ -90,7 +90,8 @@ create table sentences
                     "No small art is it to sleep:" + " it is necessary for that purpose to keep awake all day.",
                     "god is still doing pretty badly",
                     "sleeping is still not easy"
-                ), reloaded.chapters.flatMap { it.sentences.map { it.content } }.toSet())
+                ), reloaded.chapters.flatMap { it.sentences.map { it.content } }.toSet()
+                )
             }
         }
         it("does not load has many when it is not specified to be fetched") {
