@@ -49,14 +49,33 @@ internal data class ClassInfo<T : Any>(
     val hasHasManyRelations = hasManyRelations.isNotEmpty()
 
     internal sealed interface FieldInfo {
+        /**
+         * this is used when converting database rows to instances
+         */
         val constructorParameter: KParameter
+
+        /**
+         * for reading
+         */
         val property: KProperty1<*, *>
+
+        /**
+         * convert between kotlin and db types
+         */
         val fieldConverter: FieldConverter
+
+        /**
+         * is the field mutable (a var)? or not (a val)
+         */
         val mutable: Boolean
+
+        /**
+         * how is the field called in the database
+         */
         val dbFieldName: String
 
         /**
-         * then type that we request from the database.
+         * the type that we request from the database.
          * Usually the same type as the field, but for relations it will be the PK type
          */
         val type: Class<*>
