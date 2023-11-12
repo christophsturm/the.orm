@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_VARIABLE", "unused")
+
 package io.the.orm.exp.dynamic
 
 import failgood.Test
