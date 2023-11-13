@@ -53,10 +53,10 @@ class QueryFactory<Entity : Any> internal constructor(
 ) {
 
     private val dbFieldNameForProperty =
-        classInfo.localFieldInfo.associateBy({ it.property }, { it.dbFieldName })
+        classInfo.localFields.associateBy({ it.property }, { it.dbFieldName })
 
     private val selectPrefix =
-        "select ${classInfo.localFieldInfo.joinToString { it.dbFieldName }} from ${classInfo.table.name} where "
+        "select ${classInfo.localFields.joinToString { it.dbFieldName }} from ${classInfo.table.name} where "
     private val deletePrefix = "delete from ${classInfo.table.name} where "
 
     fun <P1 : Any> createQuery(p1: Condition<P1>): OneParameterQuery<P1> =

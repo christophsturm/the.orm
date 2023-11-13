@@ -15,7 +15,7 @@ internal class SimpleInserter<T : Any>(
     private val exceptionInspector: ExceptionInspector<T>,
     classInfo: ClassInfo<T>
 ) : Inserter<T> {
-    private val fieldsWithoutId = classInfo.localFieldInfo.filter { it.dbFieldName != "id" }
+    private val fieldsWithoutId = classInfo.localFields.filter { it.dbFieldName != "id" }
     private val types = fieldsWithoutId.map { it.type }
 
     private val insertStatementString =

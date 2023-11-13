@@ -9,7 +9,7 @@ internal class Updater<T : Any>(
     private val idProperty: KProperty1<T, Any>,
     classInfo: ClassInfo<T>
 ) {
-    private val fieldsWithoutId = classInfo.localFieldInfo.filter { it.dbFieldName != "id" }
+    private val fieldsWithoutId = classInfo.localFields.filter { it.dbFieldName != "id" }
     private val types: List<Class<*>> = listOf(Long::class.java)/*PK*/ + fieldsWithoutId.map { it.type }
     private val updateStatementString =
         run {

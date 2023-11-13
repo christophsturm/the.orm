@@ -21,7 +21,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     private val classInfo: ClassInfo<Entity>,
     private val hasManyQueries: List<Query<*>>
 ) {
-    private val idFieldIndex = classInfo.simpleFieldInfo.indexOfFirst { it.dbFieldName == "id" }
+    private val idFieldIndex = classInfo.simpleFields.indexOfFirst { it.dbFieldName == "id" }
     private val hasManyRemoteFields = classInfo.hasManyRelations.map { fieldInfo ->
         val remoteFieldInfo = fieldInfo.classInfo.belongsToRelations.singleOrNull {
             it.relatedClass == classInfo.kClass
