@@ -12,7 +12,7 @@ data class ProductOffer(val shopProduct: ShopProduct, val timestamp: LocalDate, 
 
 @Test
 object ShopTest {
-    val tests = describe() {
+    val tests = describe {
         it("works") {
             RepoRegistry(setOf(Product::class, Shop::class, ShopProduct::class, ProductOffer::class))
         }
