@@ -28,24 +28,16 @@ internal data class ClassInfo<T : Any>(
     val idHandler: IDHandler<T>?,
     val fields: List<FieldInfo>,
 ) {
-    /**
-     * fields that directly map to a database column, and need no relation fetching
-     */
+    /** fields that directly map to a database column, and need no relation fetching */
     val simpleFields: List<SimpleLocalFieldInfo> get() = fields.filterIsInstance<SimpleLocalFieldInfo>()
 
-    /**
-     * local fields. simple fields + belongs to fields
-     */
+    /** local fields. simple fields + belongs to fields */
     val localFields: List<LocalFieldInfo> get() = fields.filterIsInstance<LocalFieldInfo>()
 
-    /**
-     * fields for belongs to relations.
-     */
+    /** fields for belongs to relations. */
     val belongsToRelations: List<BelongsToFieldInfo> get() = fields.filterIsInstance<BelongsToFieldInfo>()
 
-    /**
-     * fields for has many relations. these are not stored in the table of this class
-     */
+    /** fields for has many relations. these are not stored in the table of this class */
     val hasManyRelations: List<RemoteFieldInfo> get() = fields.filterIsInstance<RemoteFieldInfo>()
 
     val canBeFetchedWithoutRelations = (belongsToRelations + hasManyRelations).all { it.canBeLazy }
@@ -53,34 +45,24 @@ internal data class ClassInfo<T : Any>(
     val hasHasManyRelations = hasManyRelations.isNotEmpty()
 
     internal sealed interface FieldInfo {
-        /**
-         * this is used when converting database rows to instances
-         */
+        /** this is used when converting database rows to instances */
         val constructorParameter: KParameter
 
-        /**
-         * for reading
-         */
+        /** for reading */
         val property: KProperty1<*, *>
 
-        /**
-         * convert between kotlin and db types
-         */
+        /** convert between kotlin and db types */
         val fieldConverter: FieldConverter
 
-        /**
-         * is the field mutable (a var)? or not (a val)
-         */
+        /** is the field mutable (a var)? or not (a val) */
         val mutable: Boolean
 
-        /**
-         * how is the field called in the database
-         */
+        /** how is the field called in the database */
         val dbFieldName: String
 
         /**
-         * the type that we request from the database.
-         * Usually the same type as the field, but for relations it will be the PK type
+         * the type that we request from the database. Usually the same type as the field, but for relations it will be
+         * the PK type
          */
         val type: Class<*>
     }
@@ -180,14 +162,14 @@ internal data class ClassInfo<T : Any>(
                 val property = properties[parameter.name]!!
                 if (kc == HasMany::class) RemoteFieldInfo(
                     parameter, property, HasManyConverter(),
-                    Long::class.java, kotlinClass, mutable(property), table.baseName + "_id"
+                    Long::class.java, kotlinClass, isMutable(property), table.baseName + "_id"
                 )
                 else if (otherClasses.contains(kotlinClass)) {
                     BelongsToFieldInfo(
                         parameter,
                         property,
                         fieldName + "_id",
-                        mutable(property),
+                        isMutable(property),
                         BelongsToConverter(IDHandler(kotlinClass)),
                         Long::class.java,
                         kotlinClass, lazy, "$name.${property.name}"
@@ -195,20 +177,25 @@ internal data class ClassInfo<T : Any>(
                 } else when {
                     javaClass.isEnum -> SimpleLocalFieldInfo(
                         parameter, property, fieldName,
-                        EnumConverter(javaClass), String::class.java, mutable(property), "$name.${property.name}"
+                        EnumConverter(javaClass), String::class.java, isMutable(property), "$name.${property.name}"
                     )
 
                     else -> {
                         val isPK = parameter.name == "id"
                         if (isPK) {
                             SimpleLocalFieldInfo(
-                                parameter, property, fieldName,
-                                passThroughFieldConverter, Long::class.java, mutable(property), "$name.${property.name}"
+                                parameter,
+                                property,
+                                fieldName,
+                                passThroughFieldConverter,
+                                Long::class.java,
+                                isMutable(property),
+                                "$name.${property.name}"
                             )
                         } else {
                             SimpleLocalFieldInfo(
                                 parameter, property, fieldName,
-                                kotlinClass, javaClass, mutable(property), "$name.${property.name}", otherClasses
+                                kotlinClass, javaClass, isMutable(property), "$name.${property.name}", otherClasses
                             )
                         }
                     }
@@ -224,7 +211,7 @@ internal data class ClassInfo<T : Any>(
             )
         }
 
-        private fun <T : Any> mutable(property: KProperty1<T, *>) = property is KMutableProperty<*>
+        private fun <T : Any> isMutable(property: KProperty1<T, *>) = property is KMutableProperty<*>
     }
 }
 
