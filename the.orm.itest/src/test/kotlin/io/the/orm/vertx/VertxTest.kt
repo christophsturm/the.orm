@@ -4,6 +4,7 @@ import failgood.Ignored
 import failgood.Test
 import failgood.describe
 import io.the.orm.test.DBS
+import io.the.orm.test.PostgresDb
 import io.the.orm.test.TestUtilConfig
 import io.vertx.kotlin.coroutines.coAwait
 import io.vertx.pgclient.PgBuilder
@@ -14,7 +15,6 @@ import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
 import io.vertx.sqlclient.SqlConnectOptions
 import io.vertx.sqlclient.Tuple
-import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
@@ -23,21 +23,27 @@ import strikt.assertions.isEqualTo
 this test is for experimenting with the vertx psql client. it uses the vertx api directly to try out and show
 how things work.
  */
-@Suppress("SqlNoDataSourceInspection")
-class VertxClientFixture : AutoCloseable {
-    val db = runBlocking { DBS.psql16.preparePostgresDB() }
-    val client = runBlocking { createClient() }
+suspend fun VertxClientFixture(): VertxClientFixture {
+    val db: PostgresDb = DBS.psql16.preparePostgresDB()
+    val client: Pool = VertxClientFixture.createClient(db)
+    return VertxClientFixture(db, client)
+}
 
-    private suspend fun createClient(): Pool {
-        val connectOptions = SqlConnectOptions()
-            .setPort(db.port)
-            .setHost(db.host)
-            .setDatabase(db.databaseName)
-            .setUser("test")
-            .setPassword("test")
-        return PgBuilder.pool().with(PoolOptions().setMaxSize(5)).connectingTo(connectOptions).build()!!.also {
-            it.query(
-                """create sequence users_id_seq no maxvalue;
+@Suppress("SqlNoDataSourceInspection")
+class VertxClientFixture(val db: PostgresDb, val client: Pool) : AutoCloseable {
+
+    companion object {
+
+        suspend fun createClient(db: PostgresDb): Pool {
+            val connectOptions = SqlConnectOptions()
+                .setPort(db.port)
+                .setHost(db.host)
+                .setDatabase(db.databaseName)
+                .setUser("test")
+                .setPassword("test")
+            return PgBuilder.pool().with(PoolOptions().setMaxSize(5)).connectingTo(connectOptions).build()!!.also {
+                it.query(
+                    """create sequence users_id_seq no maxvalue;
                                         create table users
                         (
                             id             bigint       not null default nextval('users_id_seq') primary key,
@@ -51,7 +57,8 @@ class VertxClientFixture : AutoCloseable {
                             balance        decimal(5, 2)
                         );
                         """
-            ).execute().coAwait()
+                ).execute().coAwait()
+            }
         }
     }
 
