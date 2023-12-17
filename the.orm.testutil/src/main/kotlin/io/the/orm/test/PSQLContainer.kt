@@ -6,6 +6,7 @@ import io.vertx.pgclient.PgBuilder
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.PoolOptions
+import io.vertx.sqlclient.SqlConnectOptions
 import kotlinx.coroutines.runBlocking
 import org.testcontainers.containers.PostgreSQLContainer
 import java.util.UUID
@@ -83,4 +84,14 @@ data class PostgresDb(val databaseName: String, val port: Int, val host: String,
             dropDb()
         }
     }
+}
+
+fun PostgresDb.vertxPool(): Pool {
+    val connectOptions = SqlConnectOptions()
+        .setPort(port)
+        .setHost(host)
+        .setDatabase(databaseName)
+        .setUser("test")
+        .setPassword("test")
+    return PgBuilder.pool().with(PoolOptions().setMaxSize(5)).connectingTo(connectOptions).build()!!
 }
