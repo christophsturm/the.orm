@@ -15,10 +15,11 @@ import io.the.orm.dbio.TransactionalConnectionProvider
 import io.the.orm.dbio.r2dbc.R2DbcDBConnectionFactory
 import io.the.orm.dbio.vertx.VertxDBConnectionFactory
 import io.the.orm.test.TestUtilConfig.TEST_POOL_SIZE
-import io.vertx.core.Vertx
+import io.vertx.pgclient.PgBuilder
 import io.vertx.pgclient.PgConnectOptions
-import io.vertx.pgclient.PgPool
+import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.PoolOptions
+import io.vertx.sqlclient.SqlConnectOptions
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import java.time.Duration
 import java.util.UUID
@@ -135,8 +136,7 @@ class DBTestUtil(val databasePrefix: String) {
             .setHost(host)
             .setDatabase("postgres")
             .setUser("postgres")
-        private val pool = PgPool.pool(Vertx.vertx(), connectOptions, PoolOptions().setMaxSize(2))!!
-
+        private val pool = PgBuilder.pool().with(PoolOptions().setMaxSize(5)).connectingTo(connectOptions).build()!!
         override val name = "Vertx-local"
         suspend fun preparePostgresDB(): PostgresDb = postgresDb(databasePrefix, port, host, pool)
 
@@ -158,11 +158,11 @@ enum class DriverType {
     H2, VERTX, R2DBC
 }
 
-class VertxConnectionProviderFactory(private val poolOptions: PgConnectOptions, private val db: AutoCloseable) :
+class VertxConnectionProviderFactory(private val poolOptions: SqlConnectOptions, private val db: AutoCloseable) :
     ConnectionProviderFactory {
-    private val pools = mutableListOf<PgPool>()
+    private val pools = mutableListOf<Pool>()
     override suspend fun create(): DBConnectionFactory {
-        val client = PgPool.pool(poolOptions, PoolOptions().setMaxSize(TEST_POOL_SIZE))
+        val client = PgBuilder.pool().with(PoolOptions().setMaxSize(5)).connectingTo(poolOptions).build()!!
         pools.add(client)
 
         return VertxDBConnectionFactory(client)

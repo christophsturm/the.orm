@@ -6,8 +6,8 @@ import io.r2dbc.spi.ConnectionFactories
 import io.the.orm.dbio.DBConnectionFactory
 import io.the.orm.dbio.r2dbc.R2DbcDBConnectionFactory
 import io.the.orm.dbio.vertx.VertxDBConnectionFactory
+import io.vertx.pgclient.PgBuilder
 import io.vertx.pgclient.PgConnectOptions
-import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
 import java.time.Duration
 
@@ -34,7 +34,7 @@ object TheOrm {
             .setDatabase(db)
             .setUser(user)
 
-        val pool = PgPool.pool(connectOptions, PoolOptions().setMaxSize(5))
+        val pool = PgBuilder.pool().with(PoolOptions().setMaxSize(5)).connectingTo(connectOptions).build()
 
         return VertxDBConnectionFactory(pool)
     }

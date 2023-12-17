@@ -6,12 +6,12 @@ import failgood.describe
 import io.the.orm.test.DBS
 import io.the.orm.test.TestUtilConfig
 import io.vertx.kotlin.coroutines.coAwait
-import io.vertx.pgclient.PgConnectOptions
-import io.vertx.pgclient.PgPool
+import io.vertx.pgclient.PgBuilder
 import io.vertx.sqlclient.PoolOptions
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
 import io.vertx.sqlclient.SqlClient
+import io.vertx.sqlclient.SqlConnectOptions
 import io.vertx.sqlclient.Tuple
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -32,14 +32,13 @@ class VertxTest {
         val db by dependency({ DBS.psql16.preparePostgresDB() }) { it.close() }
 
         val client: SqlClient by dependency({
-            PgPool.pool(
-                PgConnectOptions()
-                    .setPort(db.port)
-                    .setHost(db.host)
-                    .setDatabase(db.databaseName)
-                    .setUser("test")
-                    .setPassword("test"), PoolOptions().setMaxSize(5)
-            ).also {
+            val connectOptions = SqlConnectOptions()
+                .setPort(db.port)
+                .setHost(db.host)
+                .setDatabase(db.databaseName)
+                .setUser("test")
+                .setPassword("test")
+            PgBuilder.pool().with(PoolOptions().setMaxSize(5)).connectingTo(connectOptions).build()!!.also {
                 it.query(
                     """create sequence users_id_seq no maxvalue;
                             create table users

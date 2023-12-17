@@ -6,8 +6,8 @@ import failgood.describe
 import io.the.orm.test.DBS
 import io.the.orm.test.TestUtilConfig
 import io.vertx.kotlin.coroutines.coAwait
+import io.vertx.pgclient.PgBuilder
 import io.vertx.pgclient.PgConnectOptions
-import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
 
 @Test
@@ -24,7 +24,9 @@ class VertxDBConnectionFactoryTest {
                 .setUser("test")
                 .setPassword("test")
 
-            val pool = autoClose(PgPool.pool(connectOptions, PoolOptions().setMaxSize(5))) { it.close().coAwait() }
+            val pool = autoClose(
+                PgBuilder.pool().with(PoolOptions().setMaxSize(5)).connectingTo(connectOptions).build()!!
+            ) { it.close().coAwait() }
 
             VertxDBConnectionFactory(pool).getConnection()
         }

@@ -2,8 +2,9 @@ package io.the.orm.test
 
 import io.vertx.core.Vertx
 import io.vertx.kotlin.coroutines.coAwait
+import io.vertx.pgclient.PgBuilder
 import io.vertx.pgclient.PgConnectOptions
-import io.vertx.pgclient.PgPool
+import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.PoolOptions
 import kotlinx.coroutines.runBlocking
 import org.testcontainers.containers.PostgreSQLContainer
@@ -45,10 +46,10 @@ class PostgresqlContainer(
         .setDatabase("postgres")
         .setUser("test")
         .setPassword("test")
-    private val pool = PgPool.pool(vertx, connectOptions, PoolOptions().setMaxSize(2))!!
+    private val pool = PgBuilder.pool().with(PoolOptions().setMaxSize(5)).connectingTo(connectOptions).build()!!
     suspend fun preparePostgresDB(): PostgresDb = postgresDb(databasePrefix, port, host, pool)
 }
-internal suspend fun postgresDb(prefix: String, port: Int, host: String, pool: PgPool): PostgresDb {
+internal suspend fun postgresDb(prefix: String, port: Int, host: String, pool: Pool): PostgresDb {
     val uuid = UUID.randomUUID().toString().take(5)
     val databaseName = "$prefix$uuid".replace("-", "_")
     val postgresDb = PostgresDb(databaseName, port, host, pool)
@@ -56,7 +57,7 @@ internal suspend fun postgresDb(prefix: String, port: Int, host: String, pool: P
     return postgresDb
 }
 
-data class PostgresDb(val databaseName: String, val port: Int, val host: String, val pool: PgPool) : AutoCloseable {
+data class PostgresDb(val databaseName: String, val port: Int, val host: String, val pool: Pool) : AutoCloseable {
     suspend fun createDb() {
         Counters.createDatabase.add {
             executeSql("create database $databaseName")
