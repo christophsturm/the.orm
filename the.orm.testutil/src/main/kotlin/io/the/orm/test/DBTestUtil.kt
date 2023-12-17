@@ -1,9 +1,9 @@
 package io.the.orm.test
 
-import failgood.ContextDSL
 import failgood.Ignored
 import failgood.RootContext
 import failgood.describe
+import failgood.dsl.ContextDSL
 import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
 import io.r2dbc.spi.ConnectionFactories
