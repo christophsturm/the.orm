@@ -1,7 +1,7 @@
 package io.the.orm.test
 
 import io.vertx.core.Vertx
-import io.vertx.kotlin.coroutines.await
+import io.vertx.kotlin.coroutines.coAwait
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
@@ -68,7 +68,7 @@ data class PostgresDb(val databaseName: String, val port: Int, val host: String,
     }
 
     private suspend fun executeSql(command: String) {
-        pool.query(command).execute().await()
+        pool.query(command).execute().coAwait()
     }
 
     override fun close() {

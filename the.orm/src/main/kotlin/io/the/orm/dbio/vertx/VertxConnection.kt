@@ -3,7 +3,7 @@ package io.the.orm.dbio.vertx
 import io.the.orm.dbio.DBConnection
 import io.the.orm.dbio.DBTransaction
 import io.the.orm.dbio.Statement
-import io.vertx.kotlin.coroutines.await
+import io.vertx.kotlin.coroutines.coAwait
 import io.vertx.sqlclient.SqlConnection
 
 class VertxConnection(private val client: SqlConnection) : DBConnection {
@@ -16,14 +16,14 @@ class VertxConnection(private val client: SqlConnection) : DBConnection {
     }
 
     override suspend fun beginTransaction(): DBTransaction {
-        return VertxTransaction(client.begin().await())
+        return VertxTransaction(client.begin().coAwait())
     }
 
     override suspend fun close() {
-        client.close().await()
+        client.close().coAwait()
     }
 
     override suspend fun execute(sql: String) {
-        client.query(sql).execute().await()
+        client.query(sql).execute().coAwait()
     }
 }

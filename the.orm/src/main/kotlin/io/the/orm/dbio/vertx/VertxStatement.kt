@@ -3,7 +3,7 @@ package io.the.orm.dbio.vertx
 import io.the.orm.RepositoryException
 import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.Statement
-import io.vertx.kotlin.coroutines.await
+import io.vertx.kotlin.coroutines.coAwait
 import io.vertx.pgclient.PgException
 import io.vertx.sqlclient.PreparedQuery
 import io.vertx.sqlclient.Row
@@ -17,7 +17,7 @@ class VertxStatement(private val preparedQuery: PreparedQuery<RowSet<Row>>, priv
     override suspend fun execute(types: List<Class<*>>, values: List<Any?>): DBResult {
         val parameterList = values.toList()
         val rowSet = try {
-            preparedQuery.execute(Tuple.from(parameterList)).await()
+            preparedQuery.execute(Tuple.from(parameterList)).coAwait()
         } catch (e: PgException) {
             if (e.errorMessage.contains("unique"))
                 throw e // don't wrap the exception if it's about unique constraints because we catch that later
@@ -29,7 +29,7 @@ class VertxStatement(private val preparedQuery: PreparedQuery<RowSet<Row>>, priv
     override suspend fun executeBatch(types: List<Class<*>>, valuesList: List<List<Any?>>): Flow<DBResult> {
         val list = valuesList.map { Tuple.from(it.toList()) }.toList()
 
-        var rowSet = preparedQuery.executeBatch(list).await()
+        var rowSet = preparedQuery.executeBatch(list).coAwait()
         return flow {
             while (true) {
                 emit(VertxResult(rowSet))

@@ -12,7 +12,7 @@ import io.vertx.sqlclient.PoolOptions
 import java.time.Duration
 
 /**
- * utility method for creasting connection factories for vertx and r2dbc
+ * utility method for creating connection factories for vertx and r2dbc
  */
 @Suppress("unused")
 object TheOrm {
