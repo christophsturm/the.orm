@@ -1,6 +1,6 @@
 package io.the.orm.query
 
-import io.the.orm.PK
+import io.the.orm.PKType
 import io.the.orm.Repo
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.DBConnection
@@ -53,10 +53,10 @@ class QueryFactory<Entity : Any> internal constructor(
 ) {
 
     private val dbFieldNameForProperty =
-        classInfo.localFieldInfo.associateBy({ it.property }, { it.dbFieldName })
+        classInfo.localFields.associateBy({ it.property }, { it.dbFieldName })
 
     private val selectPrefix =
-        "select ${classInfo.localFieldInfo.joinToString { it.dbFieldName }} from ${classInfo.table.name} where "
+        "select ${classInfo.localFields.joinToString { it.dbFieldName }} from ${classInfo.table.name} where "
     private val deletePrefix = "delete from ${classInfo.table.name} where "
 
     fun <P1 : Any> createQuery(p1: Condition<P1>): OneParameterQuery<P1> =
@@ -192,7 +192,7 @@ class QueryFactory<Entity : Any> internal constructor(
                 if (existing == null) {
                     repository.create(connectionProvider, entity)
                 } else {
-                    val updatedInstance = idHandler.assignId(entity, idProperty.get(existing) as PK)
+                    val updatedInstance = idHandler.assignId(entity, idProperty.get(existing) as PKType)
                     repository.update(connectionProvider, updatedInstance)
                     updatedInstance
                 }

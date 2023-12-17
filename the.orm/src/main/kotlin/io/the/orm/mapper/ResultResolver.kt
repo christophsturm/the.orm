@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.map
 internal class ResultResolver<Entity : Any>(private val classInfo: ClassInfo<Entity>) {
     suspend fun getResolvedValues(queryResult: DBResult): Flow<ResultLine> {
         val map = queryResult.map { row ->
-            LazyResultLine(classInfo.simpleFieldInfo.map { fieldInfo ->
+            LazyResultLine(classInfo.simpleFields.map { fieldInfo ->
                 lazyResult(row, fieldInfo)
             },
                 classInfo.belongsToRelations.map { fieldInfo ->

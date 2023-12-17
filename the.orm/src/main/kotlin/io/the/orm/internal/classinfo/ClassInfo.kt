@@ -26,37 +26,60 @@ internal data class ClassInfo<T : Any>(
     val name: String,
     val constructor: KFunction<T>,
     val idHandler: IDHandler<T>?,
-    val allFields: List<FieldInfo>,
+    val fields: List<FieldInfo>,
+) {
     /**
-     * local fields. Fields that are stored in the table of this class. can be simple local fields or belongs to relations
+     * fields that directly map to a database column, and need no relation fetching
      */
-    val localFieldInfo: List<LocalFieldInfo>,
+    val simpleFields: List<SimpleLocalFieldInfo> get() = fields.filterIsInstance<SimpleLocalFieldInfo>()
+
     /**
-     * simple fields
+     * local fields. simple fields + belongs to fields
      */
-    val simpleFieldInfo: List<SimpleLocalFieldInfo>,
+    val localFields: List<LocalFieldInfo> get() = fields.filterIsInstance<LocalFieldInfo>()
+
     /**
      * fields for belongs to relations.
      */
-    val belongsToRelations: List<LocalRelationFieldInfo>,
+    val belongsToRelations: List<BelongsToFieldInfo> get() = fields.filterIsInstance<BelongsToFieldInfo>()
+
     /**
      * fields for has many relations. these are not stored in the table of this class
      */
-    val hasManyRelations: List<RemoteFieldInfo>
-) {
+    val hasManyRelations: List<RemoteFieldInfo> get() = fields.filterIsInstance<RemoteFieldInfo>()
+
     val canBeFetchedWithoutRelations = (belongsToRelations + hasManyRelations).all { it.canBeLazy }
     val hasBelongsToRelations = belongsToRelations.isNotEmpty()
     val hasHasManyRelations = hasManyRelations.isNotEmpty()
 
     internal sealed interface FieldInfo {
+        /**
+         * this is used when converting database rows to instances
+         */
         val constructorParameter: KParameter
+
+        /**
+         * for reading
+         */
         val property: KProperty1<*, *>
+
+        /**
+         * convert between kotlin and db types
+         */
         val fieldConverter: FieldConverter
+
+        /**
+         * is the field mutable (a var)? or not (a val)
+         */
         val mutable: Boolean
+
+        /**
+         * how is the field called in the database
+         */
         val dbFieldName: String
 
         /**
-         * then type that we request from the database.
+         * the type that we request from the database.
          * Usually the same type as the field, but for relations it will be the PK type
          */
         val type: Class<*>
@@ -92,7 +115,7 @@ internal data class ClassInfo<T : Any>(
             get() = true
     }
 
-    class LocalRelationFieldInfo(
+    class BelongsToFieldInfo(
         override val constructorParameter: KParameter,
         override val property: KProperty1<*, *>,
         override val dbFieldName: String,
@@ -109,11 +132,11 @@ internal data class ClassInfo<T : Any>(
     }
 
     fun values(instance: T): Sequence<Any?> {
-        return localFieldInfo.asSequence().map { it.valueForDb(instance) }
+        return localFields.asSequence().map { it.valueForDb(instance) }
     }
 
     fun afterInit(repos: Map<KClass<out Any>, RepoImpl<out Any>>) {
-        allFields.forEach {
+        fields.forEach {
             if (it is RelationFieldInfo) {
                 val repo = repos.getRepo(it.relatedClass)
                 it.repo = repo
@@ -140,7 +163,7 @@ internal data class ClassInfo<T : Any>(
             } catch (e: Exception) {
                 null
             }
-            val fieldInfo: List<FieldInfo> = constructor.parameters.map { parameter ->
+            val fields: List<FieldInfo> = constructor.parameters.map { parameter ->
                 val type = parameter.type
                 val kc = type.classifier as KClass<*>
                 val kotlinClass = when (kc) {
@@ -160,7 +183,7 @@ internal data class ClassInfo<T : Any>(
                     Long::class.java, kotlinClass, mutable(property), table.baseName + "_id"
                 )
                 else if (otherClasses.contains(kotlinClass)) {
-                    LocalRelationFieldInfo(
+                    BelongsToFieldInfo(
                         parameter,
                         property,
                         fieldName + "_id",
@@ -191,18 +214,13 @@ internal data class ClassInfo<T : Any>(
                     }
                 }
             }
-            val localFieldInfo = fieldInfo.filterIsInstance<LocalFieldInfo>()
             return ClassInfo(
                 kClass,
                 table,
                 name!!,
                 constructor,
                 idHandler,
-                fieldInfo,
-                localFieldInfo,
-                fieldInfo.filterIsInstance<SimpleLocalFieldInfo>(),
-                fieldInfo.filterIsInstance<LocalRelationFieldInfo>(),
-                fieldInfo.filterIsInstance<RemoteFieldInfo>()
+                fields
             )
         }
 

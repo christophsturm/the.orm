@@ -40,15 +40,15 @@ create table sentences
 
 """
 
-    data class Sentence(val content: String, val chapter: BelongsTo<Chapter> = belongsTo(), val id: PK? = null)
+    data class Sentence(val content: String, val chapter: BelongsTo<Chapter> = belongsTo(), val id: PKType? = null)
     data class Chapter(
         val name: String,
         val sentences: HasMany<Sentence>,
         val book: BelongsTo<Book> = belongsTo(),
-        val id: PK? = null
+        val id: PKType? = null
     )
 
-    data class Book(val name: String, val chapters: HasMany<Chapter> = hasMany(), val id: PK? = null)
+    data class Book(val name: String, val chapters: HasMany<Chapter> = hasMany(), val id: PKType? = null)
 
     /*
     for has many we really need recursive saving because we don't know the id when we create the objects

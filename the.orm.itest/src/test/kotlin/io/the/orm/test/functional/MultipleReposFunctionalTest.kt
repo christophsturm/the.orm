@@ -1,7 +1,7 @@
 package io.the.orm.test.functional
 
 import failgood.Test
-import io.the.orm.PK
+import io.the.orm.PKType
 import io.the.orm.RepoRegistry
 import io.the.orm.getRepo
 import io.the.orm.query.isEqualTo
@@ -65,7 +65,7 @@ object MultipleReposFunctionalTest {
         val description: String?,
         val author: String?,
         val recipes: HasMany<Recipe> = hasMany(),
-        val id: PK? = null
+        val id: PKType? = null
     )
 
     data class Recipe(
@@ -73,14 +73,14 @@ object MultipleReposFunctionalTest {
         val description: String?,
         val page: BelongsTo<Page> = belongsTo(),
         val ingredients: HasMany<RecipeIngredient> = hasMany(),
-        val id: PK? = null
+        val id: PKType? = null
     )
 
     data class RecipeIngredient(
         val amount: String,
         val ingredient: Ingredient,
         val recipe: BelongsTo<Recipe> = belongsTo(),
-        val id: PK? = null
+        val id: PKType? = null
     )
 
     data class Ingredient(val name: String, val id: Long? = null)

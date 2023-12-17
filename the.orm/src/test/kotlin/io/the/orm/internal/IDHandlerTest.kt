@@ -2,13 +2,13 @@ package io.the.orm.internal
 
 import failgood.Test
 import failgood.describe
-import io.the.orm.PK
+import io.the.orm.PKType
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 @Test
 class IDHandlerTest {
-    data class ClassWithPkId(val id: PK?, val otherProp: String)
+    data class ClassWithPkId(val id: PKType?, val otherProp: String)
     val context = describe(IDHandler::class) {
         describe("assigning an id to a newly created instance") {
             it("assigns a Long id") {

@@ -1,6 +1,6 @@
 package io.the.orm.internal.classinfo
 
-import io.the.orm.PK
+import io.the.orm.PKType
 import io.the.orm.internal.IDHandler
 import io.the.orm.relations.BelongsTo
 
@@ -8,7 +8,7 @@ internal class BelongsToConverter<Reference : Any>(private val idHandler: IDHand
     override fun dbValueToParameter(value: Any?): Any? = null
 
     @Suppress("UNCHECKED_CAST")
-    override fun propertyToDBValue(value: Any?): PK? {
+    override fun propertyToDBValue(value: Any?): PKType? {
         if (value == null) return null
 
         return if (value is BelongsTo<*>)

@@ -1,6 +1,6 @@
 package io.the.orm.internal
 
-import io.the.orm.PK
+import io.the.orm.PKType
 import io.the.orm.RepositoryException
 import io.the.orm.mapper.friendlyString
 import io.the.orm.pKClass
@@ -45,7 +45,7 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
         }
     }
 
-    fun assignId(instance: T, id: PK): T {
+    fun assignId(instance: T, id: PKType): T {
         val args = mapOf(idParameter to id, instanceParameter to instance)
         return try {
             copyFunction.callBy(args)
@@ -57,9 +57,9 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
     /**
      *  read the id field from an entity
      *  */
-    fun readId(instance: T): PK {
+    fun readId(instance: T): PKType {
         when (val idResult = idField.getter.call(instance)) {
-            is PK -> return idResult
+            is PKType -> return idResult
             null -> throw RepositoryException("id is not yet set for $instance")
             else -> throw RepositoryException("unknown pk type for $instance")
         }
