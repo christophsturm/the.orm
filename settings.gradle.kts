@@ -3,7 +3,7 @@
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        maven("https://s01.oss.sonatype.org/content/repositories/devfailgood-1050")
+        maven("https://s01.oss.sonatype.org/content/repositories/devfailgood-1051")
     }
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 }
