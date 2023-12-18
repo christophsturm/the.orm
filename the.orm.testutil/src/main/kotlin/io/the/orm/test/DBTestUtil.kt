@@ -21,6 +21,7 @@ import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.PoolOptions
 import io.vertx.sqlclient.SqlConnectOptions
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import java.time.Duration
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -237,7 +238,7 @@ suspend fun ContextDSL<*>.withDb(
     }
 }
 
-private suspend fun ContextDSL<Unit>.withDbInternal(
+suspend fun ContextDSL<Unit>.withDbInternal(
     db: DBTestUtil.TestDatabase,
     schema: String?,
     tests: suspend ContextDSL<*>.(TransactionProvider) -> Unit
@@ -246,6 +247,26 @@ private suspend fun ContextDSL<Unit>.withDbInternal(
     val dbConnection: DBConnectionFactory = LazyDBConnectionFactory(createDB, schema, db)
 
     tests(TransactionalConnectionProvider(dbConnection))
+}
+
+suspend fun TestDatabaseFixture(db: DBTestUtil.TestDatabase, schema: String): TestDatabaseFixture {
+    val connectionProviderFactory = db.createDB()
+    val factory = connectionProviderFactory.create()
+    factory.createSchema(schema)
+    return TestDatabaseFixture(factory, connectionProviderFactory)
+}
+
+class TestDatabaseFixture(
+    factory: DBConnectionFactory,
+    private val connectionProviderFactory: ConnectionProviderFactory
+) :
+    AutoCloseable {
+    val transactionalConnectionProvider = TransactionalConnectionProvider(factory)
+    override fun close() {
+        runBlocking {
+            connectionProviderFactory.close()
+        }
+    }
 }
 
 /*
@@ -263,13 +284,17 @@ class LazyDBConnectionFactory(
             return factory!!.getConnection()
 
         val dbConnectionFactory = db.create()
-        if (schema != null) TransactionalConnectionProvider(dbConnectionFactory).withConnection { dbConnection ->
-            Counters.createSchema.add {
-                dbConnection.execute(schema)
-            }
-        }
+        if (schema != null) dbConnectionFactory.createSchema(schema)
         factory = dbConnectionFactory
         return dbConnectionFactory.getConnection()
+    }
+}
+
+suspend fun DBConnectionFactory.createSchema(schema: String) {
+    TransactionalConnectionProvider(this).withConnection { dbConnection ->
+        Counters.createSchema.add {
+            dbConnection.execute(schema)
+        }
     }
 }
 
