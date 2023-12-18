@@ -66,7 +66,7 @@ create table sentences
                 it("can write and read an entity with an empty has many relation") {
                     RepoTransactionProvider(
                         repo,
-                        given.transactionalConnectionProvider
+                        given.transactionProvider
                     ).transaction(Book::class) { bookRepo ->
                         val book = bookRepo.create(Book("a book without chapters"))
                         bookRepo.findById(book.id!!)
@@ -77,7 +77,7 @@ create table sentences
                     val book = book()
                     RepoTransactionProvider(
                         repo,
-                        given.transactionalConnectionProvider
+                        given.transactionProvider
                     ).transaction(Book::class) { bookRepo ->
                         bookRepo.create(book)
                         val result = bookRepo.connectionProvider.withConnection { conn ->
@@ -98,7 +98,7 @@ create table sentences
                     val holder = book()
                     RepoTransactionProvider(
                         repo,
-                        given.transactionalConnectionProvider
+                        given.transactionProvider
                     ).transaction(Book::class) { bookRepo ->
                         val id = bookRepo.create(holder).id!!
                         val reloaded = bookRepo.findById(id, fetchRelations = setOf(Book::chapters, Chapter::sentences))
@@ -116,7 +116,7 @@ create table sentences
                     val holder = book()
                     RepoTransactionProvider(
                         repo,
-                        given.transactionalConnectionProvider
+                        given.transactionProvider
                     ).transaction(Book::class) { bookRepo ->
                         val id = bookRepo.create(holder).id!!
                         val reloaded = bookRepo.findById(id, fetchRelations = setOf())

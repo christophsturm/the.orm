@@ -244,7 +244,7 @@ suspend fun ContextDSL<Unit>.withDbInternal(
     tests: suspend ContextDSL<*>.(TransactionProvider) -> Unit
 ) {
     val createDB by dependency({ db.createDB() }) { it.close() }
-    val dbConnection: DBConnectionFactory = LazyDBConnectionFactory(createDB, schema, db)
+    val dbConnection: DBConnectionFactory = LazyDBConnectionFactory(createDB, schema)
 
     tests(TransactionalConnectionProvider(dbConnection))
 }
@@ -261,7 +261,7 @@ class TestDatabaseFixture(
     private val connectionProviderFactory: ConnectionProviderFactory
 ) :
     AutoCloseable {
-    val transactionalConnectionProvider = TransactionalConnectionProvider(factory)
+    val transactionProvider: TransactionProvider = TransactionalConnectionProvider(factory)
     override fun close() {
         runBlocking {
             connectionProviderFactory.close()
@@ -274,8 +274,7 @@ class TestDatabaseFixture(
  */
 class LazyDBConnectionFactory(
     private val db: ConnectionProviderFactory,
-    private val schema: String?,
-    val testDatabase: DBTestUtil.TestDatabase
+    private val schema: String?
 ) :
     DBConnectionFactory {
     private var factory: DBConnectionFactory? = null
