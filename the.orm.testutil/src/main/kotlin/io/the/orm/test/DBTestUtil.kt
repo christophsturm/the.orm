@@ -249,8 +249,8 @@ suspend fun ContextDSL<Unit>.withDbInternal(
     tests(TransactionalConnectionProvider(dbConnection))
 }
 
-suspend fun TestDatabaseFixture(db: DBTestUtil.TestDatabase, schema: String): TestDatabaseFixture {
-    val connectionProviderFactory = db.createDB()
+suspend fun DBTestUtil.TestDatabase.fixture(schema: String): TestDatabaseFixture {
+    val connectionProviderFactory = createDB()
     val factory = connectionProviderFactory.create()
     factory.createSchema(schema)
     return TestDatabaseFixture(factory, connectionProviderFactory)

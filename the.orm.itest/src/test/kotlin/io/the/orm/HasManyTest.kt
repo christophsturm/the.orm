@@ -8,7 +8,7 @@ import io.the.orm.relations.LazyHasMany
 import io.the.orm.relations.belongsTo
 import io.the.orm.relations.hasMany
 import io.the.orm.test.DBS
-import io.the.orm.test.TestDatabaseFixture
+import io.the.orm.test.fixture
 import io.the.orm.transaction.RepoTransactionProvider
 import kotlinx.coroutines.flow.toSet
 import kotlin.test.assertEquals
@@ -61,7 +61,7 @@ create table sentences
         DBS.databases.mapIndexed { index, testDB ->
             val subjectDescription =
                 if (DBS.databases.size == 1) contextName else "$contextName (running on ${testDB.name})"
-            describe(subjectDescription, order = index, given = { TestDatabaseFixture(testDB, SCHEMA) }) {
+            describe(subjectDescription, order = index, given = { testDB.fixture(SCHEMA) }) {
                 val repo = RepoRegistry(setOf(Sentence::class, Chapter::class, Book::class))
                 it("can write and read an entity with an empty has many relation") {
                     RepoTransactionProvider(
