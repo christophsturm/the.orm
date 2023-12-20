@@ -4,6 +4,7 @@ import io.r2dbc.spi.R2dbcDataIntegrityViolationException
 import io.the.orm.DataIntegrityViolationException
 import io.the.orm.UnexpectedDatabaseErrorException
 import io.the.orm.UniqueConstraintViolatedException
+import io.the.orm.internal.classinfo.Table
 import io.vertx.pgclient.PgException
 import java.util.Locale
 import kotlin.reflect.KClass

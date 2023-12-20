@@ -1,4 +1,4 @@
-package io.the.orm.internal
+package io.the.orm.internal.classinfo
 
 import io.the.orm.util.toSnakeCase
 import java.util.Locale

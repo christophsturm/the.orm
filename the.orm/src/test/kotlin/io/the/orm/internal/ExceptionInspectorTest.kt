@@ -4,6 +4,7 @@ import failgood.Test
 import failgood.describe
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException
 import io.the.orm.UniqueConstraintViolatedException
+import io.the.orm.internal.classinfo.Table
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
