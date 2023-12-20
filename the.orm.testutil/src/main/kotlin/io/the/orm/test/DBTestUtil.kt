@@ -2,6 +2,7 @@ package io.the.orm.test
 
 import failgood.Ignored
 import failgood.RootContext
+import failgood.RootContextWithGiven
 import failgood.describe
 import failgood.dsl.ContextDSL
 import io.r2dbc.pool.ConnectionPool
@@ -249,10 +250,10 @@ suspend fun ContextDSL<Unit>.withDbInternal(
     tests(TransactionalConnectionProvider(dbConnection))
 }
 
-suspend fun DBTestUtil.TestDatabase.fixture(schema: String): TestDatabaseFixture {
+suspend fun DBTestUtil.TestDatabase.fixture(schema: String? = null): TestDatabaseFixture {
     val connectionProviderFactory = createDB()
     val factory = connectionProviderFactory.create()
-    factory.createSchema(schema)
+    schema?.let { factory.createSchema(it) }
     return TestDatabaseFixture(factory, connectionProviderFactory)
 }
 
@@ -324,5 +325,17 @@ fun describeOnAllDbs(
         describe(subjectDescription, ignored, order = index) {
             withDbInternal(testDB, schema, tests)
         }
+    }
+}
+
+fun <RootContextGiven> DBTestUtil.describeAll(
+    contextName: String,
+    given: suspend (DBTestUtil.TestDatabase) -> RootContextGiven,
+    tests: suspend ContextDSL<RootContextGiven>.() -> Unit
+): List<RootContextWithGiven<RootContextGiven>> {
+    val g = given
+    return this.databases.mapIndexed { index, testDB ->
+        val subjectDescription = if (databases.size == 1) contextName else "$contextName (running on ${testDB.name})"
+        describe(subjectDescription, order = index, given = { g(testDB) }, function = tests)
     }
 }
