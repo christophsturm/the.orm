@@ -1,6 +1,8 @@
-package io.the.orm
+package io.the.orm.test.functional.relations
 
 import failgood.Test
+import io.the.orm.PKType
+import io.the.orm.RepoRegistry
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.belongsTo
 import io.the.orm.test.describeOnAllDbs
