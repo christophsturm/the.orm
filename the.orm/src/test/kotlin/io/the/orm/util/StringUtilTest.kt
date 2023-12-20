@@ -7,13 +7,13 @@ import strikt.assertions.isEqualTo
 
 @Test
 class StringUtilTest {
-    val context = describe("string methods") {
-        it("can convert camel case to snake case") {
-            expectThat("CamelCase".toSnakeCase()).isEqualTo("camel_case")
+    val context =
+        describe("string methods") {
+            it("can convert camel case to snake case") {
+                expectThat("CamelCase".toSnakeCase()).isEqualTo("camel_case")
+            }
+            it("can convert question mark syntax to indexed syntax") {
+                expectThat("values (?,?,?)".toIndexedPlaceholders()).isEqualTo("values ($1,$2,$3)")
+            }
         }
-        it("can convert question mark syntax to indexed syntax") {
-            expectThat("values (?,?,?)".toIndexedPlaceholders())
-                .isEqualTo("values ($1,$2,$3)")
-        }
-    }
 }

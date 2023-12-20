@@ -16,8 +16,7 @@ internal class HasManyInserter<Entity : Any>(
         val insertedRoot = rootSimpleInserter.create(connectionProvider, instance)
         val id = classInfo.idHandler!!.readId(insertedRoot)
         classInfo.hasManyRelations.forEachIndexed { index, remoteFieldInfo ->
-            @Suppress("UNCHECKED_CAST")
-            val repo = belongingsRepos[index] as Repo<Any>
+            @Suppress("UNCHECKED_CAST") val repo = belongingsRepos[index] as Repo<Any>
             val hasMany = remoteFieldInfo.property.call(instance) as HasMany<*>
             val fieldInfo = belongingsFieldInfo[index]
             hasMany.forEach { e ->

@@ -9,19 +9,21 @@ import strikt.assertions.isEqualTo
 @Test
 class IDHandlerTest {
     data class ClassWithPkId(val id: PKType?, val otherProp: String)
-    val context = describe(IDHandler::class) {
-        describe("assigning an id to a newly created instance") {
-            it("assigns a Long id") {
-                val instance = ClassWithPkId(null, "string")
-                expectThat(IDHandler(ClassWithPkId::class).assignId(instance, 1))
-                    .isEqualTo(instance.copy(id = 1))
+
+    val context =
+        describe(IDHandler::class) {
+            describe("assigning an id to a newly created instance") {
+                it("assigns a Long id") {
+                    val instance = ClassWithPkId(null, "string")
+                    expectThat(IDHandler(ClassWithPkId::class).assignId(instance, 1))
+                        .isEqualTo(instance.copy(id = 1))
+                }
+            }
+            describe("reading the id") {
+                it("reads a Long id") {
+                    val instance = ClassWithPkId(10, "string")
+                    assert(IDHandler(ClassWithPkId::class).readId(instance) == 10L)
+                }
             }
         }
-        describe("reading the id") {
-            it("reads a Long id") {
-                val instance = ClassWithPkId(10, "string")
-                assert(IDHandler(ClassWithPkId::class).readId(instance) == 10L)
-            }
-        }
-    }
 }

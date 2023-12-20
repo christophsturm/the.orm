@@ -7,10 +7,10 @@ import io.vertx.pgclient.PgConnectOptions
 import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.PoolOptions
 import io.vertx.sqlclient.SqlConnectOptions
-import kotlinx.coroutines.runBlocking
-import org.testcontainers.containers.PostgreSQLContainer
 import java.util.UUID
 import kotlin.time.measureTimedValue
+import kotlinx.coroutines.runBlocking
+import org.testcontainers.containers.PostgreSQLContainer
 
 class LazyPSQLContainer(
     val dockerImage: String,
@@ -35,23 +35,30 @@ class PostgresqlContainer(
 ) {
     private val dockerContainer: PostgreSQLContainer<Nothing> =
         measureTimedValue {
-            PostgreSQLContainer<Nothing>(dockerImage).apply {
-                setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=20000")
-                withReuse(reuse)
-                start()
+                PostgreSQLContainer<Nothing>(dockerImage).apply {
+                    setCommand("postgres", "-c", "fsync=off", "-c", "max_connections=20000")
+                    withReuse(reuse)
+                    start()
+                }
             }
-        }.also { println("creating docker container took ${it.duration}") }.value
+            .also { println("creating docker container took ${it.duration}") }
+            .value
     private val vertx = Vertx.vertx()
     private val host = dockerContainer.host.let { if (it == "localhost") "127.0.0.1" else it }!!
     private val port = dockerContainer.getMappedPort(5432)!!
-    private val connectOptions = PgConnectOptions()
-        .setPort(port)
-        .setHost(host)
-        .setDatabase("postgres")
-        .setUser("test")
-        .setPassword("test")
+    private val connectOptions =
+        PgConnectOptions()
+            .setPort(port)
+            .setHost(host)
+            .setDatabase("postgres")
+            .setUser("test")
+            .setPassword("test")
     private val pool =
-        PgBuilder.pool().with(PoolOptions().setMaxSize(5)).connectingTo(connectOptions).using(vertx).build()!!
+        PgBuilder.pool()
+            .with(PoolOptions().setMaxSize(5))
+            .connectingTo(connectOptions)
+            .using(vertx)
+            .build()!!
 
     suspend fun preparePostgresDB(): PostgresDb = postgresDb(databasePrefix, port, host, pool)
 }
@@ -64,11 +71,10 @@ internal suspend fun postgresDb(prefix: String, port: Int, host: String, pool: P
     return postgresDb
 }
 
-data class PostgresDb(val databaseName: String, val port: Int, val host: String, val pool: Pool) : AutoCloseable {
+data class PostgresDb(val databaseName: String, val port: Int, val host: String, val pool: Pool) :
+    AutoCloseable {
     suspend fun createDb() {
-        Counters.createDatabase.add {
-            executeSql("create database $databaseName")
-        }
+        Counters.createDatabase.add { executeSql("create database $databaseName") }
     }
 
     private suspend fun dropDb() {
@@ -80,18 +86,17 @@ data class PostgresDb(val databaseName: String, val port: Int, val host: String,
     }
 
     override fun close() {
-        runBlocking {
-            dropDb()
-        }
+        runBlocking { dropDb() }
     }
 }
 
 fun PostgresDb.vertxPool(): Pool {
-    val connectOptions = SqlConnectOptions()
-        .setPort(port)
-        .setHost(host)
-        .setDatabase(databaseName)
-        .setUser("test")
-        .setPassword("test")
+    val connectOptions =
+        SqlConnectOptions()
+            .setPort(port)
+            .setHost(host)
+            .setDatabase(databaseName)
+            .setUser("test")
+            .setPassword("test")
     return PgBuilder.pool().with(PoolOptions().setMaxSize(5)).connectingTo(connectOptions).build()!!
 }

@@ -71,10 +71,8 @@ interface Repo<Entity : Any> {
     ): Map<PKType, Entity>
 }
 
-class RepoImpl<Entity : Any> internal constructor(
-    private val kClass: KClass<Entity>,
-    classInfos: Map<KClass<*>, ClassInfo<*>>
-) :
+class RepoImpl<Entity : Any>
+internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<*>, ClassInfo<*>>) :
     Repo<Entity> {
     constructor(kClass: KClass<Entity>) : this(kClass, mapOf(kClass to ClassInfo(kClass)))
 
@@ -83,8 +81,8 @@ class RepoImpl<Entity : Any> internal constructor(
     @Suppress("UNCHECKED_CAST")
     private val idProperty =
         (properties["id"]
-            ?: throw RepositoryException("class ${kClass.simpleName} has no field named id")) as
-            KProperty1<Entity, PKType>
+            ?: throw RepositoryException("class ${kClass.simpleName} has no field named id"))
+            as KProperty1<Entity, PKType>
 
     @Suppress("UNCHECKED_CAST")
     internal val classInfo: ClassInfo<Entity> = classInfos[kClass] as ClassInfo<Entity>
@@ -97,9 +95,7 @@ class RepoImpl<Entity : Any> internal constructor(
 
     override val queryFactory: QueryFactory<Entity> =
         QueryFactory(
-            DefaultResultMapper(
-                ResultResolver(classInfo), StreamingEntityCreator(classInfo)
-            ),
+            DefaultResultMapper(ResultResolver(classInfo), StreamingEntityCreator(classInfo)),
             this,
             idHandler,
             idProperty,
@@ -107,40 +103,43 @@ class RepoImpl<Entity : Any> internal constructor(
         )
 
     /**
-     * the repo is first created as a repo that can not fetch relations when all repos are created they are upgraded to
-     * repos that can fetch relations
+     * the repo is first created as a repo that can not fetch relations when all repos are created
+     * they are upgraded to repos that can fetch relations
      */
     fun afterInit() {
         if (classInfo.hasHasManyRelations) {
             val simpleInserter = inserter
-            inserter = HasManyInserter(
-                simpleInserter,
-                classInfo,
-                classInfo.hasManyRelations.map {
-                    it.repo
-                }, classInfo.hasManyRelations.map { fieldInfo ->
-                    val classInfo1 = fieldInfo.classInfo
-                    classInfo1.belongsToRelations.singleOrNull { it.relatedClass == kClass }
-                        ?: throw RepositoryException(
-                            "BelongsTo field for HasMany relation ${classInfo.name}.${fieldInfo.property.name}" +
-                                " not found in ${fieldInfo.classInfo.name}." +
-                                " Currently you need to declare both sides of the relation"
-                        )
-                })
+            inserter =
+                HasManyInserter(
+                    simpleInserter,
+                    classInfo,
+                    classInfo.hasManyRelations.map { it.repo },
+                    classInfo.hasManyRelations.map { fieldInfo ->
+                        val classInfo1 = fieldInfo.classInfo
+                        classInfo1.belongsToRelations.singleOrNull { it.relatedClass == kClass }
+                            ?: throw RepositoryException(
+                                "BelongsTo field for HasMany relation ${classInfo.name}.${fieldInfo.property.name}" +
+                                    " not found in ${fieldInfo.classInfo.name}." +
+                                    " Currently you need to declare both sides of the relation"
+                            )
+                    }
+                )
         }
         if (classInfo.hasHasManyRelations || classInfo.hasBelongsToRelations) {
-            val hasManyQueries: List<Query<*>> = classInfo.hasManyRelations.map {
-                it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
-            }
-            queryFactory.resultMapper = RelationFetchingResultMapper(
-                ResultResolver(classInfo),
-                RelationFetchingEntityCreator(
-                    classInfo.belongsToRelations.map { it.repo },
-                    StreamingEntityCreator(classInfo),
-                    classInfo,
-                    hasManyQueries
+            val hasManyQueries: List<Query<*>> =
+                classInfo.hasManyRelations.map {
+                    it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
+                }
+            queryFactory.resultMapper =
+                RelationFetchingResultMapper(
+                    ResultResolver(classInfo),
+                    RelationFetchingEntityCreator(
+                        classInfo.belongsToRelations.map { it.repo },
+                        StreamingEntityCreator(classInfo),
+                        classInfo,
+                        hasManyQueries
+                    )
                 )
-            )
         }
     }
 
@@ -159,15 +158,14 @@ class RepoImpl<Entity : Any> internal constructor(
      * @param instance the instance that will be used to update the record
      */
     override suspend fun update(connectionProvider: ConnectionProvider, instance: Entity) {
-        connectionProvider.withConnection { connection ->
-            updater.update(connection, instance)
-        }
+        connectionProvider.withConnection { connection -> updater.update(connection, instance) }
     }
 
     private val byIdQuery: QueryFactory<Entity>.OneParameterQuery<PKType> =
         queryFactory.createQuery(isEqualToCondition(idProperty))
-    private val byIdsQuery: QueryFactory<Entity>.OneParameterQuery<Array<PKType>>
-        by lazy { queryFactory.createQuery(idProperty.isIn()) }
+    private val byIdsQuery: QueryFactory<Entity>.OneParameterQuery<Array<PKType>> by lazy {
+        queryFactory.createQuery(idProperty.isIn())
+    }
 
     /**
      * loads an object from the database
@@ -191,11 +189,12 @@ class RepoImpl<Entity : Any> internal constructor(
         ids: List<PKType>,
         fetchRelations: Set<KProperty1<*, Relation>>
     ): Map<PKType, Entity> {
-        return byIdsQuery.with(ids.toTypedArray()).findAndTransform(connectionProvider, fetchRelations) { flow ->
+        return byIdsQuery.with(ids.toTypedArray()).findAndTransform(
+            connectionProvider,
+            fetchRelations
+        ) { flow ->
             val result = LinkedHashMap<PKType, Entity>(ids.size)
-            flow.collect {
-                result[idProperty(it)] = it
-            }
+            flow.collect { result[idProperty(it)] = it }
             result
         }
     }

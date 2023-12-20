@@ -5,9 +5,9 @@ import io.the.orm.RepositoryException
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.LazyHasMany
+import kotlin.reflect.KParameter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.reflect.KParameter
 
 internal interface EntityCreator<Entity : Any> {
     fun toEntities(
@@ -17,7 +17,8 @@ internal interface EntityCreator<Entity : Any> {
     ): Flow<Entity>
 }
 
-internal class StreamingEntityCreator<Entity : Any>(private val classInfo: ClassInfo<Entity>) : EntityCreator<Entity> {
+internal class StreamingEntityCreator<Entity : Any>(private val classInfo: ClassInfo<Entity>) :
+    EntityCreator<Entity> {
     private val idFieldIndex = classInfo.simpleFields.indexOfFirst { it.dbFieldName == "id" }
 
     override fun toEntities(
@@ -25,40 +26,43 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
         relations: List<Map<PKType, Any>?>,
         hasManyRelations: List<Map<PKType, Set<Entity>>?>?
     ): Flow<Entity> {
-        return results.map { values ->
-            val id = values.fields[idFieldIndex] as PKType
-            val map = values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
-                val fieldInfo = classInfo.simpleFields[index]
-                val parameterValue = fieldInfo.fieldConverter.dbValueToParameter(value)
-                Pair(fieldInfo.constructorParameter, parameterValue)
+        return results
+            .map { values ->
+                val id = values.fields[idFieldIndex] as PKType
+                val map =
+                    values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
+                        val fieldInfo = classInfo.simpleFields[index]
+                        val parameterValue = fieldInfo.fieldConverter.dbValueToParameter(value)
+                        Pair(fieldInfo.constructorParameter, parameterValue)
+                    }
+                values.relations.withIndex().associateTo(map) { (index, value) ->
+                    val fieldInfo = classInfo.belongsToRelations[index]
+                    val relationValues = relations[index]
+                    if (relationValues != null)
+                        Pair(fieldInfo.constructorParameter, relationValues[value as PKType])
+                    else
+                        Pair(
+                            fieldInfo.constructorParameter,
+                            BelongsTo.BelongsToNotLoaded<Any>(value as PKType)
+                        )
+                }
+                classInfo.hasManyRelations.withIndex().associateTo(map) { (index, it) ->
+                    val loadedEntries = hasManyRelations?.get(index)
+                    if (loadedEntries != null)
+                        Pair(it.constructorParameter, LazyHasMany<Any>(loadedEntries[id]))
+                    else Pair(it.constructorParameter, LazyHasMany())
+                }
             }
-            values.relations.withIndex().associateTo(map) { (index, value) ->
-                val fieldInfo = classInfo.belongsToRelations[index]
-                val relationValues = relations[index]
-                if (relationValues != null)
-                    Pair(fieldInfo.constructorParameter, relationValues[value as PKType])
-                else
-                    Pair(
-                        fieldInfo.constructorParameter,
-                        BelongsTo.BelongsToNotLoaded<Any>(value as PKType)
+            .map {
+                try {
+                    classInfo.constructor.callBy(it)
+                } catch (e: Exception) {
+                    throw RepositoryException(
+                        "error invoking constructor for ${classInfo.name}.\n parameters:${it.friendlyString()}",
+                        e
                     )
+                }
             }
-            classInfo.hasManyRelations.withIndex().associateTo(map) { (index, it) ->
-                val loadedEntries = hasManyRelations?.get(index)
-                if (loadedEntries != null)
-                    Pair(it.constructorParameter, LazyHasMany<Any>(loadedEntries[id]))
-                else
-                    Pair(it.constructorParameter, LazyHasMany())
-            }
-        }.map {
-            try {
-                classInfo.constructor.callBy(it)
-            } catch (e: Exception) {
-                throw RepositoryException(
-                    "error invoking constructor for ${classInfo.name}.\n parameters:${it.friendlyString()}", e
-                )
-            }
-        }
     }
 }
 

@@ -6,9 +6,7 @@ import kotlin.time.measureTime
 
 class Timer {
     suspend fun add(block: suspend () -> Unit) {
-        add(measureTime {
-            block()
-        })
+        add(measureTime { block() })
     }
 
     private fun add(time: Duration) {
@@ -16,13 +14,17 @@ class Timer {
     }
 
     private fun totalTime() = durations.fold(Duration.ZERO) { acc, duration -> acc.plus(duration) }
+
     private val durations = CopyOnWriteArrayList<Duration>()
-    override fun toString(): String = "total: ${totalTime()} entries:${durations.size} (durations: $durations)"
+
+    override fun toString(): String =
+        "total: ${totalTime()} entries:${durations.size} (durations: $durations)"
 }
 
 object Counters {
     val createSchema = Timer()
     val createDatabase = Timer()
+
     override fun toString(): String {
         return "Counters(createSchema=$createSchema, createDatabase=$createDatabase)"
     }

@@ -15,26 +15,28 @@ internal val passThroughFieldConverter = PassThroughConverter
 
 interface FieldConverter {
     fun dbValueToParameter(value: Any?): Any? = value
+
     fun propertyToDBValue(value: Any?): Any? = value
 }
 
 object PassThroughConverter : FieldConverter
 
 // from the r2dbc spec: https://r2dbc.io/spec/0.8.4.RELEASE/spec/html/#datatypes
-private val fieldConverters = mapOf<KClass<*>, FieldConverter>(
-    String::class to passThroughFieldConverter,
-    Clob::class to passThroughFieldConverter,
-    Boolean::class to passThroughFieldConverter,
-    ByteBuffer::class to passThroughFieldConverter,
-    Blob::class to passThroughFieldConverter,
-    Int::class to IntConverter,
-    Byte::class to passThroughFieldConverter,
-    Short::class to passThroughFieldConverter,
-    Long::class to LongConverter,
-    Double::class to DoubleConverter,
-    BigDecimal::class to BigDecimalConverter,
-    LocalDate::class to passThroughFieldConverter
-)
+private val fieldConverters =
+    mapOf<KClass<*>, FieldConverter>(
+        String::class to passThroughFieldConverter,
+        Clob::class to passThroughFieldConverter,
+        Boolean::class to passThroughFieldConverter,
+        ByteBuffer::class to passThroughFieldConverter,
+        Blob::class to passThroughFieldConverter,
+        Int::class to IntConverter,
+        Byte::class to passThroughFieldConverter,
+        Short::class to passThroughFieldConverter,
+        Long::class to LongConverter,
+        Double::class to DoubleConverter,
+        BigDecimal::class to BigDecimalConverter,
+        LocalDate::class to passThroughFieldConverter
+    )
 
 object IntConverter : FieldConverter {
     override fun dbValueToParameter(value: Any?): Int? {
@@ -80,11 +82,13 @@ data class SimpleLocalFieldInfo(
             name: String,
             otherClasses: Set<KClass<*>>
         ): SimpleLocalFieldInfo {
-            val fieldConverter = fieldConverters[kotlinClass] ?: throw RepositoryException(
-                "type ${kotlinClass.simpleName} not supported." +
-                    " class: ${kotlinClass.simpleName}," +
-                    " otherClasses: ${otherClasses.map { it.simpleName }}"
-            )
+            val fieldConverter =
+                fieldConverters[kotlinClass]
+                    ?: throw RepositoryException(
+                        "type ${kotlinClass.simpleName} not supported." +
+                            " class: ${kotlinClass.simpleName}," +
+                            " otherClasses: ${otherClasses.map { it.simpleName }}"
+                    )
             return SimpleLocalFieldInfo(
                 constructorParameter,
                 property,
@@ -97,5 +101,6 @@ data class SimpleLocalFieldInfo(
         }
     }
 
-    override fun valueForDb(instance: Any): Any? = fieldConverter.propertyToDBValue(property.call(instance))
+    override fun valueForDb(instance: Any): Any? =
+        fieldConverter.propertyToDBValue(property.call(instance))
 }

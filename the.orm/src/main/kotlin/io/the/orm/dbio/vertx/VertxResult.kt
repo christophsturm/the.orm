@@ -28,8 +28,7 @@ class VertxResult(private val rows: RowSet<Row>) : DBResult {
     override fun asListFlow(expectedLength: Int): Flow<List<Any?>> {
         return rows.asFlow().map { row ->
             val r = ArrayList<Any?>(expectedLength)
-            for (idx in 0 until expectedLength)
-                r.add(row.getValue(idx))
+            for (idx in 0 until expectedLength) r.add(row.getValue(idx))
             r
         }
     }

@@ -9,12 +9,15 @@ import io.the.orm.dbio.Statement
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-class MockConnectionProvider(private val dbConnection: DBConnection = MockDbConnection()) : ConnectionProvider {
-    override suspend fun <T> withConnection(function: suspend (DBConnection) -> T): T = function(dbConnection)
+class MockConnectionProvider(private val dbConnection: DBConnection = MockDbConnection()) :
+    ConnectionProvider {
+    override suspend fun <T> withConnection(function: suspend (DBConnection) -> T): T =
+        function(dbConnection)
 }
 
 class MockDbConnection : DBConnection {
     val events = mutableListOf<MockStatement>()
+
     override fun createStatement(sql: String): Statement = report(MockStatement(sql))
 
     private fun report(mockStatement: MockStatement): Statement {
@@ -26,36 +29,44 @@ class MockDbConnection : DBConnection {
 
     override suspend fun beginTransaction(): DBTransaction = MockTransaction()
 
-    override suspend fun close() {
-    }
+    override suspend fun close() {}
 
-    override suspend fun execute(sql: String) {
-    }
+    override suspend fun execute(sql: String) {}
 }
-class MockTransaction : DBTransaction {
-    override suspend fun rollbackTransaction() {
-    }
 
-    override suspend fun commitTransaction() {
-    }
+class MockTransaction : DBTransaction {
+    override suspend fun rollbackTransaction() {}
+
+    override suspend fun commitTransaction() {}
 }
 
 class MockStatement(val sql: String) : Statement {
     data class Executed(val types: List<Class<*>>, val values: List<Any?>)
+
     val events = mutableListOf<Executed>()
+
     override suspend fun execute(types: List<Class<*>>, values: List<Any?>): DBResult {
         events.add(Executed(types, values))
         return MockDBResult()
     }
 
-    override suspend fun executeBatch(types: List<Class<*>>, valuesList: List<List<Any?>>): Flow<DBResult> {
+    override suspend fun executeBatch(
+        types: List<Class<*>>,
+        valuesList: List<List<Any?>>
+    ): Flow<DBResult> {
         return flowOf()
     }
 }
 
-data class MockDBResult(val rows: List<DBRow> = listOf(), val rowsUpdated: Long = 0, val id: Long = 0) : DBResult {
+data class MockDBResult(
+    val rows: List<DBRow> = listOf(),
+    val rowsUpdated: Long = 0,
+    val id: Long = 0
+) : DBResult {
     override suspend fun rowsUpdated(): Long = rowsUpdated
+
     override suspend fun getId(): Long = id
+
     override fun asMapFlow(): Flow<Map<String, Any?>> {
         return flowOf()
     }

@@ -10,15 +10,16 @@ internal class Updater<T : Any>(
     classInfo: ClassInfo<T>
 ) {
     private val fieldsWithoutId = classInfo.localFields.filter { it.dbFieldName != "id" }
-    private val types: List<Class<*>> = listOf(Long::class.java)/*PK*/ + fieldsWithoutId.map { it.type }
-    private val updateStatementString =
-        run {
-            val propertiesString =
-                fieldsWithoutId.withIndex().joinToString { (index, value) -> "${value.dbFieldName}=$${index + 2}" }
+    private val types: List<Class<*>> =
+        listOf(Long::class.java) /*PK*/ + fieldsWithoutId.map { it.type }
+    private val updateStatementString = run {
+        val propertiesString =
+            fieldsWithoutId.withIndex().joinToString { (index, value) ->
+                "${value.dbFieldName}=$${index + 2}"
+            }
 
-            @Suppress("SqlResolve")
-            "UPDATE ${classInfo.table.name} set $propertiesString where id=$1"
-        }
+        @Suppress("SqlResolve") "UPDATE ${classInfo.table.name} set $propertiesString where id=$1"
+    }
 
     suspend fun update(connection: DBConnection, instance: T) {
         val values = fieldsWithoutId.asSequence().map { it.valueForDb(instance) }
@@ -27,6 +28,7 @@ internal class Updater<T : Any>(
         val statement = connection.createStatement(updateStatementString)
 
         val rowsUpdated = statement.execute(types, listOf(id) + values).rowsUpdated()
-        if (rowsUpdated != 1L) throw RepositoryException("rowsUpdated was $rowsUpdated instead of 1")
+        if (rowsUpdated != 1L)
+            throw RepositoryException("rowsUpdated was $rowsUpdated instead of 1")
     }
 }

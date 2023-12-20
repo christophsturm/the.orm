@@ -6,5 +6,8 @@ import kotlin.reflect.KClass
 
 class Table(val baseName: String) {
     val name = baseName + "s"
-    constructor(kClass: KClass<*>) : this(kClass.simpleName!!.toSnakeCase().lowercase(Locale.getDefault()))
+
+    constructor(
+        kClass: KClass<*>
+    ) : this(kClass.simpleName!!.toSnakeCase().lowercase(Locale.getDefault()))
 }

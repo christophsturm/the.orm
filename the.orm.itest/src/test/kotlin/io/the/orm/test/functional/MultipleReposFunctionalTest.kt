@@ -15,7 +15,8 @@ import io.the.orm.transaction.RepoTransactionProvider
 
 @Test
 object MultipleReposFunctionalTest {
-    private const val SCHEMA = """
+    private const val SCHEMA =
+        """
     create sequence pages_id_seq no maxvalue;
     create table pages
     (
@@ -87,29 +88,47 @@ object MultipleReposFunctionalTest {
 
     val context =
         // testing support to run the tests on all supported databases
-        describeOnAllDbs(RepoTransactionProvider::class, DBS.databases, SCHEMA) { transactionProvider ->
+        describeOnAllDbs(RepoTransactionProvider::class, DBS.databases, SCHEMA) {
+            transactionProvider ->
 
             // the RepoRegistry is created at startup and lists all entity classes
-            val repoRegistry = RepoRegistry(
-                setOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
-            )
+            val repoRegistry =
+                RepoRegistry(
+                    setOf(Page::class, Recipe::class, RecipeIngredient::class, Ingredient::class)
+                )
             val repoTransactionProvider = RepoTransactionProvider(repoRegistry, transactionProvider)
             it("can write and query") {
                 // this is how to create a query
                 val findIngredientByName =
-                    repoRegistry.getRepo<Ingredient>().queryFactory.createQuery(Ingredient::name.isEqualTo())
+                    repoRegistry
+                        .getRepo<Ingredient>()
+                        .queryFactory
+                        .createQuery(Ingredient::name.isEqualTo())
 
                 // here we start a transaction that involves Page and Recipe
-                repoTransactionProvider.transaction(Page::class, Recipe::class) { pageRepo, recipeRepo ->
-                    val page = pageRepo
-                        .create(
-                            Page("url", "pageTitle", "description", "author")
+                repoTransactionProvider.transaction(Page::class, Recipe::class) {
+                    pageRepo,
+                    recipeRepo ->
+                    val page = pageRepo.create(Page("url", "pageTitle", "description", "author"))
+                    val ingredients =
+                        setOf(
+                            RecipeIngredient(
+                                "1",
+                                findIngredientByName.with("Gurke").findOrCreate(
+                                    pageRepo.connectionProvider
+                                ) {
+                                    Ingredient("Gurke")
+                                }
+                            ),
+                            RecipeIngredient(
+                                "100g",
+                                findIngredientByName.with("Butter").findOrCreate(
+                                    pageRepo.connectionProvider
+                                ) {
+                                    Ingredient("Butter")
+                                }
+                            )
                         )
-                    val ingredients = setOf(RecipeIngredient("1", findIngredientByName.with("Gurke")
-                        .findOrCreate(pageRepo.connectionProvider) { Ingredient("Gurke") }
-                    ), RecipeIngredient("100g", findIngredientByName.with("Butter")
-                        .findOrCreate(pageRepo.connectionProvider) { Ingredient("Butter") }
-                    ))
 
                     val recipe =
                         recipeRepo.create(
@@ -121,12 +140,18 @@ object MultipleReposFunctionalTest {
                             )
                         )
 
-                    // fetchRelations indicates what relations should be loaded. relations are never loaded lazy
+                    // fetchRelations indicates what relations should be loaded. relations are never
+                    // loaded lazy
                     val reloadedRecipe =
-                        recipeRepo.findById(recipe.id!!, fetchRelations = setOf(Recipe::ingredients, Recipe::page))
+                        recipeRepo.findById(
+                            recipe.id!!,
+                            fetchRelations = setOf(Recipe::ingredients, Recipe::page)
+                        )
 
-                    assert(reloadedRecipe.ingredients.map { it.amount + " " + it.ingredient.name }
-                        == listOf("1 Gurke", "100g Butter"))
+                    assert(
+                        reloadedRecipe.ingredients.map { it.amount + " " + it.ingredient.name } ==
+                            listOf("1 Gurke", "100g Butter")
+                    )
                     assert(reloadedRecipe.page.get().url == "url")
                 }
             }

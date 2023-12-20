@@ -12,32 +12,33 @@ import strikt.assertions.isSameInstanceAs
 
 @Test
 class ConnectedRepositoryTest {
-    val context = describe(ConnectedRepo::class) {
-        val connection = mock<ConnectionProvider>()
-        test("exposes Repository and Connection") {
-            expectThat(ConnectedRepo.create<Entity>(connection)) {
-                get { repo }.isA<Repo<Entity>>()
-                get { this.connectionProvider }.isSameInstanceAs(connection)
+    val context =
+        describe(ConnectedRepo::class) {
+            val connection = mock<ConnectionProvider>()
+            test("exposes Repository and Connection") {
+                expectThat(ConnectedRepo.create<Entity>(connection)) {
+                    get { repo }.isA<Repo<Entity>>()
+                    get { this.connectionProvider }.isSameInstanceAs(connection)
+                }
             }
-        }
 
-        context("forwarding calls") {
-            val repo = mock<Repo<Entity>>()
-            val subject = ConnectedRepo(repo, connection)
-            val entity = Entity()
-            test("create call") {
-                subject.create(entity)
-                verify(repo) { create(connection, entity) }
-            }
-            test("update call") {
-                subject.update(entity)
-                verify(repo) { update(connection, entity) }
-            }
-            test("findById call") {
-                val id = 123L
-                subject.findById(id)
-                verify(repo) { findById(connection, id) }
+            context("forwarding calls") {
+                val repo = mock<Repo<Entity>>()
+                val subject = ConnectedRepo(repo, connection)
+                val entity = Entity()
+                test("create call") {
+                    subject.create(entity)
+                    verify(repo) { create(connection, entity) }
+                }
+                test("update call") {
+                    subject.update(entity)
+                    verify(repo) { update(connection, entity) }
+                }
+                test("findById call") {
+                    val id = 123L
+                    subject.findById(id)
+                    verify(repo) { findById(connection, id) }
+                }
             }
         }
-    }
 }

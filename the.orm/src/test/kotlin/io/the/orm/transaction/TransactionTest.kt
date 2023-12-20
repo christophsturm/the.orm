@@ -15,31 +15,33 @@ import strikt.assertions.isTrue
 
 @Test
 class TransactionTest {
-    val context = describe("transaction handling") {
-        val transaction = mock<DBTransaction>()
-        val r2dbcConnection = mock<DBConnection> { method { beginTransaction() }.returns(transaction) }
-        val connectionFactory = mock<DBConnectionFactory> { method { getConnection() }.returns(r2dbcConnection) }
-        val connectionProvider = TransactionalConnectionProvider(connectionFactory)
-        it("calls block") {
-            var called = false
-            connectionProvider.transaction {
-                verify(r2dbcConnection) { r2dbcConnection.beginTransaction() }
-                called = true
-            }
-            expectThat(called).isTrue()
-            verify(transaction) { commitTransaction() }
-        }
-        it("returns the result of the block") {
-            expectThat(connectionProvider.transaction { "RESULT" }).isEqualTo("RESULT")
-        }
-        test("rolls back transaction if exception occurs") {
-            val runtimeException = RuntimeException("failed")
-            expectThrows<RuntimeException> {
+    val context =
+        describe("transaction handling") {
+            val transaction = mock<DBTransaction>()
+            val r2dbcConnection =
+                mock<DBConnection> { method { beginTransaction() }.returns(transaction) }
+            val connectionFactory =
+                mock<DBConnectionFactory> { method { getConnection() }.returns(r2dbcConnection) }
+            val connectionProvider = TransactionalConnectionProvider(connectionFactory)
+            it("calls block") {
+                var called = false
                 connectionProvider.transaction {
-                    throw runtimeException
+                    verify(r2dbcConnection) { r2dbcConnection.beginTransaction() }
+                    called = true
                 }
-            }.isEqualTo(runtimeException)
-            verify(transaction) { rollbackTransaction() }
+                expectThat(called).isTrue()
+                verify(transaction) { commitTransaction() }
+            }
+            it("returns the result of the block") {
+                expectThat(connectionProvider.transaction { "RESULT" }).isEqualTo("RESULT")
+            }
+            test("rolls back transaction if exception occurs") {
+                val runtimeException = RuntimeException("failed")
+                expectThrows<RuntimeException> {
+                        connectionProvider.transaction { throw runtimeException }
+                    }
+                    .isEqualTo(runtimeException)
+                verify(transaction) { rollbackTransaction() }
+            }
         }
-    }
 }

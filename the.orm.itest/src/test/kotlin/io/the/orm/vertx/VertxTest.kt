@@ -13,7 +13,8 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
-const val SCHEMA = """create sequence users_id_seq no maxvalue;
+const val SCHEMA =
+    """create sequence users_id_seq no maxvalue;
                                 create table users
                 (
                     id             bigint       not null default nextval('users_id_seq') primary key,
@@ -34,60 +35,85 @@ how things work.
  */
 @Test
 class VertxTest {
-    // this test tries to share givens by setting isolation to false and creating the shared givens outside the context
+    // this test tries to share givens by setting isolation to false and creating the shared givens
+    // outside the context
     // this is just an experiment and will be replaced by something better
-    val context = describe(
-        "vertx sql client api",
-        ignored = if (TestUtilConfig.H2_ONLY) Ignored.Because("Running in h2 only mode") else null, isolation = false,
-        given = { VertxClientFixture(SCHEMA) }
-    ) {
-        val empty = runBlocking { VertxClientFixture(SCHEMA) }
-        describe("read only tests", given = { empty }) {
-            it("can run sql queries") {
-                val result: RowSet<Row> = given.query("SELECT * FROM users WHERE id=1")
-                expectThat(result.size()).isEqualTo(0)
-            }
-            it("can run prepared queries") {
-                val result: RowSet<Row> = given.preparedQuery("SELECT * FROM users WHERE id=$1", Tuple.of(1))
-                expectThat(result.size()).isEqualTo(0)
-            }
-        }
-        it("can insert with autoincrement") {
-            val result: RowSet<Row> =
-                given.preparedQuery("insert into users(name) values ($1) returning id", Tuple.of("belle"))
-            expectThat(result.size()).isEqualTo(1)
-            expectThat(result.columnsNames()).containsExactly("id")
-            expectThat(result.single().get(Integer::class.java, "id").toInt()).isEqualTo(1)
-        }
-        val with3Users =
-            VertxClientFixture(SCHEMA).also {
-                // insert 3 rows
-                val query = it.preparedQuery("insert into users(name) values ($1) returning id")
-                val ids = listOf("ton", "steine", "scherben").map {
-                    query.execute(Tuple.of(it)).coAwait().single().get(Integer::class.java, "id").toInt()
+    val context =
+        describe(
+            "vertx sql client api",
+            ignored =
+                if (TestUtilConfig.H2_ONLY) Ignored.Because("Running in h2 only mode") else null,
+            isolation = false,
+            given = { VertxClientFixture(SCHEMA) }
+        ) {
+            val empty = runBlocking { VertxClientFixture(SCHEMA) }
+            describe("read only tests", given = { empty }) {
+                it("can run sql queries") {
+                    val result: RowSet<Row> = given.query("SELECT * FROM users WHERE id=1")
+                    expectThat(result.size()).isEqualTo(0)
                 }
-                assert(ids == listOf(1, 2, 3))
+                it("can run prepared queries") {
+                    val result: RowSet<Row> =
+                        given.preparedQuery("SELECT * FROM users WHERE id=$1", Tuple.of(1))
+                    expectThat(result.size()).isEqualTo(0)
+                }
             }
-        describe("querying by lists", given = { with3Users }) {
-            it("works with one parameter per item") {
-                assert(
-                    given.preparedQuery("SELECT * FROM users WHERE id in ($1, $2)", Tuple.from(listOf(1, 2)))
-                        .size() == 2
-                )
-            }
-            it("works with ANY") {
-                assert(
-                    given.preparedQuery("SELECT * FROM users WHERE id = ANY($1)", Tuple.of(arrayOf(1, 2))).size() == 2
-                )
-            }
-            it("works with unnest") {
-                assert(
+            it("can insert with autoincrement") {
+                val result: RowSet<Row> =
                     given.preparedQuery(
-                        "SELECT * FROM users WHERE id in (select unnest(($1)::bigint[]))",
-                        Tuple.of(arrayOf(1, 2))
-                    ).size() == 2
-                )
+                        "insert into users(name) values ($1) returning id",
+                        Tuple.of("belle")
+                    )
+                expectThat(result.size()).isEqualTo(1)
+                expectThat(result.columnsNames()).containsExactly("id")
+                expectThat(result.single().get(Integer::class.java, "id").toInt()).isEqualTo(1)
+            }
+            val with3Users =
+                VertxClientFixture(SCHEMA).also {
+                    // insert 3 rows
+                    val query = it.preparedQuery("insert into users(name) values ($1) returning id")
+                    val ids =
+                        listOf("ton", "steine", "scherben").map {
+                            query
+                                .execute(Tuple.of(it))
+                                .coAwait()
+                                .single()
+                                .get(Integer::class.java, "id")
+                                .toInt()
+                        }
+                    assert(ids == listOf(1, 2, 3))
+                }
+            describe("querying by lists", given = { with3Users }) {
+                it("works with one parameter per item") {
+                    assert(
+                        given
+                            .preparedQuery(
+                                "SELECT * FROM users WHERE id in ($1, $2)",
+                                Tuple.from(listOf(1, 2))
+                            )
+                            .size() == 2
+                    )
+                }
+                it("works with ANY") {
+                    assert(
+                        given
+                            .preparedQuery(
+                                "SELECT * FROM users WHERE id = ANY($1)",
+                                Tuple.of(arrayOf(1, 2))
+                            )
+                            .size() == 2
+                    )
+                }
+                it("works with unnest") {
+                    assert(
+                        given
+                            .preparedQuery(
+                                "SELECT * FROM users WHERE id in (select unnest(($1)::bigint[]))",
+                                Tuple.of(arrayOf(1, 2))
+                            )
+                            .size() == 2
+                    )
+                }
             }
         }
-    }
 }

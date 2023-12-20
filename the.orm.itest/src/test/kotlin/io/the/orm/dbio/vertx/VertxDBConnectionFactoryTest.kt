@@ -12,23 +12,32 @@ import io.vertx.sqlclient.PoolOptions
 
 @Test
 class VertxDBConnectionFactoryTest {
-    val context = describe<VertxDBConnectionFactory>(
-        ignored = if (TestUtilConfig.H2_ONLY) Ignored.Because("running in h2 only mode") else null
-    ) {
-        it("can create connections from a pool") {
-            val (databaseName, port, host) = DBS.psql16.preparePostgresDB()
-            val connectOptions = PgConnectOptions()
-                .setPort(port)
-                .setHost(host)
-                .setDatabase(databaseName)
-                .setUser("test")
-                .setPassword("test")
+    val context =
+        describe<VertxDBConnectionFactory>(
+            ignored =
+                if (TestUtilConfig.H2_ONLY) Ignored.Because("running in h2 only mode") else null
+        ) {
+            it("can create connections from a pool") {
+                val (databaseName, port, host) = DBS.psql16.preparePostgresDB()
+                val connectOptions =
+                    PgConnectOptions()
+                        .setPort(port)
+                        .setHost(host)
+                        .setDatabase(databaseName)
+                        .setUser("test")
+                        .setPassword("test")
 
-            val pool = autoClose(
-                PgBuilder.pool().with(PoolOptions().setMaxSize(5)).connectingTo(connectOptions).build()!!
-            ) { it.close().coAwait() }
+                val pool =
+                    autoClose(
+                        PgBuilder.pool()
+                            .with(PoolOptions().setMaxSize(5))
+                            .connectingTo(connectOptions)
+                            .build()!!
+                    ) {
+                        it.close().coAwait()
+                    }
 
-            VertxDBConnectionFactory(pool).getConnection()
+                VertxDBConnectionFactory(pool).getConnection()
+            }
         }
-    }
 }

@@ -3,8 +3,8 @@ package io.the.orm.mapper
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.DBResult
 import io.the.orm.relations.Relation
-import kotlinx.coroutines.flow.Flow
 import kotlin.reflect.KProperty1
+import kotlinx.coroutines.flow.Flow
 
 internal class RelationFetchingResultMapper<Entity : Any>(
     private val resultResolver: ResultResolver<Entity>,
@@ -17,6 +17,10 @@ internal class RelationFetchingResultMapper<Entity : Any>(
         connectionProvider: ConnectionProvider
     ): Flow<Entity> {
         val parameters: Flow<ResultLine> = resultResolver.getResolvedValues(queryResult)
-        return relationFetchingEntityCreator.toEntities(parameters, fetchRelations, connectionProvider)
+        return relationFetchingEntityCreator.toEntities(
+            parameters,
+            fetchRelations,
+            connectionProvider
+        )
     }
 }

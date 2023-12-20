@@ -18,12 +18,11 @@ internal class SimpleInserter<T : Any>(
     private val fieldsWithoutId = classInfo.localFields.filter { it.dbFieldName != "id" }
     private val types = fieldsWithoutId.map { it.type }
 
-    private val insertStatementString =
-        run {
-            val fieldPlaceHolders = (1..fieldsWithoutId.size).joinToString { idx -> "$$idx" }
-            val fields = fieldsWithoutId.joinToString { it.dbFieldName }
-            "INSERT INTO ${classInfo.table.name}($fields) values ($fieldPlaceHolders)"
-        }
+    private val insertStatementString = run {
+        val fieldPlaceHolders = (1..fieldsWithoutId.size).joinToString { idx -> "$$idx" }
+        val fields = fieldsWithoutId.joinToString { it.dbFieldName }
+        "INSERT INTO ${classInfo.table.name}($fields) values ($fieldPlaceHolders)"
+    }
 
     override suspend fun create(connectionProvider: ConnectionProvider, instance: T): T {
         return connectionProvider.withConnection { connection ->

@@ -9,7 +9,10 @@ suspend inline fun <reified E1 : Any, Result> RepoTransactionProvider.transactio
     noinline t: suspend (ConnectedRepo<E1>) -> Result
 ): Result = transaction(E1::class, t)
 
-class RepoTransactionProvider(private val repos: RepoRegistry, val transactionProvider: TransactionProvider) {
+class RepoTransactionProvider(
+    private val repos: RepoRegistry,
+    val transactionProvider: TransactionProvider
+) {
     suspend fun <Entity : Any, Result> transaction(
         clazz: KClass<Entity>,
         t: suspend (ConnectedRepo<Entity>) -> Result
@@ -20,6 +23,7 @@ class RepoTransactionProvider(private val repos: RepoRegistry, val transactionPr
             t(connectedRepo)
         }
     }
+
     suspend fun <Entity1 : Any, Entity2 : Any, Result> transaction(
         clazz1: KClass<Entity1>,
         clazz2: KClass<Entity2>,
@@ -33,11 +37,15 @@ class RepoTransactionProvider(private val repos: RepoRegistry, val transactionPr
             t(connectedRepo1, connectedRepo2)
         }
     }
+
     suspend fun <Entity1 : Any, Entity2 : Any, Entity3 : Any, Result> transaction(
         clazz1: KClass<Entity1>,
         clazz2: KClass<Entity2>,
         clazz3: KClass<Entity3>,
-        t: suspend (ConnectedRepo<Entity1>, ConnectedRepo<Entity2>, ConnectedRepo<Entity3>) -> Result
+        t:
+            suspend (
+                ConnectedRepo<Entity1>, ConnectedRepo<Entity2>, ConnectedRepo<Entity3>
+            ) -> Result
     ): Result {
         val repo = repos.getRepo(clazz1)
         val repo2 = repos.getRepo(clazz2)

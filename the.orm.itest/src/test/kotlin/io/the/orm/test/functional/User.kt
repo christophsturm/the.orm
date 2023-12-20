@@ -6,9 +6,7 @@ import java.time.LocalDate
 
 enum class Color {
     RED,
-
-    @Suppress("unused")
-    BLUE
+    @Suppress("unused") BLUE
 }
 
 data class User(
@@ -23,7 +21,8 @@ data class User(
     val balance: BigDecimal? = null
 )
 
-const val USERS_SCHEMA = """    create sequence users_id_seq no maxvalue;
+const val USERS_SCHEMA =
+    """    create sequence users_id_seq no maxvalue;
     create table users
     (
         id             bigint       not null default nextval('users_id_seq') primary key,

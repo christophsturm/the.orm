@@ -17,11 +17,7 @@ class R2dbcRow(private val row: Row) : DBRow {
 
     private suspend fun resolveClob(result: Clob): String {
         val sb = StringBuilder()
-        result.stream()
-            .asFlow()
-            .collect { chunk ->
-                sb.append(chunk)
-            }
+        result.stream().asFlow().collect { chunk -> sb.append(chunk) }
         result.discard().awaitFirstOrNull()
         return sb.toString()
     }
