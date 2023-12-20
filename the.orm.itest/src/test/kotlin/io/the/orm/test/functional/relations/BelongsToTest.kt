@@ -37,7 +37,7 @@ object BelongsToTest {
                         val chapter = chapterRepo.create(Chapter("Waterfalls are awful", book))
                         val sentence =
                             sentenceRepo.create(
-                                Sentence("Except the Niagara falls, everbody loves those", chapter)
+                                Sentence("Except the Niagara falls, everybody loves those", chapter)
                             )
                         val loadedSentence = sentenceRepo.findById(sentence.id!!)
                         assert(sentence !== loadedSentence) // should be a new instance.
@@ -47,7 +47,7 @@ object BelongsToTest {
                         }
                         assert(
                             loadedSentence.content ==
-                                "Except the Niagara falls, everbody loves those"
+                                "Except the Niagara falls, everybody loves those"
                         )
                     }
                 }
@@ -84,7 +84,7 @@ object BelongsToTest {
                                     )
                                 sentenceRepo.create(
                                     Sentence(
-                                        "Except the Niagara falls, everbody loves those",
+                                        "Except the Niagara falls, everybody loves those",
                                         belongsTo(chapter)
                                     )
                                 )
@@ -99,7 +99,7 @@ object BelongsToTest {
                             assert(sentence !== loadedSentence) // should be a new instance.
                             assert(
                                 loadedSentence.content ==
-                                    "Except the Niagara falls, everbody loves those"
+                                    "Except the Niagara falls, everybody loves those"
                             )
                             val result = kotlin.runCatching { loadedSentence.chapter.get() }
                             assertNotNull(result.exceptionOrNull())
@@ -118,7 +118,7 @@ object BelongsToTest {
                                 assert(get().name == "Waterfalls are awful")
                                 assert(
                                     sentence.content ==
-                                        "Except the Niagara falls, everbody loves those"
+                                        "Except the Niagara falls, everybody loves those"
                                 )
                             }
                         }
