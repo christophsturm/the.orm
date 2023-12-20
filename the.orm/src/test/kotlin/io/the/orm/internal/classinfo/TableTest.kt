@@ -7,8 +7,8 @@ import failgood.describe
 object TableTest {
     val tests = describe {
         it("gets the default table name from the class") {
-            assert(Table(Eager.User::class).baseName == "user")
-            assert(Table(Eager.User::class).name == "users")
+            assert(Table(ClassInfoTest.Eager.User::class).baseName == "user")
+            assert(Table(ClassInfoTest.Eager.User::class).name == "users")
         }
     }
 }
