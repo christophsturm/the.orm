@@ -104,10 +104,10 @@ create table sentences
                 }
             }
             it("can load a single entity with has many") {
-                val holder = createBookWithChapters()
+                val book = createBookWithChapters()
                 RepoTransactionProvider(repo, given.transactionProvider).transaction(Book::class) {
                     bookRepo ->
-                    val id = bookRepo.create(holder).id!!
+                    val id = bookRepo.create(book).id!!
                     val reloaded =
                         bookRepo.findById(
                             id,
@@ -120,7 +120,8 @@ create table sentences
                 val book = createBookWithChapters()
                 RepoTransactionProvider(repo, given.transactionProvider).transaction(Book::class) {
                     bookRepo ->
-                    // here we create 2 identical books because book is immutable
+                    // here we create 2 identical books because book is immutable, so its pk stays
+                    // null
                     val id1 = bookRepo.create(book).id!!
                     val id2 = bookRepo.create(book).id!!
                     val reloaded =
