@@ -48,6 +48,9 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
     testRuntimeOnly("io.r2dbc:r2dbc-h2:1.0.0.RELEASE")
+    // unused, but r2dbc-h2 uses an old dep that reports security vulnerabilities
+    testRuntimeOnly("com.h2database:h2:2.2.224")
+
     testImplementation(kotlin("test"))
 }
 tasks.register("autoTest", JavaExec::class) {
