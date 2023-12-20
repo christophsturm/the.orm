@@ -29,4 +29,9 @@ tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
     }
 }
 
+
 tasks.wrapper { distributionType = Wrapper.DistributionType.ALL }
+
+allprojects {
+    tasks.register("printAllDependencies",DependencyReportTask::class) {}
+}
