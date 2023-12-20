@@ -1,10 +1,14 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.adarshr.gradle.testlogger.TestLoggerExtension
+import com.adarshr.gradle.testlogger.theme.ThemeType.MOCHA_PARALLEL
 
 plugins {
     kotlin("jvm")
     java
     `maven-publish`
     signing
+    id("com.adarshr.test-logger")
+    id("com.ncorti.ktfmt.gradle")
 }
 tasks.withType<Test> {
     useJUnitPlatform()
@@ -68,4 +72,15 @@ publishing {
 }
 signing {
     sign(publishing.publications[pub])
+}
+
+configure<TestLoggerExtension> {
+    theme = MOCHA_PARALLEL
+    showSimpleNames = true
+    showFullStackTraces = true
+}
+
+tasks.getByName("check").dependsOn(tasks.getByName("ktfmtCheck"))
+ktfmt {
+    kotlinLangStyle()
 }

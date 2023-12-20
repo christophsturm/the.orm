@@ -1,6 +1,5 @@
 @file:Suppress("ConstantConditionIf", "GradlePackageUpdate")
 
-import com.adarshr.gradle.testlogger.theme.ThemeType.MOCHA_PARALLEL
 
 import io.the.orm.versions.blockHoundVersion
 import io.the.orm.versions.coroutinesVersion
@@ -13,11 +12,9 @@ import io.the.orm.versions.vertxVersion
 
 plugins {
     id("the.orm.common")
-    id("com.adarshr.test-logger") version "4.0.0"
     java
     kotlin("jvm")
     kotlin("plugin.serialization")
-    id("org.jmailen.kotlinter")
     id("com.bnorm.power.kotlin-power-assert")
 }
 
@@ -66,11 +63,6 @@ dependencies {
 val testMain = tasks.register("testMain", JavaExec::class) {
     mainClass.set("io.the.orm.test.functional.AllTestsKt")
     classpath = sourceSets["test"].runtimeClasspath
-}
-
-configure<com.adarshr.gradle.testlogger.TestLoggerExtension> {
-    theme = MOCHA_PARALLEL
-    showSimpleNames = true
 }
 
 configure<com.bnorm.power.PowerAssertGradleExtension> {
