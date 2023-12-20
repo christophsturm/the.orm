@@ -13,46 +13,55 @@ import kotlin.test.assertNotNull
 
 @Test
 object BelongsToTest {
-    // this test uses the same schema as the HasManyTest but declared as BelongsTo instead of
-    // hasMany
+    // this test uses the same schema as the HasManyTest but declares the BelongsTo part instead of
+    // the HasMany
 
     val context =
         DBS.describeAll("BelongsTo", given = { it.fixture(HasManyTest.SCHEMA) }) {
-            data class Book(val name: String, val id: PKType? = null)
-            data class Chapter(val name: String, val book: Book, val id: PKType? = null)
-            data class Sentence(val content: String, val chapter: Chapter, val id: PKType? = null)
-            describe(
-                "with always eager loading (declared as the Entity instead of BelongsTo<Entity>)",
-                given = {
-                    val repo = RepoRegistry(setOf(Chapter::class, Book::class, Sentence::class))
-                    RepoTransactionProvider(repo, given().transactionProvider)
-                }
-            ) {
-                it("can load recursive belongs to relations") {
-                    given.transaction(Book::class, Chapter::class, Sentence::class) {
-                        bookRepo,
-                        chapterRepo,
-                        sentenceRepo ->
-                        val book = bookRepo.create(Book("TDD is ok"))
-                        val chapter = chapterRepo.create(Chapter("Waterfalls are awful", book))
-                        val sentence =
-                            sentenceRepo.create(
-                                Sentence("Except the Niagara falls, everybody loves those", chapter)
+            describe("entities that declare the relation directly", given = { given() }) {
+                data class Book(val name: String, val id: PKType? = null)
+                data class Chapter(val name: String, val book: Book, val id: PKType? = null)
+                data class Sentence(
+                    val content: String,
+                    val chapter: Chapter,
+                    val id: PKType? = null
+                )
+                describe(
+                    "eager loading is not possible",
+                    given = {
+                        val repo = RepoRegistry(setOf(Chapter::class, Book::class, Sentence::class))
+                        RepoTransactionProvider(repo, given().transactionProvider)
+                    }
+                ) {
+                    it("will always load belongs to relations") {
+                        given.transaction(Book::class, Chapter::class, Sentence::class) {
+                            bookRepo,
+                            chapterRepo,
+                            sentenceRepo ->
+                            val book = bookRepo.create(Book("TDD is ok"))
+                            val chapter = chapterRepo.create(Chapter("Waterfalls are awful", book))
+                            val sentence =
+                                sentenceRepo.create(
+                                    Sentence(
+                                        "Except the Niagara falls, everybody loves those",
+                                        chapter
+                                    )
+                                )
+                            val loadedSentence = sentenceRepo.findById(sentence.id!!)
+                            assert(sentence !== loadedSentence) // should be a new instance.
+                            with(loadedSentence.chapter) {
+                                assert(name == "Waterfalls are awful")
+                                assert(book.name == "TDD is ok")
+                            }
+                            assert(
+                                loadedSentence.content ==
+                                    "Except the Niagara falls, everybody loves those"
                             )
-                        val loadedSentence = sentenceRepo.findById(sentence.id!!)
-                        assert(sentence !== loadedSentence) // should be a new instance.
-                        with(loadedSentence.chapter) {
-                            assert(name == "Waterfalls are awful")
-                            assert(book.name == "TDD is ok")
                         }
-                        assert(
-                            loadedSentence.content ==
-                                "Except the Niagara falls, everybody loves those"
-                        )
                     }
                 }
             }
-            describe("when lazy loading is supported (BelongsTo<Entity>)", given = { given() }) {
+            describe("entities that declare relations as BelongsTo<Entity>", given = { given() }) {
                 data class Book(val name: String, val id: PKType? = null)
                 data class Chapter(
                     val name: String,
@@ -66,7 +75,7 @@ object BelongsToTest {
                     val id: PKType? = null
                 )
                 describe(
-                    "given a list of books",
+                    "support lazy loading",
                     given = {
                         val repo = RepoRegistry(setOf(Chapter::class, Book::class, Sentence::class))
                         val repoProvider =
