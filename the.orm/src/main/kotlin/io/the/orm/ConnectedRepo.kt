@@ -23,6 +23,7 @@ interface ConnectedRepo<T : Any> {
     suspend fun update(entity: T)
 
     suspend fun findById(pk: PKType, fetchRelations: Set<KProperty1<*, Relation>> = setOf()): T
+    suspend fun findByIds(pk: List<PKType>, fetchRelations: Set<KProperty1<*, Relation>> = setOf()): Map<PKType, T>
     class Impl<T : Any>(override val repo: Repo<T>, override val connectionProvider: ConnectionProvider) :
         ConnectedRepo<T> {
 
@@ -32,6 +33,9 @@ interface ConnectedRepo<T : Any> {
 
         override suspend fun findById(pk: PKType, fetchRelations: Set<KProperty1<*, Relation>>): T =
             repo.findById(connectionProvider, pk, fetchRelations)
+
+        override suspend fun findByIds(pk: List<PKType>, fetchRelations: Set<KProperty1<*, Relation>>): Map<PKType, T> =
+            repo.findByIds(connectionProvider, pk, fetchRelations)
     }
 }
 

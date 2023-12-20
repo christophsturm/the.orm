@@ -12,6 +12,7 @@ import io.the.orm.test.fixture
 import io.the.orm.transaction.RepoTransactionProvider
 import kotlinx.coroutines.flow.toSet
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 @Test
 object HasManyTest {
@@ -69,7 +70,7 @@ create table sentences
         }
         it("can create an entity with nested has many relations") {
             // the whole hierarchy is created outside the transaction and needs no access to a repo
-            val book = book()
+            val book = createBookWithChapters()
             RepoTransactionProvider(
                 repo,
                 given.transactionProvider
@@ -89,26 +90,35 @@ create table sentences
                 )
             }
         }
-        it("can load has many") {
-            val holder = book()
+        it("can load a single entity with has many") {
+            val holder = createBookWithChapters()
             RepoTransactionProvider(
                 repo,
                 given.transactionProvider
             ).transaction(Book::class) { bookRepo ->
                 val id = bookRepo.create(holder).id!!
                 val reloaded = bookRepo.findById(id, fetchRelations = setOf(Book::chapters, Chapter::sentences))
-                assertEquals(
-                    setOf(
-                        "god is dead",
-                        "No small art is it to sleep: it is necessary for that purpose to keep awake all day.",
-                        "god is still doing pretty badly",
-                        "sleeping is still not easy"
-                    ), reloaded.chapters.flatMap { it.sentences.map { it.content } }.toSet()
-                )
+                assertBook(reloaded)
+            }
+        }
+        it("can load multiple entities with hasMany") {
+            val book = createBookWithChapters()
+            RepoTransactionProvider(
+                repo,
+                given.transactionProvider
+            ).transaction(Book::class) { bookRepo ->
+                // here we create 2 identical books because book is immutable
+                val id1 = bookRepo.create(book).id!!
+                val id2 = bookRepo.create(book).id!!
+                val reloaded =
+                    bookRepo.findByIds(listOf(id1, id2), fetchRelations = setOf(Book::chapters, Chapter::sentences))
+                assert(reloaded.size == 2)
+                assertBook(reloaded[id1])
+                assertBook(reloaded[id2])
             }
         }
         it("does not load has many when it is not specified to be fetched") {
-            val holder = book()
+            val holder = createBookWithChapters()
             RepoTransactionProvider(
                 repo,
                 given.transactionProvider
@@ -120,7 +130,19 @@ create table sentences
         }
     }
 
-    private fun book(): Book {
+    private fun assertBook(book: Book?) {
+        assertNotNull(book)
+        assertEquals(
+            setOf(
+                "god is dead",
+                "No small art is it to sleep: it is necessary for that purpose to keep awake all day.",
+                "god is still doing pretty badly",
+                "sleeping is still not easy"
+            ), book.chapters.flatMap { it.sentences.map { it.content } }.toSet()
+        )
+    }
+
+    private fun createBookWithChapters(): Book {
         val chapters: Set<Chapter> = setOf(
             Chapter(
                 "first chapter", hasMany(

@@ -62,9 +62,13 @@ interface Repo<Entity : Any> {
     /**
      * loads objects by id
      *
-     * @param [ids] the primary key of the objects to load
+     * @param ids the primary key of the objects to load
      */
-    suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PKType>): Map<PKType, Entity>
+    suspend fun findByIds(
+        connectionProvider: ConnectionProvider,
+        ids: List<PKType>,
+        fetchRelations: Set<KProperty1<*, Relation>> = setOf()
+    ): Map<PKType, Entity>
 }
 
 class RepoImpl<Entity : Any> internal constructor(
@@ -103,8 +107,8 @@ class RepoImpl<Entity : Any> internal constructor(
         )
 
     /**
-     * the repo is first created as a repo that can not fetch relations
-     * when all repos are created they are upgraded to repos that can fetch relations
+     * the repo is first created as a repo that can not fetch relations when all repos are created they are upgraded to
+     * repos that can fetch relations
      */
     fun afterInit() {
         if (classInfo.hasHasManyRelations) {
@@ -182,8 +186,12 @@ class RepoImpl<Entity : Any> internal constructor(
         }
     }
 
-    override suspend fun findByIds(connectionProvider: ConnectionProvider, ids: List<PKType>): Map<PKType, Entity> {
-        return byIdsQuery.with(ids.toTypedArray()).findAndTransform(connectionProvider) { flow ->
+    override suspend fun findByIds(
+        connectionProvider: ConnectionProvider,
+        ids: List<PKType>,
+        fetchRelations: Set<KProperty1<*, Relation>>
+    ): Map<PKType, Entity> {
+        return byIdsQuery.with(ids.toTypedArray()).findAndTransform(connectionProvider, fetchRelations) { flow ->
             val result = LinkedHashMap<PKType, Entity>(ids.size)
             flow.collect {
                 result[idProperty(it)] = it
