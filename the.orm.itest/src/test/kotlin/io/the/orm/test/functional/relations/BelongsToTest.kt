@@ -5,7 +5,9 @@ import io.the.orm.PKType
 import io.the.orm.RepoRegistry
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.belongsTo
-import io.the.orm.test.describeOnAllDbs
+import io.the.orm.test.DBS
+import io.the.orm.test.describeAll
+import io.the.orm.test.fixture
 import io.the.orm.transaction.RepoTransactionProvider
 import kotlin.test.assertNotNull
 
@@ -15,22 +17,19 @@ object BelongsToTest {
     // hasMany
 
     val context =
-        describeOnAllDbs<BelongsTo<*>>(schema = HasManyTest.SCHEMA) { connection ->
+        DBS.describeAll("BelongsTo", given = { it.fixture(HasManyTest.SCHEMA) }) {
+            data class Book(val name: String, val id: PKType? = null)
+            data class Chapter(val name: String, val book: Book, val id: PKType? = null)
+            data class Sentence(val content: String, val chapter: Chapter, val id: PKType? = null)
             describe(
-                "with always eager loading (declared as the Entity instead of BelongsTo<Entity>)"
+                "with always eager loading (declared as the Entity instead of BelongsTo<Entity>)",
+                given = {
+                    val repo = RepoRegistry(setOf(Chapter::class, Book::class, Sentence::class))
+                    RepoTransactionProvider(repo, given().transactionProvider)
+                }
             ) {
-                data class Book(val name: String, val id: PKType? = null)
-                data class Chapter(val name: String, val book: Book, val id: PKType? = null)
-                data class Sentence(
-                    val content: String,
-                    val chapter: Chapter,
-                    val id: PKType? = null
-                )
-
-                val repo = RepoRegistry(setOf(Chapter::class, Book::class, Sentence::class))
-                val repoProvider = RepoTransactionProvider(repo, connection)
                 it("can load recursive belongs to relations") {
-                    repoProvider.transaction(Book::class, Chapter::class, Sentence::class) {
+                    given.transaction(Book::class, Chapter::class, Sentence::class) {
                         bookRepo,
                         chapterRepo,
                         sentenceRepo ->
@@ -53,62 +52,75 @@ object BelongsToTest {
                     }
                 }
             }
-            describe("when lazy loading is supported (BelongsTo<Entity>)") {
+            describe("when lazy loading is supported (BelongsTo<Entity>)", given = { given() }) {
                 data class Book(val name: String, val id: PKType? = null)
                 data class Chapter(
                     val name: String,
                     val book: BelongsTo<Book>,
                     val id: PKType? = null
                 )
+
                 data class Sentence(
                     val content: String,
                     val chapter: BelongsTo<Chapter>,
                     val id: PKType? = null
                 )
-
-                val repo = RepoRegistry(setOf(Chapter::class, Book::class, Sentence::class))
-                val repoProvider = RepoTransactionProvider(repo, connection)
-                val sentence =
-                    repoProvider.transaction(Book::class, Chapter::class, Sentence::class) {
-                        bookRepo,
-                        chapterRepo,
-                        sentenceRepo ->
-                        val book = bookRepo.create(Book("TDD is ok"))
-                        val chapter =
-                            chapterRepo.create(Chapter("Waterfalls are awful", belongsTo(book)))
-                        sentenceRepo.create(
-                            Sentence(
-                                "Except the Niagara falls, everbody loves those",
-                                belongsTo(chapter)
-                            )
-                        )
+                describe(
+                    "given a list of books",
+                    given = {
+                        val repo = RepoRegistry(setOf(Chapter::class, Book::class, Sentence::class))
+                        val repoProvider =
+                            RepoTransactionProvider(repo, given().transactionProvider)
+                        val sentence =
+                            repoProvider.transaction(
+                                Book::class,
+                                Chapter::class,
+                                Sentence::class
+                            ) { bookRepo, chapterRepo, sentenceRepo ->
+                                val book = bookRepo.create(Book("TDD is ok"))
+                                val chapter =
+                                    chapterRepo.create(
+                                        Chapter("Waterfalls are awful", belongsTo(book))
+                                    )
+                                sentenceRepo.create(
+                                    Sentence(
+                                        "Except the Niagara falls, everbody loves those",
+                                        belongsTo(chapter)
+                                    )
+                                )
+                            }
+                        Pair(sentence, repoProvider)
                     }
-
-                it("does not load belongs to relations by default") {
-                    repoProvider.transaction(Sentence::class) { sentenceRepo ->
-                        val loadedSentence = sentenceRepo.findById(sentence.id!!)
-                        assert(sentence !== loadedSentence) // should be a new instance.
-                        assert(
-                            loadedSentence.content ==
-                                "Except the Niagara falls, everbody loves those"
-                        )
-                        val result = kotlin.runCatching { loadedSentence.chapter.get() }
-                        assertNotNull(result.exceptionOrNull())
-                    }
-                }
-                it("can load recursive belongs to relations when specified in fetchRelations") {
-                    repoProvider.transaction(Sentence::class) { sentenceRepo ->
-                        val loadedSentence =
-                            sentenceRepo.findById(
-                                sentence.id!!,
-                                fetchRelations = setOf(Sentence::chapter, Chapter::book)
-                            )
-                        assert(sentence !== loadedSentence) // should be a new instance.
-                        with(loadedSentence.chapter) {
-                            assert(get().name == "Waterfalls are awful")
+                ) {
+                    it("does not load belongs to relations by default") {
+                        val (sentence, repoProvider) = given
+                        repoProvider.transaction(Sentence::class) { sentenceRepo ->
+                            val loadedSentence = sentenceRepo.findById(sentence.id!!)
+                            assert(sentence !== loadedSentence) // should be a new instance.
                             assert(
-                                sentence.content == "Except the Niagara falls, everbody loves those"
+                                loadedSentence.content ==
+                                    "Except the Niagara falls, everbody loves those"
                             )
+                            val result = kotlin.runCatching { loadedSentence.chapter.get() }
+                            assertNotNull(result.exceptionOrNull())
+                        }
+                    }
+                    it("can load recursive belongs to relations when specified in fetchRelations") {
+                        val (sentence, repoProvider) = given
+                        repoProvider.transaction(Sentence::class) { sentenceRepo ->
+                            val loadedSentence =
+                                sentenceRepo.findById(
+                                    sentence.id!!,
+                                    fetchRelations = setOf(Sentence::chapter, Chapter::book)
+                                )
+                            assert(sentence !== loadedSentence) // should be a new instance.
+                            with(loadedSentence.chapter) {
+                                assert(get().name == "Waterfalls are awful")
+                                assert(
+                                    sentence.content ==
+                                        "Except the Niagara falls, everbody loves those"
+                                )
+                            }
                         }
                     }
                 }
