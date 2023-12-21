@@ -339,14 +339,22 @@ fun describeOnAllDbs(
 }
 
 fun <RootContextGiven> DBTestUtil.describeAll(
-    contextName: String,
+    contextName: String = "root",
     given: suspend (DBTestUtil.TestDatabase) -> RootContextGiven,
     tests: suspend ContextDSL<RootContextGiven>.() -> Unit
 ): List<RootContextWithGiven<RootContextGiven>> {
     val g = given
     return this.databases.mapIndexed { index, testDB ->
+        val noContextName = contextName == "root"
+        val realContextName = if (noContextName) "" else contextName
         val subjectDescription =
-            if (databases.size == 1) contextName else "$contextName (running on ${testDB.name})"
-        describe(subjectDescription, order = index, given = { g(testDB) }, function = tests)
+            if (databases.size == 1) contextName else "$realContextName (running on ${testDB.name})"
+        RootContextWithGiven(
+            subjectDescription,
+            order = index,
+            addClassName = noContextName,
+            given = { g(testDB) },
+            function = tests
+        )
     }
 }

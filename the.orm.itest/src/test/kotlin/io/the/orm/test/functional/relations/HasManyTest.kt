@@ -70,7 +70,7 @@ create table sentences
      */
     // trying out the new "test on all dbs" api here.
     val context =
-        DBS.describeAll("Has Many", given = { it.fixture(SCHEMA) }) {
+        DBS.describeAll(given = { it.fixture(SCHEMA) }) {
             val repo = RepoRegistry(setOf(Sentence::class, Chapter::class, Book::class))
             it("can write and read an entity with an empty has many relation") {
                 RepoTransactionProvider(repo, given.transactionProvider).transaction(Book::class) {
