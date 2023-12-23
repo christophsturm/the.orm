@@ -1,7 +1,7 @@
 package io.the.orm
 
 import failgood.Test
-import failgood.describe
+import failgood.testsAbout
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.HasMany
 
@@ -25,7 +25,7 @@ class RepoRegistryTest {
     )
 
     val context =
-        describe<RepoRegistry> {
+        testsAbout(RepoRegistry::class) {
             it("can be created with classes that reference each other") {
                 RepoRegistry(setOf(Page::class, Recipe::class))
             }

@@ -1,7 +1,7 @@
 package io.the.orm.exp.example.products
 
 import failgood.Test
-import failgood.describe
+import failgood.tests
 import io.the.orm.RepoRegistry
 import java.time.LocalDate
 
@@ -15,7 +15,7 @@ data class ProductOffer(val shopProduct: ShopProduct, val timestamp: LocalDate, 
 
 @Test
 object ShopTest {
-    val tests = describe {
+    val tests = tests {
         it("works") {
             RepoRegistry(
                 setOf(Product::class, Shop::class, ShopProduct::class, ProductOffer::class)

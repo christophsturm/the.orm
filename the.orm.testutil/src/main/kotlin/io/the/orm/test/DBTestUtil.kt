@@ -1,8 +1,8 @@
 package io.the.orm.test
 
 import failgood.Ignored
-import failgood.RootContext
 import failgood.RootContextWithGiven
+import failgood.TestCollection
 import failgood.describe
 import failgood.dsl.ContextDSL
 import io.r2dbc.pool.ConnectionPool
@@ -328,7 +328,7 @@ fun describeOnAllDbs(
     schema: String? = null,
     ignored: Ignored? = null,
     tests: suspend ContextDSL<*>.(TransactionProvider) -> Unit
-): List<RootContext> {
+): List<TestCollection<Unit>> {
     return databases.mapIndexed { index, testDB ->
         val subjectDescription =
             if (databases.size == 1) contextName else "$contextName (running on ${testDB.name})"
@@ -342,7 +342,7 @@ fun <RootContextGiven> DBTestUtil.describeAll(
     contextName: String = "root",
     given: suspend (DBTestUtil.TestDatabase) -> RootContextGiven,
     tests: suspend ContextDSL<RootContextGiven>.() -> Unit
-): List<RootContextWithGiven<RootContextGiven>> {
+): List<TestCollection<RootContextGiven>> {
     val g = given
     return this.databases.mapIndexed { index, testDB ->
         val noContextName = contextName == "root"

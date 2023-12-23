@@ -2,7 +2,7 @@ package io.the.orm.dbio.vertx
 
 import failgood.Ignored
 import failgood.Test
-import failgood.describe
+import failgood.testsAbout
 import io.the.orm.test.DBS
 import io.the.orm.test.TestUtilConfig
 import io.vertx.kotlin.coroutines.coAwait
@@ -13,7 +13,8 @@ import io.vertx.sqlclient.PoolOptions
 @Test
 class VertxDBConnectionFactoryTest {
     val context =
-        describe<VertxDBConnectionFactory>(
+        testsAbout(
+            VertxDBConnectionFactory::class,
             ignored =
                 if (TestUtilConfig.H2_ONLY) Ignored.Because("running in h2 only mode") else null
         ) {

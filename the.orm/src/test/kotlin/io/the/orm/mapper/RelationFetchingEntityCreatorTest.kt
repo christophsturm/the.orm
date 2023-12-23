@@ -3,6 +3,7 @@ package io.the.orm.mapper
 import failgood.Test
 import failgood.describe
 import failgood.mock.mock
+import failgood.testsAbout
 import io.the.orm.PKType
 import io.the.orm.Repo
 import io.the.orm.RepoImpl
@@ -22,7 +23,7 @@ import kotlinx.coroutines.flow.single
 object RelationFetchingEntityCreatorTest {
 
     val tests =
-        describe<RelationFetchingEntityCreator<*>> {
+        testsAbout(RelationFetchingEntityCreator::class) {
             val connectionProvider = mock<ConnectionProvider>()
             describe("belongs to relation") {
                 it("resolves belongs to entities that do not support lazy loading") {

@@ -1,8 +1,10 @@
+@file:Suppress("NAME_SHADOWING")
+
 package io.the.orm.internal.classinfo
 
 import failgood.Test
 import failgood.assert.containsExactlyInAnyOrder
-import failgood.describe
+import failgood.tests
 import io.the.orm.PKType
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.HasMany
@@ -14,7 +16,7 @@ import strikt.assertions.isEqualTo
 
 @Test
 object ClassInfoTest {
-    val context = describe {
+    val context = tests {
         data class Entity(val name: String, var mutableField: String, val id: Long? = null)
 
         val classInfo = ClassInfo(Entity::class, setOf())

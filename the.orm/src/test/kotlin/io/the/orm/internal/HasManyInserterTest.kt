@@ -1,10 +1,10 @@
 package io.the.orm.internal
 
 import failgood.Test
-import failgood.describe
 import failgood.mock.call
 import failgood.mock.getCalls
 import failgood.mock.mock
+import failgood.testsAbout
 import io.the.orm.PKType
 import io.the.orm.Repo
 import io.the.orm.dbio.ConnectionProvider
@@ -26,7 +26,7 @@ object HasManyInserterTest {
     data class Entity(val name: String, val belongings: HasMany<Belonging>, val id: PKType? = null)
 
     val context =
-        describe<HasManyInserter<Entity>> {
+        testsAbout(HasManyInserter::class) {
             val connection = mock<ConnectionProvider>()
             val belonging = Belonging("belonging 1")
             val entity = Entity("entity-name", hasMany(belonging))

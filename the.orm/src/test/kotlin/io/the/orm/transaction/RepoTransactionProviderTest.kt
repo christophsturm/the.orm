@@ -1,7 +1,7 @@
 package io.the.orm.transaction
 
 import failgood.Test
-import failgood.describe
+import failgood.testsAbout
 import io.the.orm.ConnectedRepo
 import io.the.orm.PKType
 import io.the.orm.RepoRegistry
@@ -13,7 +13,7 @@ import kotlinx.coroutines.delay
 @Test
 object RepoTransactionProviderTest {
     val context =
-        describe<RepoTransactionProvider> {
+        testsAbout(RepoTransactionProvider::class) {
             data class Entity1(val name: String, val id: PKType?)
             data class Entity2(val name: String, val id: PKType?)
             data class Entity3(val name: String, val id: PKType?)
