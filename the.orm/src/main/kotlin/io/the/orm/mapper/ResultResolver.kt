@@ -12,8 +12,10 @@ internal class ResultResolver<Entity : Any>(private val classInfo: ClassInfo<Ent
     suspend fun getResolvedValues(queryResult: DBResult): Flow<ResultLine> {
         val map =
             queryResult.map { row ->
+                val simpleFields =
+                    classInfo.simpleFields.map { fieldInfo -> lazyResult(row, fieldInfo) }
                 LazyResultLine(
-                    classInfo.simpleFields.map { fieldInfo -> lazyResult(row, fieldInfo) },
+                    simpleFields,
                     classInfo.belongsToRelations.map { fieldInfo -> lazyResult(row, fieldInfo) }
                 )
             }

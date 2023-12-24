@@ -19,7 +19,8 @@ internal interface EntityCreator<Entity : Any> {
 
 internal class StreamingEntityCreator<Entity : Any>(private val classInfo: ClassInfo<Entity>) :
     EntityCreator<Entity> {
-    private val idFieldIndex = classInfo.simpleFields.indexOfFirst { it.dbFieldName == "id" }
+    private val idFieldIndexOrNull: Int? =
+        classInfo.simpleFields.indexOfFirst { it.dbFieldName == "id" }.takeIf { it >= 0 }
 
     override fun toEntities(
         results: Flow<ResultLine>,
@@ -28,7 +29,7 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
     ): Flow<Entity> {
         return results
             .map { values ->
-                val id = values.fields[idFieldIndex] as PKType
+                val id = idFieldIndexOrNull?.let { values.fields[it] as PKType }
                 val map =
                     values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
                         val fieldInfo = classInfo.simpleFields[index]

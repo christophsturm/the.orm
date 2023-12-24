@@ -5,9 +5,12 @@ import io.the.orm.dbio.DBConnection
 import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.DBRow
 import io.the.orm.dbio.DBTransaction
+import io.the.orm.dbio.LazyResult
 import io.the.orm.dbio.Statement
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 class MockConnectionProvider(private val dbConnection: DBConnection = MockDbConnection()) :
     ConnectionProvider {
@@ -76,6 +79,17 @@ data class MockDBResult(
     }
 
     override suspend fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T> {
-        return flowOf()
+        return rows.asFlow().map(mappingFunction)
+    }
+}
+
+class MockDBRow(val values: Map<String, Any>) : DBRow {
+    override fun getLazy(key: String): LazyResult<Any?> {
+        val value = get(key, Any::class.java)
+        return LazyResult { value }
+    }
+
+    override fun <T> get(key: String, type: Class<T>): T? {
+        @Suppress("UNCHECKED_CAST") return values.get(key) as T
     }
 }
