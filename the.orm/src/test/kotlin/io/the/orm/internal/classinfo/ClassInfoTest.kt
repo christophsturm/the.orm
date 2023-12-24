@@ -48,15 +48,14 @@ object ClassInfoTest {
                 it("knows if a field is mutable") {
                     assert(
                         classInfo.localFields
-                            .singleOrNull { it.property == Entity::mutableField }
+                            .singleOrNull { it.reader == Entity::mutableField }
                             ?.mutable == true
                     )
                 }
                 it("knows if a field is immutable") {
                     assert(
-                        classInfo.localFields
-                            .singleOrNull { it.property == Entity::name }
-                            ?.mutable == false
+                        classInfo.localFields.singleOrNull { it.reader == Entity::name }?.mutable ==
+                            false
                     )
                 }
             }

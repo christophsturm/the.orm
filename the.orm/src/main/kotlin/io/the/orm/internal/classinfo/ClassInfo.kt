@@ -50,10 +50,10 @@ internal data class ClassInfo<T : Any>(
 
     internal sealed interface FieldInfo {
         /** this is used when converting database rows to instances */
-        val constructorParameter: KParameter
+        val writer: Writer
 
         /** for reading */
-        val property: KProperty1<*, *>
+        val reader: KProperty1<*, *>
 
         /** convert between kotlin and db types */
         val fieldConverter: FieldConverter
@@ -86,8 +86,8 @@ internal data class ClassInfo<T : Any>(
     }
 
     data class RemoteFieldInfo(
-        override val constructorParameter: KParameter,
-        override val property: KProperty1<*, *>,
+        override val writer: Writer,
+        override val reader: KProperty1<*, *>,
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
         override val relatedClass: KClass<*>,
@@ -104,8 +104,8 @@ internal data class ClassInfo<T : Any>(
     }
 
     class BelongsToFieldInfo(
-        override val constructorParameter: KParameter,
-        override val property: KProperty1<*, *>,
+        override val writer: Writer,
+        override val reader: KProperty1<*, *>,
         override val dbFieldName: String,
         override val mutable: Boolean,
         override val fieldConverter: FieldConverter,
@@ -115,7 +115,7 @@ internal data class ClassInfo<T : Any>(
         override val name: String
     ) : RelationFieldInfo, LocalFieldInfo {
         override fun valueForDb(instance: Any): Any? =
-            fieldConverter.propertyToDBValue(property.call(instance))
+            fieldConverter.propertyToDBValue(reader.call(instance))
 
         override lateinit var repo: Repo<*>
         override lateinit var classInfo: ClassInfo<*>
@@ -177,9 +177,10 @@ internal data class ClassInfo<T : Any>(
 
                     val fieldName = parameter.name!!.toSnakeCase()
                     val property = properties[parameter.name]!!
+                    val writer = Writer(parameter)
                     if (kc == HasMany::class)
                         RemoteFieldInfo(
-                            parameter,
+                            writer,
                             property,
                             HasManyConverter(),
                             Long::class.java,
@@ -189,7 +190,7 @@ internal data class ClassInfo<T : Any>(
                         )
                     else if (otherClasses.contains(kotlinClass)) {
                         BelongsToFieldInfo(
-                            parameter,
+                            writer,
                             property,
                             fieldName + "_id",
                             isMutable(property),
@@ -203,7 +204,7 @@ internal data class ClassInfo<T : Any>(
                         when {
                             javaClass.isEnum ->
                                 SimpleLocalFieldInfo(
-                                    parameter,
+                                    writer,
                                     property,
                                     fieldName,
                                     EnumConverter(javaClass),
@@ -215,7 +216,7 @@ internal data class ClassInfo<T : Any>(
                                 val isPK = parameter.name == "id"
                                 if (isPK) {
                                     SimpleLocalFieldInfo(
-                                        parameter,
+                                        writer,
                                         property,
                                         fieldName,
                                         passThroughFieldConverter,
@@ -225,7 +226,7 @@ internal data class ClassInfo<T : Any>(
                                     )
                                 } else {
                                     SimpleLocalFieldInfo(
-                                        parameter,
+                                        writer,
                                         property,
                                         fieldName,
                                         kotlinClass,
@@ -245,6 +246,8 @@ internal data class ClassInfo<T : Any>(
             property is KMutableProperty<*>
     }
 }
+
+data class Writer(val parameter: KParameter)
 
 /** converts strings from the database to enums in the mapped class */
 private class EnumConverter(private val clazz: Class<*>) : FieldConverter {

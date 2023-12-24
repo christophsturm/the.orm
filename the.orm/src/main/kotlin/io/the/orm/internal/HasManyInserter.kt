@@ -17,10 +17,10 @@ internal class HasManyInserter<Entity : Any>(
         val id = classInfo.idHandler!!.readId(insertedRoot)
         classInfo.hasManyRelations.forEachIndexed { index, remoteFieldInfo ->
             @Suppress("UNCHECKED_CAST") val repo = belongingsRepos[index] as Repo<Any>
-            val hasMany = remoteFieldInfo.property.call(instance) as HasMany<*>
+            val hasMany = remoteFieldInfo.reader.call(instance) as HasMany<*>
             val fieldInfo = belongingsFieldInfo[index]
             hasMany.forEach { e ->
-                val belongsToField = fieldInfo.property.call(e) as? BelongsTo.Auto<*>
+                val belongsToField = fieldInfo.reader.call(e) as? BelongsTo.Auto<*>
                 belongsToField?.id = id
                 repo.create(connectionProvider, e)
             }

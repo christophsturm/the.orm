@@ -30,7 +30,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                 }
                     ?: throw RepositoryException(
                         "BelongsTo field for HasMany relation " +
-                            "${classInfo.name}.${fieldInfo.property.name} not found in ${fieldInfo.classInfo.name}." +
+                            "${classInfo.name}.${fieldInfo.reader.name} not found in ${fieldInfo.classInfo.name}." +
                             " Currently you need to declare both sides of the relation"
                     )
             if (!remoteFieldInfo.canBeLazy)
@@ -39,16 +39,16 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                         "must be lazy (BelongsTo<Type> instead of Type) to avoid circular dependencies"
                 )
 
-            remoteFieldInfo.property
+            remoteFieldInfo.reader
         }
 
     // properties for every relation. they will only be fetched when contained in fetchRelations
-    private val hasManyProperties = classInfo.hasManyRelations.map { it.property }
+    private val hasManyProperties = classInfo.hasManyRelations.map { it.reader }
 
     // if the property is not lazy it must always be fetched, and we indicate that by setting the
     // value to null.
     private val belongsToProperties =
-        classInfo.belongsToRelations.map { if (it.canBeLazy) it.property else null }
+        classInfo.belongsToRelations.map { if (it.canBeLazy) it.reader else null }
 
     fun toEntities(
         results: Flow<ResultLine>,

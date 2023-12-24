@@ -8,7 +8,6 @@ import java.math.BigDecimal
 import java.nio.ByteBuffer
 import java.time.LocalDate
 import kotlin.reflect.KClass
-import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 
 internal val passThroughFieldConverter = PassThroughConverter
@@ -63,8 +62,8 @@ object DoubleConverter : FieldConverter {
 }
 
 data class SimpleLocalFieldInfo(
-    override val constructorParameter: KParameter,
-    override val property: KProperty1<*, *>,
+    override val writer: Writer,
+    override val reader: KProperty1<*, *>,
     override val dbFieldName: String,
     override val fieldConverter: FieldConverter,
     override val type: Class<*>,
@@ -73,7 +72,7 @@ data class SimpleLocalFieldInfo(
 ) : ClassInfo.LocalFieldInfo {
     companion object {
         operator fun invoke(
-            constructorParameter: KParameter,
+            writer: Writer,
             property: KProperty1<*, *>,
             dbFieldName: String,
             kotlinClass: KClass<*>,
@@ -90,7 +89,7 @@ data class SimpleLocalFieldInfo(
                             " otherClasses: ${otherClasses.map { it.simpleName }}"
                     )
             return SimpleLocalFieldInfo(
-                constructorParameter,
+                writer,
                 property,
                 dbFieldName,
                 fieldConverter,
@@ -102,5 +101,5 @@ data class SimpleLocalFieldInfo(
     }
 
     override fun valueForDb(instance: Any): Any? =
-        fieldConverter.propertyToDBValue(property.call(instance))
+        fieldConverter.propertyToDBValue(reader.call(instance))
 }

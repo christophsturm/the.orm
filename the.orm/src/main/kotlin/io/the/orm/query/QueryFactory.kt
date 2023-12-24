@@ -54,7 +54,7 @@ internal constructor(
 ) {
 
     private val dbFieldNameForProperty =
-        classInfo.localFields.associateBy({ it.property }, { it.dbFieldName })
+        classInfo.localFields.associateBy({ it.reader }, { it.dbFieldName })
 
     private val selectPrefix =
         "select ${classInfo.localFields.joinToString { it.dbFieldName }} from ${classInfo.table.name} where "

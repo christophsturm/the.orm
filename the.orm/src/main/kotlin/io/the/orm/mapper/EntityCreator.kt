@@ -35,34 +35,31 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
                     values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
                         val fieldInfo = classInfo.simpleFields[index]
                         val parameterValue = fieldInfo.fieldConverter.dbValueToParameter(value)
-                        Pair(fieldInfo.constructorParameter, parameterValue)
+                        Pair(fieldInfo.writer, parameterValue)
                     }
                 values.relations.withIndex().associateTo(parameterValueCollector) { (index, value)
                     ->
                     val fieldInfo = classInfo.belongsToRelations[index]
                     val relationValues = relations[index]
                     if (relationValues != null)
-                        Pair(fieldInfo.constructorParameter, relationValues[value as PKType])
-                    else
-                        Pair(
-                            fieldInfo.constructorParameter,
-                            BelongsTo.BelongsToNotLoaded<Any>(value as PKType)
-                        )
+                        Pair(fieldInfo.writer, relationValues[value as PKType])
+                    else Pair(fieldInfo.writer, BelongsTo.BelongsToNotLoaded<Any>(value as PKType))
                 }
                 classInfo.hasManyRelations.withIndex().associateTo(parameterValueCollector) {
                     (index, it) ->
                     val loadedEntries = hasManyRelations?.get(index)
-                    if (loadedEntries != null)
-                        Pair(it.constructorParameter, LazyHasMany<Any>(loadedEntries[id]))
-                    else Pair(it.constructorParameter, LazyHasMany())
+                    if (loadedEntries != null) Pair(it.writer, LazyHasMany<Any>(loadedEntries[id]))
+                    else Pair(it.writer, LazyHasMany())
                 }
             }
             .map { parameterValues ->
+                val constructorParameters =
+                    parameterValues.mapKeys { (key, value) -> key.parameter }
                 try {
-                    classInfo.constructor.callBy(parameterValues)
+                    classInfo.constructor.callBy(constructorParameters)
                 } catch (e: Exception) {
                     throw RepositoryException(
-                        "error invoking constructor for ${classInfo.name}.\n parameters:${parameterValues.friendlyString()}",
+                        "error invoking constructor for ${classInfo.name}.\n parameters:${constructorParameters.friendlyString()}",
                         e
                     )
                 }
