@@ -5,7 +5,7 @@ import failgood.Test
 import io.the.orm.dbio.DBResult
 import io.the.orm.mapper.SimpleResultMapper
 import io.the.orm.test.DBS
-import io.the.orm.test.DriverType
+import io.the.orm.test.Dialect
 import io.the.orm.test.describeAll
 import io.the.orm.test.fixture
 import io.the.orm.test.functional.USERS_SCHEMA
@@ -17,11 +17,8 @@ import kotlinx.coroutines.flow.toList
 object SchemaLoadingTest {
     val context =
         DBS.databases
-            .filter { it.driverType != DriverType.H2 }
-            .describeAll(
-                "detecting the table structure",
-                given = { it.fixture(USERS_SCHEMA) }
-            ) {
+            .filter { it.dialect != Dialect.H2_R2DBC }
+            .describeAll("detecting the table structure", given = { it.fixture(USERS_SCHEMA) }) {
                 it("prints result", ignored = Ignored.Because("only for debugging")) {
                     given.transactionProvider.withConnection { conn ->
                         println(

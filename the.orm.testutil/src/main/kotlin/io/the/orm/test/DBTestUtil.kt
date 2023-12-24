@@ -69,7 +69,7 @@ class DBTestUtil(val databasePrefix: String) {
     @Suppress("unused") val unstableDatabases: List<TestDatabase> = listOf()
 
     interface TestDatabase {
-        val driverType: DriverType
+        val dialect: Dialect
         val name: String
 
         suspend fun createDB(): ConnectionProviderFactory
@@ -78,7 +78,7 @@ class DBTestUtil(val databasePrefix: String) {
     }
 
     inner class H2TestDatabase : TestDatabase {
-        override val driverType = DriverType.H2
+        override val dialect = Dialect.H2_R2DBC
 
         override val name = "H2"
 
@@ -92,7 +92,7 @@ class DBTestUtil(val databasePrefix: String) {
     }
 
     class R2DBCPostgresFactory(val psqlContainer: LazyPSQLContainer) : TestDatabase {
-        override val driverType: DriverType = DriverType.R2DBC
+        override val dialect: Dialect = Dialect.POSTGRESQL_R2DBC
 
         override val name = "R2DBC-${psqlContainer.dockerImage}"
 
@@ -108,7 +108,7 @@ class DBTestUtil(val databasePrefix: String) {
     }
 
     inner class VertxPSQLTestDatabase(val psql: LazyPSQLContainer) : TestDatabase {
-        override val driverType: DriverType = DriverType.VERTX
+        override val dialect: Dialect = Dialect.POSTGRESQL_VERTX
         override val name = "Vertx-${psql.dockerImage}"
 
         override suspend fun createDB(): ConnectionProviderFactory {
@@ -135,7 +135,7 @@ class DBTestUtil(val databasePrefix: String) {
         private val port: Int,
         private val host: String
     ) : TestDatabase {
-        override val driverType: DriverType = DriverType.VERTX
+        override val dialect: Dialect = Dialect.POSTGRESQL_VERTX
 
         private val connectOptions =
             PgConnectOptions()
@@ -167,10 +167,10 @@ class DBTestUtil(val databasePrefix: String) {
     }
 }
 
-enum class DriverType {
-    H2,
-    VERTX,
-    R2DBC
+enum class Dialect {
+    POSTGRESQL_VERTX,
+    H2_R2DBC,
+    POSTGRESQL_R2DBC
 }
 
 class VertxConnectionProviderFactory(

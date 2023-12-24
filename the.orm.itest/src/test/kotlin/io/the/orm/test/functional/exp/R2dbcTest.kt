@@ -8,7 +8,7 @@ import io.r2dbc.spi.ConnectionFactories
 import io.the.orm.dbio.TransactionalConnectionProvider
 import io.the.orm.dbio.r2dbc.R2dbcConnection
 import io.the.orm.test.DBS
-import io.the.orm.test.DriverType
+import io.the.orm.test.Dialect
 import io.the.orm.test.TestUtilConfig
 import io.the.orm.test.describeOnAllDbs
 import java.lang.Long
@@ -44,7 +44,7 @@ class R2dbcTest {
     val context =
         describeOnAllDbs(
             "the r2dbc api",
-            DBS.databases.filter { it.driverType == DriverType.R2DBC },
+            DBS.databases.filter { it.dialect == Dialect.POSTGRESQL_R2DBC },
             SCHEMA
         ) { connection ->
             it("can batch insert values and select result") {
