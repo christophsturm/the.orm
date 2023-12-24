@@ -66,11 +66,10 @@ create table sentences
     )
 
     /*
-    for has many we really need recursive saving because we don't know the id when we create the objects
+    for has-many, we really need recursive saving because we don't know the id when we create the objects
      */
-    // trying out the new "test on all dbs" api here.
     val context =
-        DBS.describeAll(given = { it.fixture(SCHEMA) }) {
+        DBS.databases.describeAll(given = { it.fixture(SCHEMA) }) {
             val repo = RepoRegistry(setOf(Sentence::class, Chapter::class, Book::class))
             it("can write and read an entity with an empty has many relation") {
                 RepoTransactionProvider(repo, given.transactionProvider).transaction(Book::class) {

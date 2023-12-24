@@ -17,7 +17,7 @@ object BelongsToTest {
     // the HasMany
 
     val context =
-        DBS.describeAll(given = { it.fixture(HasManyTest.SCHEMA) }) {
+        DBS.databases.describeAll(given = { it.fixture(HasManyTest.SCHEMA) }) {
             describe("entities that declare the relation directly", given = { given() }) {
                 data class Book(val name: String, val id: PKType? = null)
                 data class Chapter(val name: String, val book: Book, val id: PKType? = null)
