@@ -30,13 +30,15 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
         return results
             .map { values ->
                 val id = idFieldIndexOrNull?.let { values.fields[it] as PKType }
-                val map =
+                // the map that collects values for all constructor parameters of the entity
+                val parameterValueCollector =
                     values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
                         val fieldInfo = classInfo.simpleFields[index]
                         val parameterValue = fieldInfo.fieldConverter.dbValueToParameter(value)
                         Pair(fieldInfo.constructorParameter, parameterValue)
                     }
-                values.relations.withIndex().associateTo(map) { (index, value) ->
+                values.relations.withIndex().associateTo(parameterValueCollector) { (index, value)
+                    ->
                     val fieldInfo = classInfo.belongsToRelations[index]
                     val relationValues = relations[index]
                     if (relationValues != null)
@@ -47,19 +49,20 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
                             BelongsTo.BelongsToNotLoaded<Any>(value as PKType)
                         )
                 }
-                classInfo.hasManyRelations.withIndex().associateTo(map) { (index, it) ->
+                classInfo.hasManyRelations.withIndex().associateTo(parameterValueCollector) {
+                    (index, it) ->
                     val loadedEntries = hasManyRelations?.get(index)
                     if (loadedEntries != null)
                         Pair(it.constructorParameter, LazyHasMany<Any>(loadedEntries[id]))
                     else Pair(it.constructorParameter, LazyHasMany())
                 }
             }
-            .map {
+            .map { parameterValues ->
                 try {
-                    classInfo.constructor.callBy(it)
+                    classInfo.constructor.callBy(parameterValues)
                 } catch (e: Exception) {
                     throw RepositoryException(
-                        "error invoking constructor for ${classInfo.name}.\n parameters:${it.friendlyString()}",
+                        "error invoking constructor for ${classInfo.name}.\n parameters:${parameterValues.friendlyString()}",
                         e
                     )
                 }
