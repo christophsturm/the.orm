@@ -3,7 +3,7 @@
 package io.the.orm.test.functional.exp
 
 import failgood.Test
-import failgood.describe
+import failgood.testsAbout
 import io.r2dbc.spi.ConnectionFactories
 import io.the.orm.dbio.TransactionalConnectionProvider
 import io.the.orm.dbio.r2dbc.R2dbcConnection
@@ -80,7 +80,7 @@ class R2dbcTest {
         } +
             if (!TestUtilConfig.H2_ONLY)
                 listOf(
-                    describe("r2dbc pool") {
+                    testsAbout("r2dbc pool") {
                         test("can open and close pool") {
                             val (databaseName, port, host) = DBS.psql16.preparePostgresDB()
                             val factory =

@@ -1,10 +1,9 @@
 package io.the.orm.test
 
 import failgood.Ignored
-import failgood.RootContextWithGiven
 import failgood.TestCollection
-import failgood.describe
 import failgood.dsl.ContextDSL
+import failgood.testsAbout
 import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
 import io.r2dbc.spi.ConnectionFactories
@@ -332,9 +331,7 @@ fun describeOnAllDbs(
     return databases.mapIndexed { index, testDB ->
         val subjectDescription =
             if (databases.size == 1) contextName else "$contextName (running on ${testDB.name})"
-        describe(subjectDescription, ignored, order = index) {
-            withDbInternal(testDB, schema, tests)
-        }
+        testsAbout(subjectDescription, ignored, index) { withDbInternal(testDB, schema, tests) }
     }
 }
 
@@ -349,7 +346,7 @@ fun <RootContextGiven> List<DBTestUtil.TestDatabase>.describeAll(
         val realContextName = if (noContextName) "" else contextName
         val subjectDescription =
             if (this.size == 1) contextName else "$realContextName (running on ${testDB.name})"
-        RootContextWithGiven(
+        TestCollection(
             subjectDescription,
             order = index,
             addClassName = noContextName,

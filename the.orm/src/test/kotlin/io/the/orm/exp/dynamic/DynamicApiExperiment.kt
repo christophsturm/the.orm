@@ -3,7 +3,7 @@
 package io.the.orm.exp.dynamic
 
 import failgood.Test
-import failgood.describe
+import failgood.tests
 import io.the.orm.exp.dynamic.Field.BelongsTo
 import io.the.orm.exp.dynamic.Field.HasMany
 import io.the.orm.exp.dynamic.Field.Text
@@ -15,19 +15,18 @@ import io.the.orm.exp.dynamic.Field.Timestamp
  */
 @Test
 class DynamicApiExperiment {
-    val tests =
-        describe("dynamic api") {
-            it("works") {
-                // to handle the circular dependency we first specify only one side of the relation,
-                // in this example
-                // the HasMany side, and when all the entities are created we add the other side
-                val productPrice = Entity("Product Price", setOf(Timestamp("")))
-                val product = Entity("Product", setOf(Text("name"), HasMany("price", productPrice)))
-                val shop = Entity("Shop", setOf(Text("name"), HasMany("products", product)))
-                productPrice.addField(BelongsTo("product", product))
-                product.addField(BelongsTo("shop", shop))
-            }
+    val tests = tests {
+        it("works") {
+            // to handle the circular dependency, we first specify only one side of the relation,
+            // in this example
+            // the HasMany side, and when all the entities are created we add the other side
+            val productPrice = Entity("Product Price", setOf(Timestamp("")))
+            val product = Entity("Product", setOf(Text("name"), HasMany("price", productPrice)))
+            val shop = Entity("Shop", setOf(Text("name"), HasMany("products", product)))
+            productPrice.addField(BelongsTo("product", product))
+            product.addField(BelongsTo("shop", shop))
         }
+    }
 }
 
 sealed interface Field {
