@@ -40,9 +40,9 @@ object SchemaLoadingTest {
     cols.is_nullable,
     cols.column_default,
     cols.ordinal_position,
-    indexes.index_name,
-    indexes.index_type,
-    indexes.index_columns
+    idx.index_name,
+    idx.index_type,
+    idx.index_columns
 FROM
     information_schema.columns AS cols
 LEFT JOIN (
@@ -56,7 +56,6 @@ LEFT JOIN (
         idx.indnkeyatts,
         idx.indkey,
         idx.indexrelid,
-        idx.indrelid,
         string_agg(attname, ', ') AS index_columns,
         CASE
             WHEN idx.indisunique THEN 'UNIQUE'
@@ -70,7 +69,9 @@ LEFT JOIN (
         pg_attribute AS att ON att.attnum = ANY(idx.indkey) AND att.attrelid = idx.indrelid
     GROUP BY
         1, 2, 3, 4, 5, 6, 7, 8, 9
-) AS indexes ON cols.table_name::text = indexes.table_name::text AND cols.column_name = indexes.index_columns
+) AS idx ON cols.table_name::text = idx.table_name::text AND cols.column_name = ANY(string_to_array(idx.index_columns, ', '))
+WHERE
+    cols.table_schema = 'public'  -- Filter by schema
 ORDER BY
     cols.table_name, cols.ordinal_position;
 """
@@ -122,7 +123,7 @@ ORDER BY
 }
 
 private suspend fun DBConnection.executeToList(sql: String) =
-    createStatement(sql).execute().asMapFlow().toList()
+    createStatement(sql).execute().asMapFlow().toList().joinToString("\n")
 
 private suspend inline fun <reified T : Any> DBResult.mapToList(): Flow<T> {
     val mapper = SimpleResultMapper.forClass(T::class)
