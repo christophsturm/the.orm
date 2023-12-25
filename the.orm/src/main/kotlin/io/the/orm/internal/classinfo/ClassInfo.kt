@@ -82,8 +82,8 @@ internal data class ClassInfo<T : Any>(
         val relatedClass: KClass<*>
         var repo: Repo<*>
         var classInfo: ClassInfo<*>
-        val canBeLazy:
-            Boolean // can the relation be fetched later or is it necessary to create the instance
+        // can the relation be fetched later, or is it necessary to create the instance?
+        val canBeLazy: Boolean
     }
 
     data class RemoteFieldInfo(
