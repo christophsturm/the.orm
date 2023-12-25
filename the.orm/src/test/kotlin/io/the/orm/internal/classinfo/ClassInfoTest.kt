@@ -42,7 +42,7 @@ object ClassInfoTest {
             }
             it("has an id field") {
                 val idField = assertNotNull(classInfo.idField)
-                assert(idField.reader.call(instance) == 42L)
+                assert(idField.field.property.call(instance) == 42L)
                 assert(idField == classInfo.idFieldOrThrow())
             }
             it("know that it has no relations") { assert(!classInfo.hasBelongsToRelations) }
@@ -50,14 +50,15 @@ object ClassInfoTest {
                 it("knows if a field is mutable") {
                     assert(
                         classInfo.localFields
-                            .singleOrNull { it.reader == Entity::mutableField }
+                            .singleOrNull { it.field.property == Entity::mutableField }
                             ?.mutable == true
                     )
                 }
                 it("knows if a field is immutable") {
                     assert(
-                        classInfo.localFields.singleOrNull { it.reader == Entity::name }?.mutable ==
-                            false
+                        classInfo.localFields
+                            .singleOrNull { it.field.property == Entity::name }
+                            ?.mutable == false
                     )
                 }
             }

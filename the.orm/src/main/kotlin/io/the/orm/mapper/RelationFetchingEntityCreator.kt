@@ -22,7 +22,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     private val hasManyQueries: List<Query<*>>
 ) {
     private val idFieldIndex = classInfo.simpleFields.indexOfFirst { it.dbFieldName == "id" }
-    private val hasManyRemoteFields =
+    private val hasManyRemoteFields: List<KProperty1<*, *>> =
         classInfo.hasManyRelations.map { fieldInfo ->
             val remoteFieldInfo =
                 fieldInfo.classInfo.belongsToRelations.singleOrNull {
@@ -30,7 +30,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                 }
                     ?: throw RepositoryException(
                         "BelongsTo field for HasMany relation " +
-                            "${classInfo.name}.${fieldInfo.reader.name} not found in ${fieldInfo.classInfo.name}." +
+                            "${classInfo.name}.${fieldInfo.field.name} not found in ${fieldInfo.classInfo.name}." +
                             " Currently you need to declare both sides of the relation"
                     )
             if (!remoteFieldInfo.canBeLazy)
@@ -39,16 +39,16 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                         "must be lazy (BelongsTo<Type> instead of Type) to avoid circular dependencies"
                 )
 
-            remoteFieldInfo.reader
+            remoteFieldInfo.field.property
         }
 
     // properties for every relation. they will only be fetched when contained in fetchRelations
-    private val hasManyProperties = classInfo.hasManyRelations.map { it.reader }
+    private val hasManyProperties = classInfo.hasManyRelations.map { it.field.property }
 
     // if the property is not lazy it must always be fetched, and we indicate that by setting the
     // value to null.
-    private val belongsToProperties =
-        classInfo.belongsToRelations.map { if (it.canBeLazy) it.reader else null }
+    private val belongsToProperties: List<KProperty1<*, *>?> =
+        classInfo.belongsToRelations.map { if (it.canBeLazy) it.field.property else null }
 
     fun toEntities(
         results: Flow<ResultLine>,

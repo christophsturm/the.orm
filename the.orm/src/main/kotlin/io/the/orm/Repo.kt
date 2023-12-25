@@ -119,7 +119,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
                         val classInfo1 = fieldInfo.classInfo
                         classInfo1.belongsToRelations.singleOrNull { it.relatedClass == kClass }
                             ?: throw RepositoryException(
-                                "BelongsTo field for HasMany relation ${classInfo.name}.${fieldInfo.reader.name}" +
+                                "BelongsTo field for HasMany relation ${classInfo.name}.${fieldInfo.field.name}" +
                                     " not found in ${fieldInfo.classInfo.name}." +
                                     " Currently you need to declare both sides of the relation"
                             )
