@@ -20,7 +20,8 @@ sealed interface BelongsTo<Entity : Any> : Relation {
         }
     }
 
-    data class Auto<Entity : Any>(var id: PKType? = null) : BelongsTo<Entity> {
+    /** the id will be set by the opposite side relation */
+    data class AutoGetFromHasMany<Entity : Any>(var id: PKType? = null) : BelongsTo<Entity> {
         override fun get(): Entity {
             throw RelationNotLoadedException()
         }
@@ -29,6 +30,6 @@ sealed interface BelongsTo<Entity : Any> : Relation {
 
 class RelationNotLoadedException : RepositoryException("not loaded")
 
-fun <Entity : Any> belongsTo() = BelongsTo.Auto<Entity>()
+fun <Entity : Any> belongsTo() = BelongsTo.AutoGetFromHasMany<Entity>()
 
 fun <Entity : Any> belongsTo(entity: Entity) = BelongsTo.BelongsToImpl(entity)

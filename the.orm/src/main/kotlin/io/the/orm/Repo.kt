@@ -110,21 +110,18 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
     fun afterInit() {
         if (classInfo.hasHasManyRelations) {
             val simpleInserter = inserter
-            inserter =
-                HasManyInserter(
-                    simpleInserter,
-                    classInfo,
-                    classInfo.hasManyRelations.map { it.repo },
-                    classInfo.hasManyRelations.map { fieldInfo ->
-                        val classInfo1 = fieldInfo.classInfo
-                        classInfo1.belongsToRelations.singleOrNull { it.relatedClass == kClass }
-                            ?: throw RepositoryException(
-                                "BelongsTo field for HasMany relation ${classInfo.name}.${fieldInfo.field.name}" +
-                                    " not found in ${fieldInfo.classInfo.name}." +
-                                    " Currently you need to declare both sides of the relation"
-                            )
-                    }
-                )
+            val hasManyRepos = classInfo.hasManyRelations.map { it.repo }
+            val hasManyFieldInfos =
+                classInfo.hasManyRelations.map { fieldInfo ->
+                    val hasManyClassInfo = fieldInfo.classInfo
+                    hasManyClassInfo.belongsToRelations.singleOrNull { it.relatedClass == kClass }
+                        ?: throw RepositoryException(
+                            "BelongsTo field for HasMany relation ${classInfo.name}.${fieldInfo.field.name}" +
+                                " not found in ${fieldInfo.classInfo.name}." +
+                                " Currently you need to declare both sides of the relation"
+                        )
+                }
+            inserter = HasManyInserter(simpleInserter, classInfo, hasManyRepos, hasManyFieldInfos)
         }
         if (classInfo.hasHasManyRelations || classInfo.hasBelongsToRelations) {
             val hasManyQueries: List<Query<*>> =
