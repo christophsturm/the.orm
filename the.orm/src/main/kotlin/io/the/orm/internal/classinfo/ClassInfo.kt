@@ -28,6 +28,7 @@ internal data class ClassInfo<T : Any>(
     val idHandler: IDHandler<T>?,
     val fields: List<FieldInfo>,
 ) {
+    val idField = simpleFields.singleOrNull { it.dbFieldName == "id" }
     /** fields that directly map to a database column, and need no relation fetching */
     val simpleFields: List<SimpleLocalFieldInfo>
         get() = fields.filterIsInstance<SimpleLocalFieldInfo>()

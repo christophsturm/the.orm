@@ -17,9 +17,10 @@ import strikt.assertions.isEqualTo
 @Test
 object ClassInfoTest {
     val context = tests {
-        data class Entity(val name: String, var mutableField: String, val id: Long? = null)
+        data class Entity(val name: String, var mutableField: String, val id: Long?)
 
         val classInfo = ClassInfo(Entity::class, setOf())
+        val instance = Entity("nameValue", "mutableFieldValue", 42)
         describe("for a simple class without relations") {
             it("knows the class name") { expectThat(classInfo.name).isEqualTo("Entity") }
             it("knows the field names and types") {
@@ -32,16 +33,16 @@ object ClassInfoTest {
             }
             it("can get field values") {
                 val names = classInfo.localFields.map { it.dbFieldName }
-                expectThat(
-                        names.zip(
-                            classInfo.values(Entity("name", "mutableFieldValue", null)).toList()
-                        )
-                    )
+                expectThat(names.zip(classInfo.values(instance).toList()))
                     .containsExactlyInAnyOrder(
-                        Pair("name", "name"),
-                        Pair("id", null),
+                        Pair("name", "nameValue"),
+                        Pair("id", 42L),
                         Pair("mutable_field", "mutableFieldValue")
                     )
+            }
+            it("has an id field") {
+                val idField = assertNotNull(classInfo.idField)
+                assert(idField.reader.call(instance) == 42L)
             }
             it("know that it has no relations") { assert(!classInfo.hasBelongsToRelations) }
             describe("mutable fields") {
