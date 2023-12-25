@@ -198,7 +198,7 @@ internal constructor(
                     repository.create(connectionProvider, entity)
                 } else {
                     val updatedInstance =
-                        idHandler.assignId(entity, idProperty.get(existing) as PKType)
+                        idHandler.copyWithId(entity, idProperty.get(existing) as PKType)
                     repository.update(connectionProvider, updatedInstance)
                     updatedInstance
                 }

@@ -15,7 +15,7 @@ class IDHandlerTest {
             describe("assigning an id to a newly created instance") {
                 it("assigns a Long id") {
                     val instance = ClassWithPkId(null, "string")
-                    expectThat(IDHandler(ClassWithPkId::class).assignId(instance, 1))
+                    expectThat(IDHandler(ClassWithPkId::class).copyWithId(instance, 1))
                         .isEqualTo(instance.copy(id = 1))
                 }
             }

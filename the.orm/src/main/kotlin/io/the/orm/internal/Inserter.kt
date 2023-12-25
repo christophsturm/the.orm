@@ -32,7 +32,7 @@ internal class SimpleInserter<T : Any>(
 
                 val id = statement.execute(types, values).getId()
 
-                idHandler.assignId(instance, id)
+                idHandler.copyWithId(instance, id)
             } catch (e: R2dbcDataIntegrityViolationException) {
                 throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
             } catch (e: PgException) {

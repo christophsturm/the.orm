@@ -47,7 +47,7 @@ internal class IDHandler<T : Any>(kClass: KClass<out T>) {
         }
     }
 
-    fun assignId(instance: T, id: PKType): T {
+    fun copyWithId(instance: T, id: PKType): T {
         val args = mapOf(idParameter to id, instanceParameter to instance)
         return try {
             copyFunction.callBy(args)
