@@ -88,6 +88,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
     internal val classInfo: ClassInfo<Entity> = classInfos[kClass] as ClassInfo<Entity>
     private val idHandler = classInfo.idHandler!!
 
+    // this will later be upgraded to an Inserter that can handle relations if needed
     private var inserter: Inserter<Entity> =
         SimpleInserter(idHandler, ExceptionInspector(classInfo.table, kClass), classInfo)
 

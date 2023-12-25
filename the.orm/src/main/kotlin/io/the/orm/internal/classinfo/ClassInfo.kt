@@ -29,6 +29,8 @@ internal data class ClassInfo<T : Any>(
     val fields: List<FieldInfo>,
 ) {
     val idField = simpleFields.singleOrNull { it.dbFieldName == "id" }
+    fun idFieldOrThrow() = idField ?: throw OrmException("$this needs to have an id field")
+
     /** fields that directly map to a database column, and need no relation fetching */
     val simpleFields: List<SimpleLocalFieldInfo>
         get() = fields.filterIsInstance<SimpleLocalFieldInfo>()
@@ -66,8 +68,8 @@ internal data class ClassInfo<T : Any>(
         val dbFieldName: String
 
         /**
-         * the type that we request from the database. Usually the same type as the field, but for
-         * relations it will be the PK type
+         * The type that we request from the database.
+         * Usually the same type as the field, but for relations it will be the PK type
          */
         val type: Class<*>
     }
