@@ -62,7 +62,7 @@ object DoubleConverter : FieldConverter {
 }
 
 data class SimpleLocalFieldInfo(
-    override val writer: Writer,
+    override val field: Field,
     override val reader: KProperty1<*, *>,
     override val dbFieldName: String,
     override val fieldConverter: FieldConverter,
@@ -72,7 +72,7 @@ data class SimpleLocalFieldInfo(
 ) : ClassInfo.LocalFieldInfo {
     companion object {
         operator fun invoke(
-            writer: Writer,
+            writer: Field,
             property: KProperty1<*, *>,
             dbFieldName: String,
             kotlinClass: KClass<*>,

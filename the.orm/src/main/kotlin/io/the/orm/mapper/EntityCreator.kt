@@ -35,26 +35,26 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
                     values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
                         val fieldInfo = classInfo.simpleFields[index]
                         val parameterValue = fieldInfo.fieldConverter.dbValueToParameter(value)
-                        Pair(fieldInfo.writer, parameterValue)
+                        Pair(fieldInfo.field, parameterValue)
                     }
                 values.relations.withIndex().associateTo(parameterValueCollector) { (index, value)
                     ->
                     val fieldInfo = classInfo.belongsToRelations[index]
                     val relationValues = relations[index]
                     if (relationValues != null)
-                        Pair(fieldInfo.writer, relationValues[value as PKType])
-                    else Pair(fieldInfo.writer, BelongsTo.BelongsToNotLoaded<Any>(value as PKType))
+                        Pair(fieldInfo.field, relationValues[value as PKType])
+                    else Pair(fieldInfo.field, BelongsTo.BelongsToNotLoaded<Any>(value as PKType))
                 }
                 classInfo.hasManyRelations.withIndex().associateTo(parameterValueCollector) {
                     (index, it) ->
                     val loadedEntries = hasManyRelations?.get(index)
-                    if (loadedEntries != null) Pair(it.writer, LazyHasMany<Any>(loadedEntries[id]))
-                    else Pair(it.writer, LazyHasMany())
+                    if (loadedEntries != null) Pair(it.field, LazyHasMany<Any>(loadedEntries[id]))
+                    else Pair(it.field, LazyHasMany())
                 }
             }
             .map { parameterValues ->
                 val constructorParameters =
-                    parameterValues.mapKeys { (key, value) -> key.parameter }
+                    parameterValues.mapKeys { (key, value) -> key.constructorParameter }
                 try {
                     classInfo.constructor.callBy(constructorParameters)
                 } catch (e: Exception) {
