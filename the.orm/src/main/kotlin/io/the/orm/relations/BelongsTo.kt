@@ -14,7 +14,7 @@ sealed interface BelongsTo<Entity : Any> : Relation {
         }
     }
 
-    class BelongsToNotLoaded<Entity : Any>(val pk: PKType) : BelongsTo<Entity> {
+    data class BelongsToNotLoaded<Entity : Any>(val pk: PKType) : BelongsTo<Entity> {
         override fun get(): Entity {
             throw RelationNotLoadedException()
         }

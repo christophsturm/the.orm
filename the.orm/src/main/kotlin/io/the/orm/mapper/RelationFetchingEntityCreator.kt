@@ -45,7 +45,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     // properties for every relation. they will only be fetched when contained in fetchRelations
     private val hasManyProperties = classInfo.hasManyRelations.map { it.field.property }
 
-    // if the property is not lazy it must always be fetched, and we indicate that by setting the
+    // if the property is not lazy, it must always be fetched, and we indicate that by setting the
     // value to null.
     private val belongsToProperties: List<KProperty1<*, *>?> =
         classInfo.belongsToRelations.map { if (it.canBeLazy) it.field.property else null }
