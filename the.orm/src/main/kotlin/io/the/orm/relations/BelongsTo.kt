@@ -8,7 +8,7 @@ interface Relation
 sealed interface BelongsTo<Entity : Any> : Relation {
     fun get(): Entity
 
-    class BelongsToImpl<Entity : Any>(val entity: Entity) : BelongsTo<Entity> {
+    data class BelongsToImpl<Entity : Any>(val entity: Entity) : BelongsTo<Entity> {
         override fun get(): Entity {
             return entity
         }

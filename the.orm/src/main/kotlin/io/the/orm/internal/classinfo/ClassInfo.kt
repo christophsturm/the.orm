@@ -21,6 +21,7 @@ private fun <T : Any> Map<KClass<*>, RepoImpl<*>>.getRepo(c: KClass<T>): RepoImp
     get(c) as RepoImpl<T>
 
 internal data class ClassInfo<T : Any>(
+    // this is how classes that have a relation to this class find this instance
     val kClass: KClass<T>,
     val table: Table,
     val name: String,

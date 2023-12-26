@@ -2,6 +2,7 @@ package io.the.orm.mapper
 
 import failgood.Test
 import failgood.mock.mock
+import failgood.mock.the
 import failgood.tests
 import io.the.orm.PKType
 import io.the.orm.Repo
@@ -23,11 +24,11 @@ object RelationFetchingEntityCreatorTest {
     val tests = tests {
         val connectionProvider = mock<ConnectionProvider>()
         describe("belongs to relation") {
+            data class ReferencedEntity(val name: String, val id: PKType? = null)
+            val referencedEntity = ReferencedEntity("blah", 10)
             it("resolves belongs to entities that do not support lazy loading") {
-                data class ReferencedEntity(val name: String, val id: PKType? = null)
                 data class Entity(val referencedEntity: ReferencedEntity, val id: PKType? = null)
 
-                val referencedEntity = ReferencedEntity("blah", 10)
                 val repository =
                     mock<Repo<ReferencedEntity>> {
                         method { findByIds(any(), any()) }.returns(mapOf(10L to referencedEntity))
@@ -51,23 +52,22 @@ object RelationFetchingEntityCreatorTest {
                 assert(result.single() == Entity(referencedEntity, 99))
             }
             describe("entities that support lazy loading") {
-                data class ReferencedEntity(val name: String, val id: PKType? = null)
                 data class Entity(
                     val referencedEntity: BelongsTo<ReferencedEntity>,
                     val id: PKType? = null
                 )
+                val repository = mock<Repo<ReferencedEntity>>()
+                val classInfo = ClassInfo(Entity::class, setOf(ReferencedEntity::class))
+                val creator =
+                    RelationFetchingEntityCreator(
+                        listOf(repository),
+                        StreamingEntityCreator(classInfo),
+                        classInfo,
+                        classInfo.hasManyRelations.map {
+                            it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
+                        }
+                    )
                 it("does not resolve the relationship when it is not specified in fetchRelations") {
-                    val repository = mock<Repo<ReferencedEntity>>()
-                    val classInfo = ClassInfo(Entity::class, setOf(ReferencedEntity::class))
-                    val creator =
-                        RelationFetchingEntityCreator(
-                            listOf(repository),
-                            StreamingEntityCreator(classInfo),
-                            classInfo,
-                            classInfo.hasManyRelations.map {
-                                it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
-                            }
-                        )
                     val result =
                         creator.toEntities(
                             flowOf(ResultLine(listOf(99L), listOf(10L))),
@@ -75,6 +75,18 @@ object RelationFetchingEntityCreatorTest {
                             connectionProvider
                         )
                     assert(result.single() == Entity(BelongsTo.BelongsToNotLoaded(10), 99))
+                }
+                it("resolves the relationship when it is specified in fetchRelations") {
+                    the(repository) {
+                        method { findByIds(any(), any()) }.returns(mapOf(10L to referencedEntity))
+                    }
+                    val result =
+                        creator.toEntities(
+                            flowOf(ResultLine(listOf(99L), listOf(10L))),
+                            setOf(Entity::referencedEntity),
+                            connectionProvider
+                        )
+                    assert(result.single() == Entity(BelongsTo.BelongsToImpl(referencedEntity), 99))
                 }
             }
         }
