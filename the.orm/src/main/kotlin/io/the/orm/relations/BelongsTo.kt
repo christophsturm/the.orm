@@ -1,7 +1,7 @@
 package io.the.orm.relations
 
+import io.the.orm.OrmException
 import io.the.orm.PKType
-import io.the.orm.RepositoryException
 
 interface Relation
 
@@ -28,7 +28,7 @@ sealed interface BelongsTo<Entity : Any> : Relation {
     }
 }
 
-class RelationNotLoadedException : RepositoryException("not loaded")
+class RelationNotLoadedException : OrmException("not loaded")
 
 fun <Entity : Any> belongsTo() = BelongsTo.AutoGetFromHasMany<Entity>()
 

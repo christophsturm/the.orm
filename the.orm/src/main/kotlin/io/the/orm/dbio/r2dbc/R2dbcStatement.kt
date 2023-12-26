@@ -1,6 +1,6 @@
 package io.the.orm.dbio.r2dbc
 
-import io.the.orm.RepositoryException
+import io.the.orm.OrmException
 import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.Statement
 import io.vertx.pgclient.PgException
@@ -19,12 +19,12 @@ class R2dbcStatement(private val statement: io.r2dbc.spi.Statement, private val 
                     statement.bindNull(index, types[index])
                 } else statement.bind(index, o)
             } catch (e: IllegalArgumentException) {
-                throw RepositoryException(
+                throw OrmException(
                     "error binding parameter with value $o and index $index to statement $sql",
                     e
                 )
             } catch (e: PgException) {
-                throw RepositoryException(
+                throw OrmException(
                     "error binding parameter with value $o and index $index to statement $sql",
                     e
                 )

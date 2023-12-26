@@ -27,7 +27,7 @@ object RepositoryTest {
                     data class ClassWithUnsupportedType(val id: Long, val unsupported: Unsupported)
                     expectCatching { Repo.create<ClassWithUnsupportedType>() }
                         .isFailure()
-                        .isA<RepositoryException>()
+                        .isA<OrmException>()
                         .message
                         .isNotNull()
                         .contains("type Unsupported not supported")
@@ -38,7 +38,7 @@ object RepositoryTest {
                     val result = runCatching { Repo.create<WithoutId>() }
                     val exception = assertNotNull(result.exceptionOrNull())
                     assert(
-                        exception is RepositoryException &&
+                        exception is OrmException &&
                             (exception.message?.contains("class WithoutId has no field named id") ==
                                 true)
                     ) {

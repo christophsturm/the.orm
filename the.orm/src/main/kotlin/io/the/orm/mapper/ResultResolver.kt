@@ -1,6 +1,6 @@
 package io.the.orm.mapper
 
-import io.the.orm.RepositoryException
+import io.the.orm.OrmException
 import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.DBRow
 import io.the.orm.dbio.LazyResult
@@ -35,7 +35,7 @@ internal class ResultResolver<Entity : Any>(private val classInfo: ClassInfo<Ent
         return try {
             row.getLazy(fieldInfo.dbFieldName)
         } catch (e: Exception) {
-            throw RepositoryException("error getting value for field ${fieldInfo.dbFieldName}", e)
+            throw OrmException("error getting value for field ${fieldInfo.dbFieldName}", e)
         }
     }
 }

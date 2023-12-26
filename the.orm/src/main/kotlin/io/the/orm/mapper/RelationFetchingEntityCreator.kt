@@ -1,8 +1,8 @@
 package io.the.orm.mapper
 
+import io.the.orm.OrmException
 import io.the.orm.PKType
 import io.the.orm.Repo
-import io.the.orm.RepositoryException
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.query.Query
@@ -28,13 +28,13 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                 fieldInfo.classInfo.belongsToRelations.singleOrNull {
                     it.relatedClass == classInfo.kClass
                 }
-                    ?: throw RepositoryException(
+                    ?: throw OrmException(
                         "BelongsTo field for HasMany relation " +
                             "${classInfo.name}.${fieldInfo.field.name} not found in ${fieldInfo.classInfo.name}." +
                             " Currently you need to declare both sides of the relation"
                     )
             if (!remoteFieldInfo.canBeLazy)
-                throw RepositoryException(
+                throw OrmException(
                     "${remoteFieldInfo.name} " +
                         "must be lazy (BelongsTo<Type> instead of Type) to avoid circular dependencies"
                 )
@@ -80,7 +80,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                             try {
                                 repo.findByIds(connectionProvider, ids)
                             } catch (e: Exception) {
-                                throw RepositoryException(
+                                throw OrmException(
                                     "unexpected error fetching ids $ids from $repo",
                                     e
                                 )

@@ -1,5 +1,6 @@
 package io.the.orm.internal.classinfo
 
+import io.the.orm.OrmException
 import io.the.orm.Repo
 import io.the.orm.RepoImpl
 import io.the.orm.internal.IDHandler

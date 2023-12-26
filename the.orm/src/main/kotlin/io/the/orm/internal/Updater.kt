@@ -1,6 +1,6 @@
 package io.the.orm.internal
 
-import io.the.orm.RepositoryException
+import io.the.orm.OrmException
 import io.the.orm.dbio.DBConnection
 import io.the.orm.internal.classinfo.ClassInfo
 import kotlin.reflect.KProperty1
@@ -28,7 +28,6 @@ internal class Updater<T : Any>(
         val statement = connection.createStatement(updateStatementString)
 
         val rowsUpdated = statement.execute(types, listOf(id) + values).rowsUpdated()
-        if (rowsUpdated != 1L)
-            throw RepositoryException("rowsUpdated was $rowsUpdated instead of 1")
+        if (rowsUpdated != 1L) throw OrmException("rowsUpdated was $rowsUpdated instead of 1")
     }
 }

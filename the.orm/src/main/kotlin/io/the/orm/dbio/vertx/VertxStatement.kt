@@ -1,6 +1,6 @@
 package io.the.orm.dbio.vertx
 
-import io.the.orm.RepositoryException
+import io.the.orm.OrmException
 import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.Statement
 import io.vertx.kotlin.coroutines.coAwait
@@ -25,10 +25,7 @@ class VertxStatement(
                 if (e.errorMessage.contains("unique"))
                     throw e // don't wrap the exception if it's about unique constraints because we
                 // catch that later
-                throw RepositoryException(
-                    "error executing query $sql with parameters $parameterList",
-                    e
-                )
+                throw OrmException("error executing query $sql with parameters $parameterList", e)
             }
         return VertxResult(rowSet)
     }

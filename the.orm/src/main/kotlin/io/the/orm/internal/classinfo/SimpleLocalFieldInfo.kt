@@ -2,7 +2,7 @@ package io.the.orm.internal.classinfo
 
 import io.r2dbc.spi.Blob
 import io.r2dbc.spi.Clob
-import io.the.orm.RepositoryException
+import io.the.orm.OrmException
 import io.vertx.sqlclient.data.Numeric
 import java.math.BigDecimal
 import java.nio.ByteBuffer
@@ -80,7 +80,7 @@ data class SimpleLocalFieldInfo(
         ): SimpleLocalFieldInfo {
             val fieldConverter =
                 fieldConverters[kotlinClass]
-                    ?: throw RepositoryException(
+                    ?: throw OrmException(
                         "type ${kotlinClass.simpleName} not supported." +
                             " class: ${kotlinClass.simpleName}," +
                             " otherClasses: ${otherClasses.map { it.simpleName }}"

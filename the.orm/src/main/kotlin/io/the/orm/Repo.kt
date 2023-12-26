@@ -80,8 +80,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
 
     @Suppress("UNCHECKED_CAST")
     private val idProperty =
-        (properties["id"]
-            ?: throw RepositoryException("class ${kClass.simpleName} has no field named id"))
+        (properties["id"] ?: throw OrmException("class ${kClass.simpleName} has no field named id"))
             as KProperty1<Entity, PKType>
 
     @Suppress("UNCHECKED_CAST")
@@ -115,7 +114,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
                 classInfo.hasManyRelations.map { fieldInfo ->
                     val hasManyClassInfo = fieldInfo.classInfo
                     hasManyClassInfo.belongsToRelations.singleOrNull { it.relatedClass == kClass }
-                        ?: throw RepositoryException(
+                        ?: throw OrmException(
                             "BelongsTo field for HasMany relation ${classInfo.name}.${fieldInfo.field.name}" +
                                 " not found in ${fieldInfo.classInfo.name}." +
                                 " Currently you need to declare both sides of the relation"

@@ -1,7 +1,7 @@
 package io.the.orm.mapper
 
+import io.the.orm.OrmException
 import io.the.orm.PKType
-import io.the.orm.RepositoryException
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.LazyHasMany
@@ -54,11 +54,11 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
             }
             .map { parameterValues ->
                 val constructorParameters =
-                    parameterValues.mapKeys { (key, value) -> key.constructorParameter }
+                    parameterValues.mapKeys { (key, _) -> key.constructorParameter }
                 try {
                     classInfo.constructor.callBy(constructorParameters)
                 } catch (e: Exception) {
-                    throw RepositoryException(
+                    throw OrmException(
                         "error invoking constructor for ${classInfo.name}.\n parameters:${constructorParameters.friendlyString()}",
                         e
                     )
