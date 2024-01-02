@@ -18,8 +18,8 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaType
 
 @Suppress("UNCHECKED_CAST")
-private fun <T : Any> Map<KClass<*>, RepoImpl<*>>.getRepo(c: KClass<T>): RepoImpl<T> =
-    get(c) as RepoImpl<T>
+private fun <T : Any> Map<KClass<*>, RepoImpl<*>>.getRepo(c: KClass<T>): RepoImpl<T>? =
+    get(c) as? RepoImpl<T>
 
 internal data class ClassInfo<T : Any>(
     // this is how classes that have a relation to this class find this instance
@@ -129,7 +129,7 @@ internal data class ClassInfo<T : Any>(
     fun afterInit(repos: Map<KClass<out Any>, RepoImpl<out Any>>) {
         fields.forEach {
             if (it is RelationFieldInfo) {
-                val repo = repos.getRepo(it.relatedClass)
+                val repo = repos.getRepo(it.relatedClass)  ?: throw OrmException("repo for ${it.relatedClass.simpleName} not found. repos: ${repos.keys}")
                 it.repo = repo
                 it.classInfo = repo.classInfo
             }
