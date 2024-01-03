@@ -58,7 +58,9 @@ object HasManyInserterTest {
             it("inserts the has many relations of the created entity") {
                 subject.create(connection, entity)
                 val belongingWithId =
-                    belonging.copy(entity = BelongsTo.Auto<Entity>().apply { id = 42 })
+                    belonging.copy(
+                        entity = BelongsTo.AutoGetFromHasMany<Entity>().apply { id = 42 }
+                    )
                 assertEquals(
                     getCalls(belongingRepo).singleOrNull(),
                     call(Inserter<Belonging>::create, connection, belongingWithId)

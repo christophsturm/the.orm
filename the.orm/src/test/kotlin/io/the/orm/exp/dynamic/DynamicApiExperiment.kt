@@ -50,5 +50,5 @@ class Entity(val name: String, fields: Set<Field>) {
         realFields.add(field)
     }
 
-    val realFields = fields.toMutableSet()
+    private val realFields = fields.toMutableSet()
 }

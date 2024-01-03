@@ -1,8 +1,8 @@
 package io.the.orm.mapper
 
+import io.the.orm.OrmException
 import io.the.orm.PKType
 import io.the.orm.Repo
-import io.the.orm.RepositoryException
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.query.Query
@@ -22,33 +22,33 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     private val hasManyQueries: List<Query<*>>
 ) {
     private val idFieldIndex = classInfo.simpleFields.indexOfFirst { it.dbFieldName == "id" }
-    private val hasManyRemoteFields =
+    private val hasManyRemoteFields: List<KProperty1<*, *>> =
         classInfo.hasManyRelations.map { fieldInfo ->
             val remoteFieldInfo =
                 fieldInfo.classInfo.belongsToRelations.singleOrNull {
                     it.relatedClass == classInfo.kClass
                 }
-                    ?: throw RepositoryException(
+                    ?: throw OrmException(
                         "BelongsTo field for HasMany relation " +
-                            "${classInfo.name}.${fieldInfo.property.name} not found in ${fieldInfo.classInfo.name}." +
+                            "${classInfo.name}.${fieldInfo.field.name} not found in ${fieldInfo.classInfo.name}." +
                             " Currently you need to declare both sides of the relation"
                     )
             if (!remoteFieldInfo.canBeLazy)
-                throw RepositoryException(
+                throw OrmException(
                     "${remoteFieldInfo.name} " +
                         "must be lazy (BelongsTo<Type> instead of Type) to avoid circular dependencies"
                 )
 
-            remoteFieldInfo.property
+            remoteFieldInfo.field.property
         }
 
     // properties for every relation. they will only be fetched when contained in fetchRelations
-    private val hasManyProperties = classInfo.hasManyRelations.map { it.property }
+    private val hasManyProperties = classInfo.hasManyRelations.map { it.field.property }
 
-    // if the property is not lazy it must always be fetched, and we indicate that by setting the
+    // if the property is not lazy, it must always be fetched, and we indicate that by setting the
     // value to null.
-    private val belongsToProperties =
-        classInfo.belongsToRelations.map { if (it.canBeLazy) it.property else null }
+    private val belongsToProperties: List<KProperty1<*, *>?> =
+        classInfo.belongsToRelations.map { if (it.canBeLazy) it.field.property else null }
 
     fun toEntities(
         results: Flow<ResultLine>,
@@ -80,7 +80,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                             try {
                                 repo.findByIds(connectionProvider, ids)
                             } catch (e: Exception) {
-                                throw RepositoryException(
+                                throw OrmException(
                                     "unexpected error fetching ids $ids from $repo",
                                     e
                                 )

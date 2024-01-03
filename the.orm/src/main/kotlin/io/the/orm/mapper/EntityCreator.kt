@@ -1,7 +1,7 @@
 package io.the.orm.mapper
 
+import io.the.orm.OrmException
 import io.the.orm.PKType
-import io.the.orm.RepositoryException
 import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.LazyHasMany
@@ -30,36 +30,36 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
         return results
             .map { values ->
                 val id = idFieldIndexOrNull?.let { values.fields[it] as PKType }
-                val map =
+                // the map that collects values for all constructor parameters of the entity
+                val parameterValueCollector =
                     values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
                         val fieldInfo = classInfo.simpleFields[index]
                         val parameterValue = fieldInfo.fieldConverter.dbValueToParameter(value)
-                        Pair(fieldInfo.constructorParameter, parameterValue)
+                        Pair(fieldInfo.field, parameterValue)
                     }
-                values.relations.withIndex().associateTo(map) { (index, value) ->
+                values.relations.withIndex().associateTo(parameterValueCollector) { (index, value)
+                    ->
                     val fieldInfo = classInfo.belongsToRelations[index]
                     val relationValues = relations[index]
                     if (relationValues != null)
-                        Pair(fieldInfo.constructorParameter, relationValues[value as PKType])
-                    else
-                        Pair(
-                            fieldInfo.constructorParameter,
-                            BelongsTo.BelongsToNotLoaded<Any>(value as PKType)
-                        )
+                        Pair(fieldInfo.field, relationValues[value as PKType])
+                    else Pair(fieldInfo.field, BelongsTo.BelongsToNotLoaded<Any>(value as PKType))
                 }
-                classInfo.hasManyRelations.withIndex().associateTo(map) { (index, it) ->
+                classInfo.hasManyRelations.withIndex().associateTo(parameterValueCollector) {
+                    (index, it) ->
                     val loadedEntries = hasManyRelations?.get(index)
-                    if (loadedEntries != null)
-                        Pair(it.constructorParameter, LazyHasMany<Any>(loadedEntries[id]))
-                    else Pair(it.constructorParameter, LazyHasMany())
+                    if (loadedEntries != null) Pair(it.field, LazyHasMany<Any>(loadedEntries[id]))
+                    else Pair(it.field, LazyHasMany())
                 }
             }
-            .map {
+            .map { parameterValues ->
+                val constructorParameters =
+                    parameterValues.mapKeys { (key, _) -> key.constructorParameter }
                 try {
-                    classInfo.constructor.callBy(it)
+                    classInfo.constructor.callBy(constructorParameters)
                 } catch (e: Exception) {
-                    throw RepositoryException(
-                        "error invoking constructor for ${classInfo.name}.\n parameters:${it.friendlyString()}",
+                    throw OrmException(
+                        "error invoking constructor for ${classInfo.name}.\n parameters:${constructorParameters.friendlyString()}",
                         e
                     )
                 }

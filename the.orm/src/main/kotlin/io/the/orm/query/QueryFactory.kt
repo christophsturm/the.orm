@@ -54,7 +54,7 @@ internal constructor(
 ) {
 
     private val dbFieldNameForProperty =
-        classInfo.localFields.associateBy({ it.property }, { it.dbFieldName })
+        classInfo.localFields.associateBy({ it.field.property }, { it.dbFieldName })
 
     private val selectPrefix =
         "select ${classInfo.localFields.joinToString { it.dbFieldName }} from ${classInfo.table.name} where "
@@ -198,7 +198,7 @@ internal constructor(
                     repository.create(connectionProvider, entity)
                 } else {
                     val updatedInstance =
-                        idHandler.assignId(entity, idProperty.get(existing) as PKType)
+                        idHandler.copyWithId(entity, idProperty.get(existing) as PKType)
                     repository.update(connectionProvider, updatedInstance)
                     updatedInstance
                 }

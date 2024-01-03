@@ -80,14 +80,14 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
 
     @Suppress("UNCHECKED_CAST")
     private val idProperty =
-        (properties["id"]
-            ?: throw RepositoryException("class ${kClass.simpleName} has no field named id"))
+        (properties["id"] ?: throw OrmException("class ${kClass.simpleName} has no field named id"))
             as KProperty1<Entity, PKType>
 
     @Suppress("UNCHECKED_CAST")
     internal val classInfo: ClassInfo<Entity> = classInfos[kClass] as ClassInfo<Entity>
     private val idHandler = classInfo.idHandler!!
 
+    // this will later be upgraded to an Inserter that can handle relations if needed
     private var inserter: Inserter<Entity> =
         SimpleInserter(idHandler, ExceptionInspector(classInfo.table, kClass), classInfo)
 
@@ -109,21 +109,18 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
     fun afterInit() {
         if (classInfo.hasHasManyRelations) {
             val simpleInserter = inserter
-            inserter =
-                HasManyInserter(
-                    simpleInserter,
-                    classInfo,
-                    classInfo.hasManyRelations.map { it.repo },
-                    classInfo.hasManyRelations.map { fieldInfo ->
-                        val classInfo1 = fieldInfo.classInfo
-                        classInfo1.belongsToRelations.singleOrNull { it.relatedClass == kClass }
-                            ?: throw RepositoryException(
-                                "BelongsTo field for HasMany relation ${classInfo.name}.${fieldInfo.property.name}" +
-                                    " not found in ${fieldInfo.classInfo.name}." +
-                                    " Currently you need to declare both sides of the relation"
-                            )
-                    }
-                )
+            val hasManyRepos = classInfo.hasManyRelations.map { it.repo }
+            val hasManyFieldInfos =
+                classInfo.hasManyRelations.map { fieldInfo ->
+                    val hasManyClassInfo = fieldInfo.classInfo
+                    hasManyClassInfo.belongsToRelations.singleOrNull { it.relatedClass == kClass }
+                        ?: throw OrmException(
+                            "BelongsTo field for HasMany relation ${classInfo.name}.${fieldInfo.field.name}" +
+                                " not found in ${fieldInfo.classInfo.name}." +
+                                " Currently you need to declare both sides of the relation"
+                        )
+                }
+            inserter = HasManyInserter(simpleInserter, classInfo, hasManyRepos, hasManyFieldInfos)
         }
         if (classInfo.hasHasManyRelations || classInfo.hasBelongsToRelations) {
             val hasManyQueries: List<Query<*>> =

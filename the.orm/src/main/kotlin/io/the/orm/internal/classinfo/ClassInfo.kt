@@ -1,5 +1,6 @@
 package io.the.orm.internal.classinfo
 
+import io.the.orm.OrmException
 import io.the.orm.Repo
 import io.the.orm.RepoImpl
 import io.the.orm.internal.IDHandler
@@ -17,10 +18,11 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaType
 
 @Suppress("UNCHECKED_CAST")
-private fun <T : Any> Map<KClass<*>, RepoImpl<*>>.getRepo(c: KClass<T>): RepoImpl<T> =
-    get(c) as RepoImpl<T>
+private fun <T : Any> Map<KClass<*>, RepoImpl<*>>.getRepo(c: KClass<T>): RepoImpl<T>? =
+    get(c) as? RepoImpl<T>
 
 internal data class ClassInfo<T : Any>(
+    // this is how classes that have a relation to this class find this instance
     val kClass: KClass<T>,
     val table: Table,
     val name: String,
@@ -28,6 +30,10 @@ internal data class ClassInfo<T : Any>(
     val idHandler: IDHandler<T>?,
     val fields: List<FieldInfo>,
 ) {
+    val idField = simpleFields.singleOrNull { it.dbFieldName == "id" }
+
+    fun idFieldOrThrow() = idField ?: throw OrmException("$this needs to have an id field")
+
     /** fields that directly map to a database column, and need no relation fetching */
     val simpleFields: List<SimpleLocalFieldInfo>
         get() = fields.filterIsInstance<SimpleLocalFieldInfo>()
@@ -50,10 +56,7 @@ internal data class ClassInfo<T : Any>(
 
     internal sealed interface FieldInfo {
         /** this is used when converting database rows to instances */
-        val constructorParameter: KParameter
-
-        /** for reading */
-        val property: KProperty1<*, *>
+        val field: Field
 
         /** convert between kotlin and db types */
         val fieldConverter: FieldConverter
@@ -65,7 +68,7 @@ internal data class ClassInfo<T : Any>(
         val dbFieldName: String
 
         /**
-         * the type that we request from the database. Usually the same type as the field, but for
+         * The type that we request from the database. Usually the same type as the field, but for
          * relations it will be the PK type
          */
         val type: Class<*>
@@ -81,13 +84,12 @@ internal data class ClassInfo<T : Any>(
         val relatedClass: KClass<*>
         var repo: Repo<*>
         var classInfo: ClassInfo<*>
-        val canBeLazy:
-            Boolean // can the relation be fetched later or is it necessary to create the instance
+        // can the relation be fetched later, or is it necessary to create the instance?
+        val canBeLazy: Boolean
     }
 
     data class RemoteFieldInfo(
-        override val constructorParameter: KParameter,
-        override val property: KProperty1<*, *>,
+        override val field: Field,
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
         override val relatedClass: KClass<*>,
@@ -104,8 +106,7 @@ internal data class ClassInfo<T : Any>(
     }
 
     class BelongsToFieldInfo(
-        override val constructorParameter: KParameter,
-        override val property: KProperty1<*, *>,
+        override val field: Field,
         override val dbFieldName: String,
         override val mutable: Boolean,
         override val fieldConverter: FieldConverter,
@@ -115,7 +116,7 @@ internal data class ClassInfo<T : Any>(
         override val name: String
     ) : RelationFieldInfo, LocalFieldInfo {
         override fun valueForDb(instance: Any): Any? =
-            fieldConverter.propertyToDBValue(property.call(instance))
+            fieldConverter.propertyToDBValue(field.property.call(instance))
 
         override lateinit var repo: Repo<*>
         override lateinit var classInfo: ClassInfo<*>
@@ -128,7 +129,11 @@ internal data class ClassInfo<T : Any>(
     fun afterInit(repos: Map<KClass<out Any>, RepoImpl<out Any>>) {
         fields.forEach {
             if (it is RelationFieldInfo) {
-                val repo = repos.getRepo(it.relatedClass)
+                val repo =
+                    repos.getRepo(it.relatedClass)
+                        ?: throw OrmException(
+                            "repo for ${it.relatedClass.simpleName} not found. repos: ${repos.keys}"
+                        )
                 it.repo = repo
                 it.classInfo = repo.classInfo
             }
@@ -144,7 +149,7 @@ internal data class ClassInfo<T : Any>(
             val properties: Map<String, KProperty1<T, *>> =
                 kClass.declaredMemberProperties.associateBy({ it.name }, { it })
 
-            val name = kClass.simpleName
+            val className = kClass.simpleName
             val constructor: KFunction<T> =
                 kClass.primaryConstructor
                     ?: throw RuntimeException(
@@ -177,10 +182,10 @@ internal data class ClassInfo<T : Any>(
 
                     val fieldName = parameter.name!!.toSnakeCase()
                     val property = properties[parameter.name]!!
+                    val field = Field(parameter, property)
                     if (kc == HasMany::class)
                         RemoteFieldInfo(
-                            parameter,
-                            property,
+                            field,
                             HasManyConverter(),
                             Long::class.java,
                             kotlinClass,
@@ -189,62 +194,64 @@ internal data class ClassInfo<T : Any>(
                         )
                     else if (otherClasses.contains(kotlinClass)) {
                         BelongsToFieldInfo(
-                            parameter,
-                            property,
+                            field,
                             fieldName + "_id",
                             isMutable(property),
                             BelongsToConverter(IDHandler(kotlinClass)),
                             Long::class.java,
                             kotlinClass,
                             lazy,
-                            "$name.${property.name}"
+                            "$className.${property.name}"
                         )
                     } else
                         when {
                             javaClass.isEnum ->
                                 SimpleLocalFieldInfo(
-                                    parameter,
-                                    property,
+                                    field,
                                     fieldName,
                                     EnumConverter(javaClass),
                                     String::class.java,
                                     isMutable(property),
-                                    "$name.${property.name}"
+                                    "$className.${property.name}"
                                 )
                             else -> {
                                 val isPK = parameter.name == "id"
                                 if (isPK) {
                                     SimpleLocalFieldInfo(
-                                        parameter,
-                                        property,
+                                        field,
                                         fieldName,
                                         passThroughFieldConverter,
                                         Long::class.java,
                                         isMutable(property),
-                                        "$name.${property.name}"
+                                        "$className.${property.name}"
                                     )
                                 } else {
                                     SimpleLocalFieldInfo(
-                                        parameter,
-                                        property,
+                                        field,
                                         fieldName,
                                         kotlinClass,
                                         javaClass,
                                         isMutable(property),
-                                        "$name.${property.name}",
+                                        "$className.${property.name}",
                                         otherClasses
                                     )
                                 }
                             }
                         }
                 }
-            return ClassInfo(kClass, table, name!!, constructor, idHandler, fields)
+            return ClassInfo(kClass, table, className!!, constructor, idHandler, fields)
         }
 
         private fun <T : Any> isMutable(property: KProperty1<T, *>) =
             property is KMutableProperty<*>
     }
 }
+
+data class Field(
+    val constructorParameter: KParameter,
+    val property: KProperty1<*, *>,
+    val name: String = property.name
+)
 
 /** converts strings from the database to enums in the mapped class */
 private class EnumConverter(private val clazz: Class<*>) : FieldConverter {

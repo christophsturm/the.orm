@@ -2,7 +2,7 @@
 
 package io.the.orm.relations
 
-import io.the.orm.RepositoryException
+import io.the.orm.OrmException
 
 /*
 Relations support
@@ -28,7 +28,7 @@ data class LazyHasMany<T : Any>(private var backingSet: Set<T>? = null) : HasMan
         }
 
     private fun throwIfUnfetched() {
-        if (backingSet == null) throw RepositoryException("Has Many Relation is not fetched")
+        if (backingSet == null) throw OrmException("Has Many Relation is not fetched")
     }
 
     override fun contains(element: T): Boolean {

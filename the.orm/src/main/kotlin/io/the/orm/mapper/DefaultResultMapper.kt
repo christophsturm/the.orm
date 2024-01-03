@@ -6,8 +6,7 @@ import io.the.orm.relations.Relation
 import kotlin.reflect.KProperty1
 import kotlinx.coroutines.flow.Flow
 
-class DefaultResultMapper<Entity : Any>
-internal constructor(
+internal class DefaultResultMapper<Entity : Any>(
     private val resultResolver: ResultResolver<Entity>,
     private val entityCreator: EntityCreator<Entity>
 ) : ResultMapper<Entity>, SimpleResultMapper<Entity> {

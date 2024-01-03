@@ -1,7 +1,7 @@
 package io.the.orm
 
 import failgood.Test
-import failgood.describe
+import failgood.tests
 import io.the.orm.query.QueryFactory
 import io.the.orm.test.TestObjects.Entity
 import kotlin.test.assertNotNull
@@ -15,36 +15,35 @@ import strikt.assertions.message
 
 @Test
 object RepositoryTest {
-    val context =
-        describe(Repo::class) {
-            test("returns a query factory") {
-                val queryFactory = Repo.create<Entity>().queryFactory
-                expectThat(queryFactory).isA<QueryFactory<Entity>>()
+    val context = tests {
+        test("returns a query factory") {
+            val queryFactory = Repo.create<Entity>().queryFactory
+            expectThat(queryFactory).isA<QueryFactory<Entity>>()
+        }
+        context("fail fast error handling") {
+            test("fails if class contains unsupported fields") {
+                data class Unsupported(val field: String)
+                data class ClassWithUnsupportedType(val id: Long, val unsupported: Unsupported)
+                expectCatching { Repo.create<ClassWithUnsupportedType>() }
+                    .isFailure()
+                    .isA<OrmException>()
+                    .message
+                    .isNotNull()
+                    .contains("type Unsupported not supported")
             }
-            context("fail fast error handling") {
-                test("fails if class contains unsupported fields") {
-                    data class Unsupported(val field: String)
-                    data class ClassWithUnsupportedType(val id: Long, val unsupported: Unsupported)
-                    expectCatching { Repo.create<ClassWithUnsupportedType>() }
-                        .isFailure()
-                        .isA<RepositoryException>()
-                        .message
-                        .isNotNull()
-                        .contains("type Unsupported not supported")
-                }
-                test("fails if class has no id field") {
-                    data class WithoutId(val name: String)
+            test("fails if class has no id field") {
+                data class WithoutId(val name: String)
 
-                    val result = runCatching { Repo.create<WithoutId>() }
-                    val exception = assertNotNull(result.exceptionOrNull())
-                    assert(
-                        exception is RepositoryException &&
-                            (exception.message?.contains("class WithoutId has no field named id") ==
-                                true)
-                    ) {
-                        exception.stackTraceToString()
-                    }
+                val result = runCatching { Repo.create<WithoutId>() }
+                val exception = assertNotNull(result.exceptionOrNull())
+                assert(
+                    exception is OrmException &&
+                        (exception.message?.contains("class WithoutId has no field named id") ==
+                            true)
+                ) {
+                    exception.stackTraceToString()
                 }
             }
         }
+    }
 }

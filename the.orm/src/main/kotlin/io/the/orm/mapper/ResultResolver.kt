@@ -1,6 +1,6 @@
 package io.the.orm.mapper
 
-import io.the.orm.RepositoryException
+import io.the.orm.OrmException
 import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.DBRow
 import io.the.orm.dbio.LazyResult
@@ -9,13 +9,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 internal class ResultResolver<Entity : Any>(private val classInfo: ClassInfo<Entity>) {
+    private data class LazyResultLine(
+        val fields: List<LazyResult<*>>,
+        val relations: List<LazyResult<*>>
+    )
+
     suspend fun getResolvedValues(queryResult: DBResult): Flow<ResultLine> {
         val map =
             queryResult.map { row ->
-                val simpleFields =
-                    classInfo.simpleFields.map { fieldInfo -> lazyResult(row, fieldInfo) }
                 LazyResultLine(
-                    simpleFields,
+                    classInfo.simpleFields.map { fieldInfo -> lazyResult(row, fieldInfo) },
                     classInfo.belongsToRelations.map { fieldInfo -> lazyResult(row, fieldInfo) }
                 )
             }
@@ -32,7 +35,7 @@ internal class ResultResolver<Entity : Any>(private val classInfo: ClassInfo<Ent
         return try {
             row.getLazy(fieldInfo.dbFieldName)
         } catch (e: Exception) {
-            throw RepositoryException("error getting value for field ${fieldInfo.dbFieldName}", e)
+            throw OrmException("error getting value for field ${fieldInfo.dbFieldName}", e)
         }
     }
 }
