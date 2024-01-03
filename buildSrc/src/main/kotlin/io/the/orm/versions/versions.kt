@@ -1,7 +1,7 @@
 package io.the.orm.versions
 
 const val kotlinVersion = "1.9.22"
-const val failgoodVersion = "0.9.0"
+const val failgoodVersion = "0.9.1"
 const val striktVersion = "0.34.1"
 const val testContainersVersion = "1.19.3"
 const val blockHoundVersion = "1.0.8.RELEASE"
