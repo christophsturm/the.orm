@@ -129,7 +129,11 @@ internal data class ClassInfo<T : Any>(
     fun afterInit(repos: Map<KClass<out Any>, RepoImpl<out Any>>) {
         fields.forEach {
             if (it is RelationFieldInfo) {
-                val repo = repos.getRepo(it.relatedClass)  ?: throw OrmException("repo for ${it.relatedClass.simpleName} not found. repos: ${repos.keys}")
+                val repo =
+                    repos.getRepo(it.relatedClass)
+                        ?: throw OrmException(
+                            "repo for ${it.relatedClass.simpleName} not found. repos: ${repos.keys}"
+                        )
                 it.repo = repo
                 it.classInfo = repo.classInfo
             }
