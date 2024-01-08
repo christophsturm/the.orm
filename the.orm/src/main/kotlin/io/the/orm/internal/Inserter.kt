@@ -1,7 +1,6 @@
 package io.the.orm.internal
 
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException
-import io.the.orm.OrmException
 import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.internal.classinfo.ClassInfo
 import io.vertx.pgclient.PgException
@@ -43,10 +42,6 @@ internal class SimpleInserter<T : Any>(
                 throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
             } catch (e: PgException) {
                 throw exceptionInspector.pgException(e, instance)
-            } catch (e: OrmException) {
-                throw e
-            } catch (e: Exception) {
-                throw OrmException("error creating instance: $instance", e)
             }
         }
     }
