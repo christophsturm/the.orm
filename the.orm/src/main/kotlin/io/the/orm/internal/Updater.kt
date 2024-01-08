@@ -2,13 +2,10 @@ package io.the.orm.internal
 
 import io.the.orm.OrmException
 import io.the.orm.dbio.DBConnection
-import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.internal.classinfo.EntityInfo
 import kotlin.reflect.KProperty1
 
-internal class Updater<T : Any>(
-    private val idProperty: KProperty1<T, Any>,
-    classInfo: ClassInfo<T>
-) {
+internal class Updater<T : Any>(private val idProperty: KProperty1<T, Any>, classInfo: EntityInfo) {
     private val fieldsWithoutId = classInfo.localFields.filter { it.dbFieldName != "id" }
     private val types: List<Class<*>> =
         listOf(Long::class.java) /*PK*/ + fieldsWithoutId.map { it.type }

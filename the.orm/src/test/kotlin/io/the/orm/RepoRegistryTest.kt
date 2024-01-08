@@ -32,7 +32,7 @@ class RepoRegistryTest {
             it("adds the repo to remote field infos") {
                 val registry = RepoRegistry(setOf(Page::class, Recipe::class))
                 val classInfo = (registry.getRepo(Page::class) as RepoImpl<Page>).classInfo
-                assert(classInfo.hasManyRelations.singleOrNull()?.repo is RepoImpl<*>)
+                assert(classInfo.entityInfo.hasManyRelations.singleOrNull()?.repo is RepoImpl<*>)
             }
         }
 }

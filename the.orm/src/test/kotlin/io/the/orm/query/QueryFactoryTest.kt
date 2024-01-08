@@ -18,7 +18,7 @@ class QueryFactoryTest {
                 mock(),
                 IDHandler(Entity::class),
                 mock(),
-                ClassInfo(Entity::class, setOf())
+                ClassInfo(Entity::class, setOf()).entityInfo
             )
         val condition = Entity::id.isEqualTo()
         test("can create query with one parameter") {

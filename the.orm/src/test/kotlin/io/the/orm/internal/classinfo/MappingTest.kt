@@ -17,6 +17,7 @@ object MappingTest {
                 val rel =
                     assertNotNull(
                         ClassInfo(BelongsToE::class, setOf(E::class))
+                            .entityInfo
                             .belongsToRelations
                             .singleOrNull()
                     )

@@ -9,7 +9,10 @@ interface SimpleResultMapper<Entity : Any> {
     companion object {
         fun <T : Any> forClass(entity: KClass<T>): SimpleResultMapper<T> {
             val classInfo = ClassInfo(entity)
-            return DefaultResultMapper(ResultResolver(classInfo), StreamingEntityCreator(classInfo))
+            return DefaultResultMapper(
+                ResultResolver(classInfo.entityInfo),
+                StreamingEntityCreator(classInfo)
+            )
         }
     }
 

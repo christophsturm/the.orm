@@ -2,7 +2,7 @@ package io.the.orm.internal
 
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException
 import io.the.orm.dbio.ConnectionProvider
-import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.internal.classinfo.EntityInfo
 import io.vertx.pgclient.PgException
 
 internal interface Inserter<T : Any> {
@@ -14,7 +14,7 @@ internal interface Inserter<T : Any> {
 
 internal class SimpleInserter<T : Any>(
     private val exceptionInspector: ExceptionInspector<T>,
-    classInfo: ClassInfo<T>
+    classInfo: EntityInfo
 ) : Inserter<T> {
     private val fieldsWithoutId = classInfo.localFields.filter { it.dbFieldName != "id" }
     private val types = fieldsWithoutId.map { it.type }

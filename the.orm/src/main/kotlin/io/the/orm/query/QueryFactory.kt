@@ -6,7 +6,7 @@ import io.the.orm.dbio.ConnectionProvider
 import io.the.orm.dbio.DBConnection
 import io.the.orm.dbio.DBResult
 import io.the.orm.internal.IDHandler
-import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.internal.classinfo.EntityInfo
 import io.the.orm.mapper.ResultMapper
 import io.the.orm.relations.Relation
 import io.the.orm.util.toIndexedPlaceholders
@@ -50,15 +50,15 @@ internal constructor(
     private val repository: Repo<Entity>,
     private val idHandler: IDHandler<Entity>,
     private val idProperty: KProperty1<Entity, Any>,
-    classInfo: ClassInfo<Entity>
+    entityInfo: EntityInfo
 ) {
 
     private val dbFieldNameForProperty =
-        classInfo.localFields.associateBy({ it.field.property }, { it.dbFieldName })
+        entityInfo.localFields.associateBy({ it.field.property }, { it.dbFieldName })
 
     private val selectPrefix =
-        "select ${classInfo.localFields.joinToString { it.dbFieldName }} from ${classInfo.table.name} where "
-    private val deletePrefix = "delete from ${classInfo.table.name} where "
+        "select ${entityInfo.localFields.joinToString { it.dbFieldName }} from ${entityInfo.table.name} where "
+    private val deletePrefix = "delete from ${entityInfo.table.name} where "
 
     fun <P1 : Any> createQuery(p1: Condition<P1>): OneParameterQuery<P1> = OneParameterQuery(p1)
 

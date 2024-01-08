@@ -61,7 +61,7 @@ object SimpleTableCreatorTest {
 class SimpleTableCreator {
     fun createTable(kClass: KClass<SimpleTableCreatorTest.User>): String {
         val ci = ClassInfo(kClass)
-        ci.localFields.map { "${it.dbFieldName} ${it}" }
+        ci.entityInfo.localFields.map { "${it.dbFieldName} ${it}" }
         return ""
     }
 }

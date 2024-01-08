@@ -14,10 +14,7 @@ object SimpleInserterTest {
             data class Entity(val id: PKType, val name: String)
 
             val classInfo = ClassInfo(Entity::class)
-            SimpleInserter(
-                ExceptionInspector(Table("blah"), Entity::class),
-                classInfo
-            )
+            SimpleInserter(ExceptionInspector(Table("blah"), Entity::class), classInfo.entityInfo)
                 .create(mock(), EntityWrapper.fromClass(Entity(1, "blah")))
         }
     }

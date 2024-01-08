@@ -34,12 +34,13 @@ object RelationFetchingEntityCreatorTest {
                         method { findByIds(any(), any()) }.returns(mapOf(10L to referencedEntity))
                     }
                 val classInfo = ClassInfo(Entity::class, setOf(ReferencedEntity::class))
+                val entityInfo = classInfo.entityInfo
                 val creator =
                     RelationFetchingEntityCreator(
                         listOf(repository),
                         StreamingEntityCreator(classInfo),
                         classInfo,
-                        classInfo.hasManyRelations.map {
+                        entityInfo.hasManyRelations.map {
                             it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
                         }
                     )
@@ -63,7 +64,7 @@ object RelationFetchingEntityCreatorTest {
                         listOf(repository),
                         StreamingEntityCreator(classInfo),
                         classInfo,
-                        classInfo.hasManyRelations.map {
+                        classInfo.entityInfo.hasManyRelations.map {
                             it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
                         }
                     )

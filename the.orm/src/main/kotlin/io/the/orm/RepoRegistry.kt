@@ -15,7 +15,7 @@ private constructor(private val entityRepos: Map<KClass<out Any>, Repo<out Any>>
             val classInfos = classes.associateBy({ it }) { ClassInfo(it, classes) }
             val entityRepos: Map<KClass<out Any>, RepoImpl<out Any>> =
                 classes.associateBy({ it }, { RepoImpl(it, classInfos) })
-            classInfos.values.forEach { it.afterInit(entityRepos) }
+            classInfos.values.forEach { it.entityInfo.afterInit(it.kClass, entityRepos) }
             entityRepos.values.forEach { it.afterInit() }
             return RepoRegistry(entityRepos)
         }

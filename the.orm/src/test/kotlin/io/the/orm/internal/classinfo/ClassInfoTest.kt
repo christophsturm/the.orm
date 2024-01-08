@@ -20,7 +20,7 @@ object ClassInfoTest {
     val context = tests {
         data class Entity(val name: String, var mutableField: String, val id: Long?)
 
-        val classInfo = ClassInfo(Entity::class, setOf())
+        val classInfo = ClassInfo(Entity::class, setOf()).entityInfo
         val instance = EntityWrapper.fromClass(Entity("nameValue", "mutableFieldValue", 42))
         describe("for a simple class without relations") {
             it("knows the class name") { expectThat(classInfo.name).isEqualTo("Entity") }
@@ -71,7 +71,7 @@ object ClassInfoTest {
             }
         }
         describe("for a class with eager belongs to relations") {
-            val classInfo = ClassInfo(Eager.UserGroup::class, setOf(Eager.User::class))
+            val classInfo = ClassInfo(Eager.UserGroup::class, setOf(Eager.User::class)).entityInfo
 
             it("knows field names and types for references") {
                 assert(
@@ -119,7 +119,7 @@ object ClassInfoTest {
             }
         }
         describe("for a class with lazy belongs to relations") {
-            val classInfo = ClassInfo(Lazy.UserGroup::class, setOf(Lazy.User::class))
+            val classInfo = ClassInfo(Lazy.UserGroup::class, setOf(Lazy.User::class)).entityInfo
 
             it("knows field names and types for references") {
                 assert(
@@ -178,12 +178,15 @@ object ClassInfoTest {
                     ClassInfo(HolderOfNestedEntity::class)
                 }
                 it("knows if entity has hasMany relations") {
-                    assert(ClassInfo(HolderOfNestedEntity::class).hasHasManyRelations)
+                    assert(ClassInfo(HolderOfNestedEntity::class).entityInfo.hasHasManyRelations)
                 }
                 describe("the field info") {
                     val rel =
                         assertNotNull(
-                            ClassInfo(HolderOfNestedEntity::class).hasManyRelations.singleOrNull()
+                            ClassInfo(HolderOfNestedEntity::class)
+                                .entityInfo
+                                .hasManyRelations
+                                .singleOrNull()
                         )
                     it("knows the class of the has many relation") {
                         assert(rel.relatedClass == NestedEntity::class)

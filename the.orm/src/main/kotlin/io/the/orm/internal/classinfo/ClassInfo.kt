@@ -25,35 +25,11 @@ private fun <T : Any> Map<KClass<*>, RepoImpl<*>>.getRepo(c: KClass<T>): RepoImp
 internal data class ClassInfo<T : Any>(
     // this is how classes that have a relation to this class find this instance
     val kClass: KClass<T>,
-    val table: Table,
     val name: String,
     val constructor: KFunction<T>,
     val idHandler: IDHandler<T>?,
-    val fields: List<FieldInfo>,
+    val entityInfo: EntityInfo
 ) {
-    val idField = simpleFields.singleOrNull { it.dbFieldName == "id" }?.field
-
-    fun idFieldOrThrow(): Field = idField ?: throw OrmException("$this needs to have an id field")
-
-    /** fields that directly map to a database column, and need no relation fetching */
-    val simpleFields: List<SimpleLocalFieldInfo>
-        get() = fields.filterIsInstance<SimpleLocalFieldInfo>()
-
-    /** local fields. simple fields + belongs to fields */
-    val localFields: List<LocalFieldInfo>
-        get() = fields.filterIsInstance<LocalFieldInfo>()
-
-    /** fields for belongs to relations. */
-    val belongsToRelations: List<BelongsToFieldInfo>
-        get() = fields.filterIsInstance<BelongsToFieldInfo>()
-
-    /** fields for has many relations. these are not stored in the table of this class */
-    val hasManyRelations: List<HasManyFieldInfo>
-        get() = fields.filterIsInstance<HasManyFieldInfo>()
-
-    val canBeFetchedWithoutRelations = (belongsToRelations + hasManyRelations).all { it.canBeLazy }
-    val hasBelongsToRelations = belongsToRelations.isNotEmpty()
-    val hasHasManyRelations = hasManyRelations.isNotEmpty()
 
     internal sealed interface FieldInfo {
         /** this is used when converting database rows to instances */
@@ -84,7 +60,7 @@ internal data class ClassInfo<T : Any>(
     interface RelationFieldInfo : FieldInfo {
         val relatedClass: KClass<*>
         val repo: Repo<*>
-        val classInfo: ClassInfo<*>
+        val entityInfo: EntityInfo
 
         // can the relation be fetched later, or is it necessary to create the instance?
         val canBeLazy: Boolean
@@ -104,7 +80,7 @@ internal data class ClassInfo<T : Any>(
     ) : FieldInfo, RelationFieldInfo {
 
         override lateinit var repo: Repo<*>
-        override lateinit var classInfo: ClassInfo<*>
+        override lateinit var entityInfo: EntityInfo
         lateinit var remoteFieldInfo: BelongsToFieldInfo
         override val canBeLazy: Boolean
             get() = true
@@ -115,9 +91,9 @@ internal data class ClassInfo<T : Any>(
             classInfo: ClassInfo<Type>
         ) {
             this.repo = repo
-            this.classInfo = classInfo
+            this.entityInfo = classInfo.entityInfo
             remoteFieldInfo =
-                classInfo.belongsToRelations.singleOrNull { it.relatedClass == kClass }
+                classInfo.entityInfo.belongsToRelations.singleOrNull { it.relatedClass == kClass }
                     ?: throw OrmException(
                         "BelongsTo field for HasMany relation ${classInfo.name}.${field.name}" +
                             " not found in ${classInfo.name}." +
@@ -140,7 +116,7 @@ internal data class ClassInfo<T : Any>(
             fieldConverter.propertyToDBValue(field.property.call(instance.entity))
 
         override lateinit var repo: Repo<*>
-        override lateinit var classInfo: ClassInfo<*>
+        override lateinit var entityInfo: EntityInfo
 
         override fun <Type : Any> setRepo(
             kClass: KClass<*>,
@@ -148,27 +124,7 @@ internal data class ClassInfo<T : Any>(
             classInfo: ClassInfo<Type>
         ) {
             this.repo = repo
-            this.classInfo = classInfo
-        }
-    }
-
-    fun values(instance: EntityWrapper): Sequence<Any?> {
-        return localFields.asSequence().map { it.valueForDb(instance) }
-    }
-
-    fun afterInit(repos: Map<KClass<out Any>, RepoImpl<out Any>>) {
-        fields.forEach {
-            if (it is RelationFieldInfo) {
-                @Suppress("UNCHECKED_CAST")
-                val repo: RepoImpl<Any> =
-                    (repos.getRepo(it.relatedClass)
-                        ?: throw OrmException(
-                            "repo for ${it.relatedClass.simpleName} not found. repos: ${repos.keys}"
-                        ))
-                        as RepoImpl<Any>
-                val classInfo = repo.classInfo
-                it.setRepo(kClass, repo, classInfo)
-            }
+            this.entityInfo = classInfo.entityInfo
         }
     }
 
@@ -271,7 +227,13 @@ internal data class ClassInfo<T : Any>(
                             }
                         }
                 }
-            return ClassInfo(kClass, table, className!!, constructor, idHandler, fields)
+            return ClassInfo(
+                kClass,
+                className!!,
+                constructor,
+                idHandler,
+                EntityInfo(className, table, fields)
+            )
         }
 
         private fun <T : Any> isMutable(property: KProperty1<T, *>) =
@@ -296,5 +258,55 @@ private class EnumConverter(private val clazz: Class<*>) : FieldConverter {
 
     override fun propertyToDBValue(value: Any?): Any? {
         return value?.toString()
+    }
+}
+
+internal data class EntityInfo(
+    val name: String,
+    val table: Table,
+    val fields: List<ClassInfo.FieldInfo>
+) {
+    val idField = simpleFields.singleOrNull { it.dbFieldName == "id" }?.field
+
+    fun idFieldOrThrow(): Field = idField ?: throw OrmException("$this needs to have an id field")
+
+    /** fields that directly map to a database column, and need no relation fetching */
+    val simpleFields: List<SimpleLocalFieldInfo>
+        get() = fields.filterIsInstance<SimpleLocalFieldInfo>()
+
+    /** local fields. simple fields + belongs to fields */
+    val localFields: List<ClassInfo.LocalFieldInfo>
+        get() = fields.filterIsInstance<ClassInfo.LocalFieldInfo>()
+
+    /** fields for belongs to relations. */
+    val belongsToRelations: List<ClassInfo.BelongsToFieldInfo>
+        get() = fields.filterIsInstance<ClassInfo.BelongsToFieldInfo>()
+
+    /** fields for has many relations. these are not stored in the table of this class */
+    val hasManyRelations: List<ClassInfo.HasManyFieldInfo>
+        get() = fields.filterIsInstance<ClassInfo.HasManyFieldInfo>()
+
+    val canBeFetchedWithoutRelations = (belongsToRelations + hasManyRelations).all { it.canBeLazy }
+    val hasBelongsToRelations = belongsToRelations.isNotEmpty()
+    val hasHasManyRelations = hasManyRelations.isNotEmpty()
+
+    fun values(instance: EntityWrapper): Sequence<Any?> {
+        return localFields.asSequence().map { it.valueForDb(instance) }
+    }
+
+    fun afterInit(kClass: KClass<*>, repos: Map<KClass<out Any>, RepoImpl<out Any>>) {
+        fields.forEach {
+            if (it is ClassInfo.RelationFieldInfo) {
+                @Suppress("UNCHECKED_CAST")
+                val repo: RepoImpl<Any> =
+                    (repos.getRepo(it.relatedClass)
+                        ?: throw OrmException(
+                            "repo for ${it.relatedClass.simpleName} not found. repos: ${repos.keys}"
+                        ))
+                        as RepoImpl<Any>
+                val classInfo = repo.classInfo
+                it.setRepo(kClass, repo, classInfo)
+            }
+        }
     }
 }

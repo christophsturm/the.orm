@@ -90,17 +90,20 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
 
     // this will later be upgraded to an Inserter that can handle relations if needed
     private var inserter: Inserter<Entity> =
-        SimpleInserter(ExceptionInspector(classInfo.table, kClass), classInfo)
+        SimpleInserter(ExceptionInspector(classInfo.entityInfo.table, kClass), classInfo.entityInfo)
 
-    private val updater = Updater(idProperty, classInfo)
+    private val updater = Updater(idProperty, classInfo.entityInfo)
 
     override val queryFactory: QueryFactory<Entity> =
         QueryFactory(
-            DefaultResultMapper(ResultResolver(classInfo), StreamingEntityCreator(classInfo)),
+            DefaultResultMapper(
+                ResultResolver(classInfo.entityInfo),
+                StreamingEntityCreator(classInfo)
+            ),
             this,
             idHandler,
             idProperty,
-            classInfo
+            classInfo.entityInfo
         )
 
     /**
@@ -108,6 +111,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
      * they are upgraded to repos that can fetch relations
      */
     fun afterInit() {
+        val classInfo = classInfo.entityInfo
         if (classInfo.hasHasManyRelations) {
             inserter =
                 HasManyInserter(inserter, classInfo.hasManyRelations, classInfo.idFieldOrThrow())
@@ -122,8 +126,8 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
                     ResultResolver(classInfo),
                     RelationFetchingEntityCreator(
                         classInfo.belongsToRelations.map { it.repo },
-                        StreamingEntityCreator(classInfo),
-                        classInfo,
+                        StreamingEntityCreator(this.classInfo),
+                        this.classInfo,
                         hasManyQueries
                     )
                 )
@@ -190,6 +194,6 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
     }
 
     override fun toString(): String {
-        return "repo for ${kClass.simpleName}, norel=${classInfo.canBeFetchedWithoutRelations}"
+        return "repo for ${kClass.simpleName}, norel=${classInfo.entityInfo.canBeFetchedWithoutRelations}"
     }
 }

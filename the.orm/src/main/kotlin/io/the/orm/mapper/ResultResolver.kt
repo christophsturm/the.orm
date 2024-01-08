@@ -5,10 +5,11 @@ import io.the.orm.dbio.DBResult
 import io.the.orm.dbio.DBRow
 import io.the.orm.dbio.LazyResult
 import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.internal.classinfo.EntityInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-internal class ResultResolver<Entity : Any>(private val classInfo: ClassInfo<Entity>) {
+internal class ResultResolver<Entity : Any>(private val classInfo: EntityInfo) {
     private data class LazyResultLine(
         val fields: List<LazyResult<*>>,
         val relations: List<LazyResult<*>>

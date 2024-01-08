@@ -20,7 +20,7 @@ internal interface EntityCreator<Entity : Any> {
 internal class StreamingEntityCreator<Entity : Any>(private val classInfo: ClassInfo<Entity>) :
     EntityCreator<Entity> {
     private val idFieldIndexOrNull: Int? =
-        classInfo.simpleFields.indexOfFirst { it.dbFieldName == "id" }.takeIf { it >= 0 }
+        classInfo.entityInfo.simpleFields.indexOfFirst { it.dbFieldName == "id" }.takeIf { it >= 0 }
 
     override fun toEntities(
         results: Flow<ResultLine>,
@@ -33,20 +33,21 @@ internal class StreamingEntityCreator<Entity : Any>(private val classInfo: Class
                 // the map that collects values for all constructor parameters of the entity
                 val parameterValueCollector =
                     values.fields.withIndex().associateTo(HashMap()) { (index, value) ->
-                        val fieldInfo = classInfo.simpleFields[index]
+                        val fieldInfo = classInfo.entityInfo.simpleFields[index]
                         val parameterValue = fieldInfo.fieldConverter.dbValueToParameter(value)
                         Pair(fieldInfo.field, parameterValue)
                     }
                 values.relations.withIndex().associateTo(parameterValueCollector) { (index, value)
                     ->
-                    val fieldInfo = classInfo.belongsToRelations[index]
+                    val fieldInfo = classInfo.entityInfo.belongsToRelations[index]
                     val relationValues = relations[index]
                     if (relationValues != null)
                         Pair(fieldInfo.field, relationValues[value as PKType])
                     else Pair(fieldInfo.field, BelongsTo.BelongsToNotLoaded<Any>(value as PKType))
                 }
-                classInfo.hasManyRelations.withIndex().associateTo(parameterValueCollector) {
-                    (index, it) ->
+                classInfo.entityInfo.hasManyRelations.withIndex().associateTo(
+                    parameterValueCollector
+                ) { (index, it) ->
                     val loadedEntries = hasManyRelations?.get(index)
                     if (loadedEntries != null) Pair(it.field, LazyHasMany<Any>(loadedEntries[id]))
                     else Pair(it.field, LazyHasMany())
