@@ -98,5 +98,5 @@ internal data class SimpleLocalFieldInfo(
     }
 
     override fun valueForDb(instance: EntityWrapper): Any? =
-        fieldConverter.propertyToDBValue(field.property.call(instance.entity))
+        fieldConverter.propertyToDBValue(instance.get(field))
 }

@@ -21,14 +21,17 @@ internal class HasManyInserter<Entity : Any>(
         // insert the root entity
         val insertedRoot = rootSimpleInserter.create(connectionProvider, instance)
         // and get the id
-        val id = idField.property.call(insertedRoot.entity) as PKType
+        val id = insertedRoot.get(idField) as PKType
         hasManyFieldInfos.forEach { hasManyFieldInfo ->
             @Suppress("UNCHECKED_CAST") val repo = hasManyFieldInfo.repo as Repo<Any>
-            val hasMany = hasManyFieldInfo.field.property.call(instance.entity) as HasMany<*>
+            // get all entries of the HasMany relation
+            val hasMany = instance.get(hasManyFieldInfo.field) as HasMany<*>
             val fieldInfo = hasManyFieldInfo.remoteFieldInfo
             hasMany.forEach { e ->
+                // get the belongs to field
                 val belongsToField =
                     fieldInfo.field.property.call(e) as? BelongsTo.AutoGetFromHasMany<*>
+                // and set its value
                 belongsToField?.id = id
                 repo.create(connectionProvider, e)
             }

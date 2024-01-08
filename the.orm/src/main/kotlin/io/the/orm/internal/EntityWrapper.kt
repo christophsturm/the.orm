@@ -1,5 +1,7 @@
 package io.the.orm.internal
 
+import io.the.orm.internal.classinfo.Field
+
 interface EntityWrapper {
     companion object {
         fun <Entity : Any> fromClass(entity: Entity) = EntityWrapperImpl(entity)
@@ -8,6 +10,8 @@ interface EntityWrapper {
     val entity: Any
 
     fun withId(id: Long): EntityWrapper
+
+    fun get(field: Field): Any?
 }
 
 interface GenericEntityWrapper<Entity : Any> : EntityWrapper {
@@ -20,5 +24,9 @@ data class EntityWrapperImpl<Entity : Any>(override val entity: Entity) :
 
     override fun withId(id: Long): GenericEntityWrapper<Entity> {
         return EntityWrapperImpl(idHandler.copyWithId(entity, id))
+    }
+
+    override fun get(field: Field): Any? {
+        return field.property.call(entity)
     }
 }
