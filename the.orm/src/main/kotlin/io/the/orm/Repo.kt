@@ -124,7 +124,6 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
             inserter =
                 HasManyInserter(
                     simpleInserter,
-                    hasManyRepos,
                     hasManyFieldInfos,
                     classInfo.hasManyRelations,
                     classInfo.idFieldOrThrow()

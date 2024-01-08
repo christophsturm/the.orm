@@ -10,7 +10,6 @@ import io.the.orm.relations.HasMany
 
 internal class HasManyInserter<Entity : Any>(
     private val rootSimpleInserter: Inserter<Entity>,
-    private val belongingsRepos: List<Repo<*>>,
     private val belongingsFieldInfo: List<ClassInfo.BelongsToFieldInfo>,
     private val hasManyFieldInfos: List<ClassInfo.HasManyFieldInfo>,
     private val idField: Field
@@ -24,9 +23,9 @@ internal class HasManyInserter<Entity : Any>(
         val insertedRoot = rootSimpleInserter.create(connectionProvider, instance)
         // and get the id
         val id = idField.property.call(insertedRoot.entity) as PKType
-        hasManyFieldInfos.forEachIndexed { index, remoteFieldInfo ->
-            @Suppress("UNCHECKED_CAST") val repo = belongingsRepos[index] as Repo<Any>
-            val hasMany = remoteFieldInfo.field.property.call(instance.entity) as HasMany<*>
+        hasManyFieldInfos.forEachIndexed { index, hasManyFieldInfo ->
+            @Suppress("UNCHECKED_CAST") val repo = hasManyFieldInfo.repo as Repo<Any>
+            val hasMany = hasManyFieldInfo.field.property.call(instance.entity) as HasMany<*>
             val fieldInfo = belongingsFieldInfo[index]
             hasMany.forEach { e ->
                 val belongsToField =
