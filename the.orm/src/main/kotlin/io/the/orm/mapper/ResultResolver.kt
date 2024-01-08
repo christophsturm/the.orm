@@ -9,7 +9,7 @@ import io.the.orm.internal.classinfo.EntityInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-internal class ResultResolver<Entity : Any>(private val classInfo: EntityInfo) {
+internal class ResultResolver(private val entityInfo: EntityInfo) {
     private data class LazyResultLine(
         val fields: List<LazyResult<*>>,
         val relations: List<LazyResult<*>>
@@ -19,8 +19,8 @@ internal class ResultResolver<Entity : Any>(private val classInfo: EntityInfo) {
         val map =
             queryResult.map { row ->
                 LazyResultLine(
-                    classInfo.simpleFields.map { fieldInfo -> lazyResult(row, fieldInfo) },
-                    classInfo.belongsToRelations.map { fieldInfo -> lazyResult(row, fieldInfo) }
+                    entityInfo.simpleFields.map { fieldInfo -> lazyResult(row, fieldInfo) },
+                    entityInfo.belongsToRelations.map { fieldInfo -> lazyResult(row, fieldInfo) }
                 )
             }
 

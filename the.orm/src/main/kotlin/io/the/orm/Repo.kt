@@ -94,6 +94,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
 
     private val updater = Updater(idProperty, classInfo.entityInfo)
 
+    // the query factory will also get a result mapper that handles relations later if needed
     override val queryFactory: QueryFactory<Entity> =
         QueryFactory(
             DefaultResultMapper(

@@ -7,7 +7,7 @@ import kotlin.reflect.KProperty1
 import kotlinx.coroutines.flow.Flow
 
 internal class RelationFetchingResultMapper<Entity : Any>(
-    private val resultResolver: ResultResolver<Entity>,
+    private val resultResolver: ResultResolver,
     private val relationFetchingEntityCreator: RelationFetchingEntityCreator<Entity>
 ) : ResultMapper<Entity> {
 

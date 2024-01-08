@@ -19,6 +19,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     private val belongsToRepos: List<Repo<*>>,
     private val creator: StreamingEntityCreator<Entity>,
     private val classInfo: ClassInfo<Entity>,
+    // one query to query by list of id for each has many relation
     private val hasManyQueries: List<Query<*>>
 ) {
     val entityInfo = classInfo.entityInfo
@@ -31,7 +32,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                 }
                     ?: throw OrmException(
                         "BelongsTo field for HasMany relation " +
-                            "${classInfo.name}.${fieldInfo.field.name} not found in ${fieldInfo.entityInfo.name}." +
+                            "${entityInfo.name}.${fieldInfo.field.name} not found in ${fieldInfo.entityInfo.name}." +
                             " Currently you need to declare both sides of the relation"
                     )
             if (!remoteFieldInfo.canBeLazy)
@@ -57,7 +58,10 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
         connectionProvider: ConnectionProvider
     ): Flow<Entity> {
         return flow {
+            // here we collect a list of fetched primary keys but only if the entity has has many relations
             val pkList = if (entityInfo.hasHasManyRelations) mutableListOf<PKType>() else null
+
+            // one set for each belongs to relation that we fetch, or null if we don't fetch it
             val idLists =
                 Array(belongsToRepos.size) { idx ->
                     if (
@@ -67,6 +71,7 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
                         mutableSetOf<PKType>()
                     else null
                 }
+
             val resultsList = results.toList()
             resultsList.forEach { resultLine ->
                 pkList?.add(resultLine.fields[idFieldIndex] as PKType)

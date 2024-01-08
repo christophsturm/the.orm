@@ -7,7 +7,7 @@ import kotlin.reflect.KProperty1
 import kotlinx.coroutines.flow.Flow
 
 internal class DefaultResultMapper<Entity : Any>(
-    private val resultResolver: ResultResolver<Entity>,
+    private val resultResolver: ResultResolver,
     private val entityCreator: EntityCreator<Entity>
 ) : ResultMapper<Entity>, SimpleResultMapper<Entity> {
 

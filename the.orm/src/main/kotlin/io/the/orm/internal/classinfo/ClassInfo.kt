@@ -113,7 +113,7 @@ internal data class ClassInfo<T : Any>(
         override val name: String
     ) : RelationFieldInfo, LocalFieldInfo {
         override fun valueForDb(instance: EntityWrapper): Any? =
-            fieldConverter.propertyToDBValue(field.property.call(instance.entity))
+            fieldConverter.propertyToDBValue(instance.get(field))
 
         override lateinit var repo: Repo<*>
         override lateinit var entityInfo: EntityInfo
