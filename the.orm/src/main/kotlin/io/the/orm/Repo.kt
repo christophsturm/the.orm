@@ -104,29 +104,13 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
         )
 
     /**
-     * the repo is first created as a repo that can not fetch relations when all repos are created
+     * the repo is first created as a repo that cannot fetch relations when all repos are created
      * they are upgraded to repos that can fetch relations
      */
     fun afterInit() {
         if (classInfo.hasHasManyRelations) {
-            val simpleInserter = inserter
-            val belongsToFieldInfos =
-                classInfo.hasManyRelations.map { fieldInfo ->
-                    val hasManyClassInfo = fieldInfo.classInfo
-                    hasManyClassInfo.belongsToRelations.singleOrNull { it.relatedClass == kClass }
-                        ?: throw OrmException(
-                            "BelongsTo field for HasMany relation ${classInfo.name}.${fieldInfo.field.name}" +
-                                " not found in ${fieldInfo.classInfo.name}." +
-                                " Currently you need to declare both sides of the relation"
-                        )
-                }
             inserter =
-                HasManyInserter(
-                    simpleInserter,
-                    belongsToFieldInfos,
-                    classInfo.hasManyRelations,
-                    classInfo.idFieldOrThrow()
-                )
+                HasManyInserter(inserter, classInfo.hasManyRelations, classInfo.idFieldOrThrow())
         }
         if (classInfo.hasHasManyRelations || classInfo.hasBelongsToRelations) {
             val hasManyQueries: List<Query<*>> =
