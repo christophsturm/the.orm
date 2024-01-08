@@ -90,7 +90,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
 
     // this will later be upgraded to an Inserter that can handle relations if needed
     private var inserter: Inserter<Entity> =
-        SimpleInserter(idHandler, ExceptionInspector(classInfo.table, kClass), classInfo)
+        SimpleInserter(ExceptionInspector(classInfo.table, kClass), classInfo)
 
     private val updater = Updater(idProperty, classInfo)
 

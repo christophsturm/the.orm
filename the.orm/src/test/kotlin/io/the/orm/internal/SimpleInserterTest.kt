@@ -15,10 +15,9 @@ object SimpleInserterTest {
 
             val classInfo = ClassInfo(Entity::class)
             SimpleInserter(
-                    classInfo.idHandler!!,
-                    ExceptionInspector(Table("blah"), Entity::class),
-                    classInfo
-                )
+                ExceptionInspector(Table("blah"), Entity::class),
+                classInfo
+            )
                 .create(mock(), EntityWrapper.fromClass(Entity(1, "blah")))
         }
     }

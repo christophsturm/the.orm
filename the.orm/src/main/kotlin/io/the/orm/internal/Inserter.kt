@@ -13,7 +13,6 @@ internal interface Inserter<T : Any> {
 }
 
 internal class SimpleInserter<T : Any>(
-    private val idHandler: IDHandler<T>,
     private val exceptionInspector: ExceptionInspector<T>,
     classInfo: ClassInfo<T>
 ) : Inserter<T> {
