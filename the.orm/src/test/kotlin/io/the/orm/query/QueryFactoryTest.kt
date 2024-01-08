@@ -4,7 +4,6 @@ import failgood.Test
 import failgood.mock.mock
 import failgood.tests
 import io.the.orm.internal.IDHandler
-import io.the.orm.internal.classinfo.ClassInfo
 import io.the.orm.internal.classinfo.EntityInfo
 import io.the.orm.internal.classinfo.Table
 import io.the.orm.mapper.ResultMapper
@@ -16,13 +15,7 @@ class QueryFactoryTest {
         val resultMapper = mock<ResultMapper<Entity>>()
         val entityInfo = EntityInfo("entity", Table("entity"), listOf())
         val queryFactory =
-            QueryFactory(
-                resultMapper,
-                mock(),
-                IDHandler(Entity::class),
-                mock(),
-                entityInfo
-            )
+            QueryFactory(resultMapper, mock(), IDHandler(Entity::class), mock(), entityInfo)
         val condition = Entity::id.isEqualTo()
         test("can create query with one parameter") {
             val query = queryFactory.createQuery(condition)

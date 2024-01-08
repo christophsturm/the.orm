@@ -112,23 +112,23 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
      * they are upgraded to repos that can fetch relations
      */
     fun afterInit() {
-        val classInfo = classInfo.entityInfo
-        if (classInfo.hasHasManyRelations) {
+        val entityInfo = classInfo.entityInfo
+        if (entityInfo.hasHasManyRelations) {
             inserter =
-                HasManyInserter(inserter, classInfo.hasManyRelations, classInfo.idFieldOrThrow())
+                HasManyInserter(inserter, entityInfo.hasManyRelations, entityInfo.idFieldOrThrow())
         }
-        if (classInfo.hasHasManyRelations || classInfo.hasBelongsToRelations) {
+        if (entityInfo.hasHasManyRelations || entityInfo.hasBelongsToRelations) {
             val hasManyQueries: List<Query<*>> =
-                classInfo.hasManyRelations.map {
+                entityInfo.hasManyRelations.map {
                     it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
                 }
             queryFactory.resultMapper =
                 RelationFetchingResultMapper(
-                    ResultResolver(classInfo),
+                    ResultResolver(entityInfo),
                     RelationFetchingEntityCreator(
-                        classInfo.belongsToRelations.map { it.repo },
+                        entityInfo.belongsToRelations.map { it.repo },
                         StreamingEntityCreator(this.classInfo),
-                        this.classInfo,
+                        entityInfo,
                         hasManyQueries
                     )
                 )

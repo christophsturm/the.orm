@@ -4,7 +4,7 @@ import io.the.orm.OrmException
 import io.the.orm.PKType
 import io.the.orm.Repo
 import io.the.orm.dbio.ConnectionProvider
-import io.the.orm.internal.classinfo.ClassInfo
+import io.the.orm.internal.classinfo.EntityInfo
 import io.the.orm.query.Query
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.Relation
@@ -18,23 +18,14 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
     // one repo for every field in relation, in the same order
     private val belongsToRepos: List<Repo<*>>,
     private val creator: StreamingEntityCreator<Entity>,
-    private val classInfo: ClassInfo<Entity>,
-    // one query to query by list of id for each has many relation
+    val entityInfo: EntityInfo,
+    // one query to query by list of id for each has-many relation
     private val hasManyQueries: List<Query<*>>
 ) {
-    val entityInfo = classInfo.entityInfo
     private val idFieldIndex = entityInfo.simpleFields.indexOfFirst { it.dbFieldName == "id" }
     private val hasManyRemoteFields: List<KProperty1<*, *>> =
         entityInfo.hasManyRelations.map { fieldInfo ->
-            val remoteFieldInfo =
-                fieldInfo.entityInfo.belongsToRelations.singleOrNull {
-                    it.relatedClass == classInfo.kClass
-                }
-                    ?: throw OrmException(
-                        "BelongsTo field for HasMany relation " +
-                            "${entityInfo.name}.${fieldInfo.field.name} not found in ${fieldInfo.entityInfo.name}." +
-                            " Currently you need to declare both sides of the relation"
-                    )
+            val remoteFieldInfo = fieldInfo.remoteFieldInfo
             if (!remoteFieldInfo.canBeLazy)
                 throw OrmException(
                     "${remoteFieldInfo.name} " +
@@ -58,7 +49,8 @@ internal class RelationFetchingEntityCreator<Entity : Any>(
         connectionProvider: ConnectionProvider
     ): Flow<Entity> {
         return flow {
-            // here we collect a list of fetched primary keys but only if the entity has has many relations
+            // here we collect a list of fetched primary keys, but only if the entity has has-many
+            // relations
             val pkList = if (entityInfo.hasHasManyRelations) mutableListOf<PKType>() else null
 
             // one set for each belongs to relation that we fetch, or null if we don't fetch it

@@ -39,7 +39,7 @@ object RelationFetchingEntityCreatorTest {
                     RelationFetchingEntityCreator(
                         listOf(repository),
                         StreamingEntityCreator(classInfo),
-                        classInfo,
+                        entityInfo,
                         entityInfo.hasManyRelations.map {
                             it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
                         }
@@ -63,7 +63,7 @@ object RelationFetchingEntityCreatorTest {
                     RelationFetchingEntityCreator(
                         listOf(repository),
                         StreamingEntityCreator(classInfo),
-                        classInfo,
+                        classInfo.entityInfo,
                         classInfo.entityInfo.hasManyRelations.map {
                             it.repo.queryFactory.createQuery(it.dbFieldName + "=ANY(?)")
                         }
@@ -110,7 +110,7 @@ object RelationFetchingEntityCreatorTest {
                 RelationFetchingEntityCreator(
                     listOf(),
                     StreamingEntityCreator(classInfo),
-                    classInfo,
+                    classInfo.entityInfo,
                     listOf(queryMock)
                 )
             it(
