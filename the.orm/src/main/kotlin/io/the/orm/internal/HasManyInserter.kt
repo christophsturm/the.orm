@@ -16,8 +16,8 @@ internal class HasManyInserter<Entity : Any>(
 
     override suspend fun create(
         connectionProvider: ConnectionProvider,
-        instance: EntityWrapper<Entity>
-    ): EntityWrapper<Entity> {
+        instance: EntityWrapper
+    ): EntityWrapper {
         // insert the root entity
         val insertedRoot = rootSimpleInserter.create(connectionProvider, instance)
         // and get the id

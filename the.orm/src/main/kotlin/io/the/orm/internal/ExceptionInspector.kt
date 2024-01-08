@@ -15,10 +15,12 @@ internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KCl
     private val fieldNamesProperties =
         kClass.memberProperties.associateBy { it.name.lowercase(Locale.getDefault()) }
 
+    @Suppress("UNCHECKED_CAST")
     fun r2dbcDataIntegrityViolationException(
         e: R2dbcDataIntegrityViolationException,
-        instance: EntityWrapper<T>
-    ): DataIntegrityViolationException = r2dbcDataIntegrityViolationException(e, instance.entity)
+        instance: EntityWrapper
+    ): DataIntegrityViolationException =
+        r2dbcDataIntegrityViolationException(e, instance.entity as T)
 
     fun r2dbcDataIntegrityViolationException(
         e: R2dbcDataIntegrityViolationException,
@@ -53,8 +55,9 @@ internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KCl
         return fieldNamesProperties[fieldString?.lowercase(Locale.getDefault())]
     }
 
-    fun pgException(e: PgException, instance: EntityWrapper<T>): Exception =
-        (pgException(e, instance.entity))
+    @Suppress("UNCHECKED_CAST")
+    fun pgException(e: PgException, instance: EntityWrapper): Exception =
+        (pgException(e, instance.entity as T))
 
     fun pgException(e: PgException, instance: T): Exception {
         val field = computeAffectedField(e.errorMessage) ?: return e

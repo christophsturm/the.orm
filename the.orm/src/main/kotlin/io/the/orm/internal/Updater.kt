@@ -21,7 +21,7 @@ internal class Updater<T : Any>(
         @Suppress("SqlResolve") "UPDATE ${classInfo.table.name} set $propertiesString where id=$1"
     }
 
-    suspend fun update(connection: DBConnection, instance: EntityWrapper<T>) {
+    suspend fun update(connection: DBConnection, instance: EntityWrapper) {
         val values = fieldsWithoutId.asSequence().map { it.valueForDb(instance) }
 
         val id = idProperty.call(instance.entity)

@@ -136,8 +136,9 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
      * @param instance the instance that will be used to set the fields of the newly created record
      * @return a copy of the instance with an assigned id field.
      */
+    @Suppress("UNCHECKED_CAST")
     override suspend fun create(connectionProvider: ConnectionProvider, instance: Entity): Entity =
-        inserter.create(connectionProvider, EntityWrapper(instance)).entity
+        inserter.create(connectionProvider, EntityWrapper.fromClass(instance)).entity as Entity
 
     /**
      * updates a record in the database.
@@ -146,7 +147,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
      */
     override suspend fun update(connectionProvider: ConnectionProvider, instance: Entity) {
         connectionProvider.withConnection { connection ->
-            updater.update(connection, EntityWrapper(instance))
+            updater.update(connection, EntityWrapper.fromClass(instance))
         }
     }
 

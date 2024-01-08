@@ -20,7 +20,7 @@ object MappingTest {
                             .belongsToRelations
                             .singleOrNull()
                     )
-                assert(rel.valueForDb(EntityWrapper(BelongsToE(E(id = 42)))) == 42L)
+                assert(rel.valueForDb(EntityWrapper.fromClass(BelongsToE(E(id = 42)))) == 42L)
             }
         }
     }

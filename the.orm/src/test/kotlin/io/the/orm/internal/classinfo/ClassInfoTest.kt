@@ -21,7 +21,7 @@ object ClassInfoTest {
         data class Entity(val name: String, var mutableField: String, val id: Long?)
 
         val classInfo = ClassInfo(Entity::class, setOf())
-        val instance = EntityWrapper(Entity("nameValue", "mutableFieldValue", 42))
+        val instance = EntityWrapper.fromClass(Entity("nameValue", "mutableFieldValue", 42))
         describe("for a simple class without relations") {
             it("knows the class name") { expectThat(classInfo.name).isEqualTo("Entity") }
             it("knows the field names and types") {
@@ -86,7 +86,9 @@ object ClassInfoTest {
             it("knows values for references") {
                 val values =
                     classInfo.values(
-                        EntityWrapper(Eager.UserGroup(Eager.User("name", id = 10), id = 20))
+                        EntityWrapper.fromClass(
+                            Eager.UserGroup(Eager.User("name", id = 10), id = 20)
+                        )
                     )
                 val names = classInfo.localFields.map { it.dbFieldName }
                 assert(
@@ -132,7 +134,7 @@ object ClassInfoTest {
             it("knows values for references") {
                 val values =
                     classInfo.values(
-                        EntityWrapper(
+                        EntityWrapper.fromClass(
                             Lazy.UserGroup(belongsTo(Lazy.User("name", id = 10)), id = 20)
                         )
                     )

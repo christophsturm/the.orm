@@ -78,7 +78,7 @@ internal data class ClassInfo<T : Any>(
     internal interface LocalFieldInfo : FieldInfo {
         val name: String
 
-        fun valueForDb(instance: EntityWrapper<*>): Any?
+        fun valueForDb(instance: EntityWrapper): Any?
     }
 
     interface RelationFieldInfo : FieldInfo {
@@ -136,7 +136,7 @@ internal data class ClassInfo<T : Any>(
         override val canBeLazy: Boolean,
         override val name: String
     ) : RelationFieldInfo, LocalFieldInfo {
-        override fun valueForDb(instance: EntityWrapper<*>): Any? =
+        override fun valueForDb(instance: EntityWrapper): Any? =
             fieldConverter.propertyToDBValue(field.property.call(instance.entity))
 
         override lateinit var repo: Repo<*>
@@ -152,7 +152,7 @@ internal data class ClassInfo<T : Any>(
         }
     }
 
-    fun values(instance: EntityWrapper<T>): Sequence<Any?> {
+    fun values(instance: EntityWrapper): Sequence<Any?> {
         return localFields.asSequence().map { it.valueForDb(instance) }
     }
 

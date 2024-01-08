@@ -29,8 +29,8 @@ object HasManyInserterTest {
         val connection = mock<ConnectionProvider>()
         val belonging = Belonging("belonging 1")
         val e = Entity("entity-name", hasMany(belonging))
-        val entity = EntityWrapper(e)
-        val entityWithId = EntityWrapper(e.copy(id = 42))
+        val entity = EntityWrapper.fromClass(e)
+        val entityWithId = EntityWrapper.fromClass(e.copy(id = 42))
 
         val rootSimpleInserter =
             mock<Inserter<Entity>> { method { create(connection, entity) }.returns(entityWithId) }

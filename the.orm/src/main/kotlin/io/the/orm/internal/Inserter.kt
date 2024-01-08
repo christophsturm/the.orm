@@ -9,8 +9,8 @@ import io.vertx.pgclient.PgException
 internal interface Inserter<T : Any> {
     suspend fun create(
         connectionProvider: ConnectionProvider,
-        instance: EntityWrapper<T>
-    ): EntityWrapper<T>
+        instance: EntityWrapper
+    ): EntityWrapper
 }
 
 internal class SimpleInserter<T : Any>(
@@ -29,8 +29,8 @@ internal class SimpleInserter<T : Any>(
 
     override suspend fun create(
         connectionProvider: ConnectionProvider,
-        instance: EntityWrapper<T>
-    ): EntityWrapper<T> {
+        instance: EntityWrapper
+    ): EntityWrapper {
         return connectionProvider.withConnection { connection ->
             try {
                 val values = fieldsWithoutId.map { it.valueForDb(instance) }
@@ -38,7 +38,7 @@ internal class SimpleInserter<T : Any>(
 
                 val id = statement.execute(types, values).getId()
 
-                instance.withId(id, idHandler)
+                instance.withId(id)
             } catch (e: R2dbcDataIntegrityViolationException) {
                 throw exceptionInspector.r2dbcDataIntegrityViolationException(e, instance)
             } catch (e: PgException) {
