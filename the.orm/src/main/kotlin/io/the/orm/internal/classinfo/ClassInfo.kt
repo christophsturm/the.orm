@@ -69,8 +69,8 @@ internal data class ClassInfo<T : Any>(
         val dbFieldName: String
 
         /**
-         * The type that we request from the database. Usually the same type as the field, but for
-         * relations it will be the PK type
+         * The type that we request from the database. Usually the same type as the field, but for relations it will be
+         * the PK type
          */
         val type: Class<*>
     }
@@ -83,10 +83,12 @@ internal data class ClassInfo<T : Any>(
 
     interface RelationFieldInfo : FieldInfo {
         val relatedClass: KClass<*>
-        var repo: Repo<*>
-        var classInfo: ClassInfo<*>
+        val repo: Repo<*>
+        val classInfo: ClassInfo<*>
+
         // can the relation be fetched later, or is it necessary to create the instance?
         val canBeLazy: Boolean
+        fun <Type : Any> setRepo(repo: Repo<Type>, classInfo: ClassInfo<Type>)
     }
 
     data class HasManyFieldInfo(
@@ -104,6 +106,12 @@ internal data class ClassInfo<T : Any>(
         override lateinit var classInfo: ClassInfo<*>
         override val canBeLazy: Boolean
             get() = true
+
+        override fun <Type : Any> setRepo(repo: Repo<Type>, classInfo: ClassInfo<Type>) {
+            this.repo = repo
+            this.classInfo = classInfo
+        }
+
     }
 
     class BelongsToFieldInfo(
@@ -121,6 +129,10 @@ internal data class ClassInfo<T : Any>(
 
         override lateinit var repo: Repo<*>
         override lateinit var classInfo: ClassInfo<*>
+        override fun <Type : Any> setRepo(repo: Repo<Type>, classInfo: ClassInfo<Type>) {
+            this.repo = repo
+            this.classInfo = classInfo
+        }
     }
 
     fun values(instance: EntityWrapper<T>): Sequence<Any?> {
@@ -130,13 +142,13 @@ internal data class ClassInfo<T : Any>(
     fun afterInit(repos: Map<KClass<out Any>, RepoImpl<out Any>>) {
         fields.forEach {
             if (it is RelationFieldInfo) {
-                val repo =
-                    repos.getRepo(it.relatedClass)
+                @Suppress("UNCHECKED_CAST") val repo: RepoImpl<Any> =
+                    (repos.getRepo(it.relatedClass)
                         ?: throw OrmException(
                             "repo for ${it.relatedClass.simpleName} not found. repos: ${repos.keys}"
-                        )
-                it.repo = repo
-                it.classInfo = repo.classInfo
+                        )) as RepoImpl<Any>
+                val classInfo = repo.classInfo
+                it.setRepo(repo, classInfo)
             }
         }
     }
@@ -171,6 +183,7 @@ internal data class ClassInfo<T : Any>(
                         when (kc) {
                             BelongsTo::class,
                             HasMany::class -> type.arguments.single().type!!.classifier as KClass<*>
+
                             else -> kc
                         }
                     val (javaClass, lazy: Boolean) =
@@ -178,6 +191,7 @@ internal data class ClassInfo<T : Any>(
                             is Class<*> -> Pair(t, false)
                             is ParameterizedType ->
                                 Pair(t.actualTypeArguments.single() as Class<*>, true)
+
                             else -> throw RuntimeException("unsupported type: ${t.typeName}")
                         }
 
@@ -215,6 +229,7 @@ internal data class ClassInfo<T : Any>(
                                     isMutable(property),
                                     "$className.${property.name}"
                                 )
+
                             else -> {
                                 val isPK = parameter.name == "id"
                                 if (isPK) {
