@@ -43,7 +43,7 @@ object ClassInfoTest {
             }
             it("has an id field") {
                 val idField = assertNotNull(classInfo.idField)
-                assert(idField.field.property.call(instance.entity) == 42L)
+                assert(idField.property.call(instance.entity) == 42L)
                 assert(idField == classInfo.idFieldOrThrow())
             }
             it("know that it has no relations") { assert(!classInfo.hasBelongsToRelations) }

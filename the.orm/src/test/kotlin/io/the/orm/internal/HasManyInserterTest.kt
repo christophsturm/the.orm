@@ -44,7 +44,7 @@ object HasManyInserterTest {
                     ClassInfo(Belonging::class, setOf(Entity::class)).belongsToRelations.single()
                 ),
                 entityClassInfo.hasManyRelations,
-                entityClassInfo.idFieldOrThrow().field
+                entityClassInfo.idFieldOrThrow()
             )
         it("inserts the created object") {
             assert(subject.create(connection, entity) == entityWithId)

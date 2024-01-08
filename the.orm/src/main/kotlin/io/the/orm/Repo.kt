@@ -127,7 +127,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
                     hasManyRepos,
                     hasManyFieldInfos,
                     classInfo.hasManyRelations,
-                    classInfo.idFieldOrThrow().field
+                    classInfo.idFieldOrThrow()
                 )
         }
         if (classInfo.hasHasManyRelations || classInfo.hasBelongsToRelations) {

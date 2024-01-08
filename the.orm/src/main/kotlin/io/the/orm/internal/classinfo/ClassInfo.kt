@@ -31,9 +31,9 @@ internal data class ClassInfo<T : Any>(
     val idHandler: IDHandler<T>?,
     val fields: List<FieldInfo>,
 ) {
-    val idField = simpleFields.singleOrNull { it.dbFieldName == "id" }
+    val idField = simpleFields.singleOrNull { it.dbFieldName == "id" }?.field
 
-    fun idFieldOrThrow() = idField ?: throw OrmException("$this needs to have an id field")
+    fun idFieldOrThrow(): Field = idField ?: throw OrmException("$this needs to have an id field")
 
     /** fields that directly map to a database column, and need no relation fetching */
     val simpleFields: List<SimpleLocalFieldInfo>
