@@ -121,7 +121,14 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
                                 " Currently you need to declare both sides of the relation"
                         )
                 }
-            inserter = HasManyInserter(simpleInserter, classInfo, hasManyRepos, hasManyFieldInfos)
+            inserter =
+                HasManyInserter(
+                    simpleInserter,
+                    hasManyRepos,
+                    hasManyFieldInfos,
+                    classInfo.hasManyRelations,
+                    classInfo.idFieldOrThrow().field
+                )
         }
         if (classInfo.hasHasManyRelations || classInfo.hasBelongsToRelations) {
             val hasManyQueries: List<Query<*>> =

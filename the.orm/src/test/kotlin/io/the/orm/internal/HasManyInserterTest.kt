@@ -35,14 +35,16 @@ object HasManyInserterTest {
         val rootSimpleInserter =
             mock<Inserter<Entity>> { method { create(connection, entity) }.returns(entityWithId) }
         val belongingRepo = mock<Repo<Belonging>>()
+        val entityClassInfo = ClassInfo(Entity::class, setOf(Belonging::class))
         val subject =
             HasManyInserter(
                 rootSimpleInserter,
-                ClassInfo(Entity::class, setOf(Belonging::class)),
                 listOf(belongingRepo),
                 listOf(
                     ClassInfo(Belonging::class, setOf(Entity::class)).belongsToRelations.single()
-                )
+                ),
+                entityClassInfo.hasManyRelations,
+                entityClassInfo.idFieldOrThrow().field
             )
         it("inserts the created object") {
             assert(subject.create(connection, entity) == entityWithId)

@@ -48,8 +48,8 @@ internal data class ClassInfo<T : Any>(
         get() = fields.filterIsInstance<BelongsToFieldInfo>()
 
     /** fields for has many relations. these are not stored in the table of this class */
-    val hasManyRelations: List<RemoteFieldInfo>
-        get() = fields.filterIsInstance<RemoteFieldInfo>()
+    val hasManyRelations: List<HasManyFieldInfo>
+        get() = fields.filterIsInstance<HasManyFieldInfo>()
 
     val canBeFetchedWithoutRelations = (belongsToRelations + hasManyRelations).all { it.canBeLazy }
     val hasBelongsToRelations = belongsToRelations.isNotEmpty()
@@ -89,7 +89,7 @@ internal data class ClassInfo<T : Any>(
         val canBeLazy: Boolean
     }
 
-    data class RemoteFieldInfo(
+    data class HasManyFieldInfo(
         override val field: Field,
         override val fieldConverter: FieldConverter,
         override val type: Class<*>,
@@ -185,7 +185,7 @@ internal data class ClassInfo<T : Any>(
                     val property = properties[parameter.name]!!
                     val field = Field(parameter, property)
                     if (kc == HasMany::class)
-                        RemoteFieldInfo(
+                        HasManyFieldInfo(
                             field,
                             HasManyConverter(),
                             Long::class.java,
