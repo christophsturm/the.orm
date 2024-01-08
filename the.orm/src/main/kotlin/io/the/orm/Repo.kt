@@ -110,8 +110,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
     fun afterInit() {
         if (classInfo.hasHasManyRelations) {
             val simpleInserter = inserter
-            val hasManyRepos = classInfo.hasManyRelations.map { it.repo }
-            val hasManyFieldInfos =
+            val belongsToFieldInfos =
                 classInfo.hasManyRelations.map { fieldInfo ->
                     val hasManyClassInfo = fieldInfo.classInfo
                     hasManyClassInfo.belongsToRelations.singleOrNull { it.relatedClass == kClass }
@@ -124,7 +123,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
             inserter =
                 HasManyInserter(
                     simpleInserter,
-                    hasManyFieldInfos,
+                    belongsToFieldInfos,
                     classInfo.hasManyRelations,
                     classInfo.idFieldOrThrow()
                 )

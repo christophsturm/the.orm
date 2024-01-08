@@ -88,7 +88,7 @@ internal data class ClassInfo<T : Any>(
 
         // can the relation be fetched later, or is it necessary to create the instance?
         val canBeLazy: Boolean
-        fun <Type : Any> setRepo(repo: Repo<Type>, classInfo: ClassInfo<Type>)
+        fun <Type : Any> setRepo(kClass: KClass<*>, repo: Repo<Type>, classInfo: ClassInfo<Type>)
     }
 
     data class HasManyFieldInfo(
@@ -104,12 +104,20 @@ internal data class ClassInfo<T : Any>(
 
         override lateinit var repo: Repo<*>
         override lateinit var classInfo: ClassInfo<*>
+        lateinit var remoteFieldInfo: BelongsToFieldInfo
         override val canBeLazy: Boolean
             get() = true
 
-        override fun <Type : Any> setRepo(repo: Repo<Type>, classInfo: ClassInfo<Type>) {
+        override fun <Type : Any> setRepo(kClass: KClass<*>, repo: Repo<Type>, classInfo: ClassInfo<Type>) {
             this.repo = repo
             this.classInfo = classInfo
+            remoteFieldInfo = classInfo.belongsToRelations.singleOrNull { it.relatedClass == kClass }
+                ?: throw OrmException(
+                    "BelongsTo field for HasMany relation ${classInfo.name}.${field.name}" +
+                            " not found in ${classInfo.name}." +
+                            " Currently you need to declare both sides of the relation"
+                )
+
         }
 
     }
@@ -129,7 +137,7 @@ internal data class ClassInfo<T : Any>(
 
         override lateinit var repo: Repo<*>
         override lateinit var classInfo: ClassInfo<*>
-        override fun <Type : Any> setRepo(repo: Repo<Type>, classInfo: ClassInfo<Type>) {
+        override fun <Type : Any> setRepo(kClass: KClass<*>, repo: Repo<Type>, classInfo: ClassInfo<Type>) {
             this.repo = repo
             this.classInfo = classInfo
         }
@@ -148,7 +156,7 @@ internal data class ClassInfo<T : Any>(
                             "repo for ${it.relatedClass.simpleName} not found. repos: ${repos.keys}"
                         )) as RepoImpl<Any>
                 val classInfo = repo.classInfo
-                it.setRepo(repo, classInfo)
+                it.setRepo(kClass, repo, classInfo)
             }
         }
     }

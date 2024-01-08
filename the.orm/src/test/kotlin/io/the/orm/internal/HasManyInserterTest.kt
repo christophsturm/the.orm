@@ -37,7 +37,7 @@ object HasManyInserterTest {
         val belongingRepo = mock<Repo<Belonging>>()
         val entityClassInfo = ClassInfo(Entity::class, setOf(Belonging::class))
         val belongingClassInfo = ClassInfo(Belonging::class, setOf(Entity::class))
-        entityClassInfo.hasManyRelations.single().setRepo(belongingRepo, belongingClassInfo)
+        entityClassInfo.hasManyRelations.single().setRepo(Entity::class, belongingRepo, belongingClassInfo)
         val subject =
             HasManyInserter(
                 rootSimpleInserter,
