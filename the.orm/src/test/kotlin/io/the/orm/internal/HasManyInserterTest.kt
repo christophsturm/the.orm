@@ -29,8 +29,9 @@ object HasManyInserterTest {
         testsAbout(HasManyInserter::class) {
             val connection = mock<ConnectionProvider>()
             val belonging = Belonging("belonging 1")
-            val entity = Entity("entity-name", hasMany(belonging))
-            val entityWithId = entity.copy(id = 42)
+            val e = Entity("entity-name", hasMany(belonging))
+            val entity = EntityWrapper(e)
+            val entityWithId = EntityWrapper(e.copy(id = 42))
 
             val rootSimpleInserter =
                 mock<Inserter<Entity>> {
@@ -62,8 +63,8 @@ object HasManyInserterTest {
                         entity = BelongsTo.AutoGetFromHasMany<Entity>().apply { id = 42 }
                     )
                 assertEquals(
-                    getCalls(belongingRepo).singleOrNull(),
-                    call(Inserter<Belonging>::create, connection, belongingWithId)
+                    call(Repo<Belonging>::create, connection, belongingWithId),
+                    getCalls(belongingRepo).singleOrNull()
                 )
             }
         }

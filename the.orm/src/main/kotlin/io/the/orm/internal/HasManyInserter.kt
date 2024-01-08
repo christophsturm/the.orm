@@ -13,14 +13,17 @@ internal class HasManyInserter<Entity : Any>(
     private val belongingsRepos: List<Repo<*>>,
     private val belongingsFieldInfo: List<ClassInfo.BelongsToFieldInfo>
 ) : Inserter<Entity> {
-    private val field = classInfo.idFieldOrThrow().field
+    private val idField = classInfo.idFieldOrThrow().field
 
-    override suspend fun create(connectionProvider: ConnectionProvider, instance: Entity): Entity {
+    override suspend fun create(
+        connectionProvider: ConnectionProvider,
+        instance: EntityWrapper<Entity>
+    ): EntityWrapper<Entity> {
         val insertedRoot = rootSimpleInserter.create(connectionProvider, instance)
-        val id = field.property.call(insertedRoot) as PKType
+        val id = idField.property.call(insertedRoot.entity) as PKType
         classInfo.hasManyRelations.forEachIndexed { index, remoteFieldInfo ->
             @Suppress("UNCHECKED_CAST") val repo = belongingsRepos[index] as Repo<Any>
-            val hasMany = remoteFieldInfo.field.property.call(instance) as HasMany<*>
+            val hasMany = remoteFieldInfo.field.property.call(instance.entity) as HasMany<*>
             val fieldInfo = belongingsFieldInfo[index]
             hasMany.forEach { e ->
                 val belongsToField =

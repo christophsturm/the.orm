@@ -1,6 +1,7 @@
 package io.the.orm
 
 import io.the.orm.dbio.ConnectionProvider
+import io.the.orm.internal.EntityWrapper
 import io.the.orm.internal.ExceptionInspector
 import io.the.orm.internal.HasManyInserter
 import io.the.orm.internal.Inserter
@@ -147,7 +148,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
      * @return a copy of the instance with an assigned id field.
      */
     override suspend fun create(connectionProvider: ConnectionProvider, instance: Entity): Entity =
-        inserter.create(connectionProvider, instance)
+        inserter.create(connectionProvider, EntityWrapper(instance)).entity
 
     /**
      * updates a record in the database.
@@ -155,7 +156,9 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
      * @param instance the instance that will be used to update the record
      */
     override suspend fun update(connectionProvider: ConnectionProvider, instance: Entity) {
-        connectionProvider.withConnection { connection -> updater.update(connection, instance) }
+        connectionProvider.withConnection { connection ->
+            updater.update(connection, EntityWrapper(instance))
+        }
     }
 
     private val byIdQuery: QueryFactory<Entity>.OneParameterQuery<PKType> =

@@ -3,6 +3,7 @@ package io.the.orm.internal.classinfo
 import io.the.orm.OrmException
 import io.the.orm.Repo
 import io.the.orm.RepoImpl
+import io.the.orm.internal.EntityWrapper
 import io.the.orm.internal.IDHandler
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.HasMany
@@ -74,10 +75,10 @@ internal data class ClassInfo<T : Any>(
         val type: Class<*>
     }
 
-    interface LocalFieldInfo : FieldInfo {
+    internal interface LocalFieldInfo : FieldInfo {
         val name: String
 
-        fun valueForDb(instance: Any): Any?
+        fun valueForDb(instance: EntityWrapper<*>): Any?
     }
 
     interface RelationFieldInfo : FieldInfo {
@@ -115,14 +116,14 @@ internal data class ClassInfo<T : Any>(
         override val canBeLazy: Boolean,
         override val name: String
     ) : RelationFieldInfo, LocalFieldInfo {
-        override fun valueForDb(instance: Any): Any? =
-            fieldConverter.propertyToDBValue(field.property.call(instance))
+        override fun valueForDb(instance: EntityWrapper<*>): Any? =
+            fieldConverter.propertyToDBValue(field.property.call(instance.entity))
 
         override lateinit var repo: Repo<*>
         override lateinit var classInfo: ClassInfo<*>
     }
 
-    fun values(instance: T): Sequence<Any?> {
+    fun values(instance: EntityWrapper<T>): Sequence<Any?> {
         return localFields.asSequence().map { it.valueForDb(instance) }
     }
 

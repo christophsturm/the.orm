@@ -6,6 +6,7 @@ import failgood.Test
 import failgood.assert.containsExactlyInAnyOrder
 import failgood.tests
 import io.the.orm.PKType
+import io.the.orm.internal.EntityWrapper
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.HasMany
 import io.the.orm.relations.belongsTo
@@ -20,7 +21,7 @@ object ClassInfoTest {
         data class Entity(val name: String, var mutableField: String, val id: Long?)
 
         val classInfo = ClassInfo(Entity::class, setOf())
-        val instance = Entity("nameValue", "mutableFieldValue", 42)
+        val instance = EntityWrapper(Entity("nameValue", "mutableFieldValue", 42))
         describe("for a simple class without relations") {
             it("knows the class name") { expectThat(classInfo.name).isEqualTo("Entity") }
             it("knows the field names and types") {
@@ -42,7 +43,7 @@ object ClassInfoTest {
             }
             it("has an id field") {
                 val idField = assertNotNull(classInfo.idField)
-                assert(idField.field.property.call(instance) == 42L)
+                assert(idField.field.property.call(instance.entity) == 42L)
                 assert(idField == classInfo.idFieldOrThrow())
             }
             it("know that it has no relations") { assert(!classInfo.hasBelongsToRelations) }
@@ -83,7 +84,10 @@ object ClassInfoTest {
                 )
             }
             it("knows values for references") {
-                val values = classInfo.values(Eager.UserGroup(Eager.User("name", id = 10), id = 20))
+                val values =
+                    classInfo.values(
+                        EntityWrapper(Eager.UserGroup(Eager.User("name", id = 10), id = 20))
+                    )
                 val names = classInfo.localFields.map { it.dbFieldName }
                 assert(
                     names
@@ -127,7 +131,11 @@ object ClassInfoTest {
             }
             it("knows values for references") {
                 val values =
-                    classInfo.values(Lazy.UserGroup(belongsTo(Lazy.User("name", id = 10)), id = 20))
+                    classInfo.values(
+                        EntityWrapper(
+                            Lazy.UserGroup(belongsTo(Lazy.User("name", id = 10)), id = 20)
+                        )
+                    )
                 val names = classInfo.localFields.map { it.dbFieldName }
                 assert(
                     names

@@ -3,6 +3,7 @@ package io.the.orm.internal.classinfo
 import io.r2dbc.spi.Blob
 import io.r2dbc.spi.Clob
 import io.the.orm.OrmException
+import io.the.orm.internal.EntityWrapper
 import io.vertx.sqlclient.data.Numeric
 import java.math.BigDecimal
 import java.nio.ByteBuffer
@@ -60,7 +61,7 @@ object DoubleConverter : FieldConverter {
     }
 }
 
-data class SimpleLocalFieldInfo(
+internal data class SimpleLocalFieldInfo(
     override val field: Field,
     override val dbFieldName: String,
     override val fieldConverter: FieldConverter,
@@ -96,6 +97,6 @@ data class SimpleLocalFieldInfo(
         }
     }
 
-    override fun valueForDb(instance: Any): Any? =
-        fieldConverter.propertyToDBValue(field.property.call(instance))
+    override fun valueForDb(instance: EntityWrapper<*>): Any? =
+        fieldConverter.propertyToDBValue(field.property.call(instance.entity))
 }

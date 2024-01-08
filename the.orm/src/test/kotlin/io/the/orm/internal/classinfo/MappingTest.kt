@@ -1,9 +1,9 @@
 package io.the.orm.internal.classinfo
 
 import failgood.Test
-import failgood.describe
 import failgood.tests
 import io.the.orm.PKType
+import io.the.orm.internal.EntityWrapper
 import kotlin.test.assertNotNull
 
 @Test
@@ -20,7 +20,7 @@ object MappingTest {
                             .belongsToRelations
                             .singleOrNull()
                     )
-                assert(rel.valueForDb(BelongsToE(E(id = 42))) == 42L)
+                assert(rel.valueForDb(EntityWrapper(BelongsToE(E(id = 42)))) == 42L)
             }
         }
     }

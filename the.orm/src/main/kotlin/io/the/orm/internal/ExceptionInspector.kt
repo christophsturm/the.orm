@@ -17,6 +17,11 @@ internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KCl
 
     fun r2dbcDataIntegrityViolationException(
         e: R2dbcDataIntegrityViolationException,
+        instance: EntityWrapper<T>
+    ): DataIntegrityViolationException = r2dbcDataIntegrityViolationException(e, instance.entity)
+
+    fun r2dbcDataIntegrityViolationException(
+        e: R2dbcDataIntegrityViolationException,
         instance: T
     ): DataIntegrityViolationException {
         val field =
@@ -47,6 +52,9 @@ internal class ExceptionInspector<T : Any>(private val table: Table, kClass: KCl
             }
         return fieldNamesProperties[fieldString?.lowercase(Locale.getDefault())]
     }
+
+    fun pgException(e: PgException, instance: EntityWrapper<T>): Exception =
+        (pgException(e, instance.entity))
 
     fun pgException(e: PgException, instance: T): Exception {
         val field = computeAffectedField(e.errorMessage) ?: return e
