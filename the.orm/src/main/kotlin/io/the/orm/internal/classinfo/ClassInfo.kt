@@ -30,6 +30,7 @@ internal data class ClassInfo<T : Any>(
     val idHandler: IDHandler<T>?,
     val entityInfo: EntityInfo
 ) {
+    fun entityWrapper(instance: T): EntityWrapper = EntityWrapper.fromClass(instance, idHandler!!)
 
     internal sealed interface FieldInfo {
         /** this is used when converting database rows to instances */

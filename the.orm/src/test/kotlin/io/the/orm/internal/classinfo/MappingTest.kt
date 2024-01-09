@@ -3,7 +3,6 @@ package io.the.orm.internal.classinfo
 import failgood.Test
 import failgood.tests
 import io.the.orm.PKType
-import io.the.orm.internal.EntityWrapper
 import kotlin.test.assertNotNull
 
 @Test
@@ -14,14 +13,9 @@ object MappingTest {
                 data class E(val id: PKType? = null)
                 data class BelongsToE(val e: E, val id: PKType? = null)
 
-                val rel =
-                    assertNotNull(
-                        ClassInfo(BelongsToE::class, setOf(E::class))
-                            .entityInfo
-                            .belongsToRelations
-                            .singleOrNull()
-                    )
-                assert(rel.valueForDb(EntityWrapper.fromClass(BelongsToE(E(id = 42)))) == 42L)
+                val classInfo = ClassInfo(BelongsToE::class, setOf(E::class))
+                val rel = assertNotNull(classInfo.entityInfo.belongsToRelations.singleOrNull())
+                assert(rel.valueForDb(classInfo.entityWrapper(BelongsToE(E(id = 42)))) == 42L)
             }
         }
     }

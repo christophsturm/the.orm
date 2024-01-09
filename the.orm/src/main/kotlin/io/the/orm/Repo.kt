@@ -1,7 +1,6 @@
 package io.the.orm
 
 import io.the.orm.dbio.ConnectionProvider
-import io.the.orm.internal.EntityWrapper
 import io.the.orm.internal.ExceptionInspector
 import io.the.orm.internal.HasManyInserter
 import io.the.orm.internal.Inserter
@@ -143,7 +142,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
      */
     @Suppress("UNCHECKED_CAST")
     override suspend fun create(connectionProvider: ConnectionProvider, instance: Entity): Entity =
-        inserter.create(connectionProvider, EntityWrapper.fromClass(instance)).entity as Entity
+        inserter.create(connectionProvider, classInfo.entityWrapper(instance)).entity as Entity
 
     /**
      * updates a record in the database.
@@ -152,7 +151,7 @@ internal constructor(private val kClass: KClass<Entity>, classInfos: Map<KClass<
      */
     override suspend fun update(connectionProvider: ConnectionProvider, instance: Entity) {
         connectionProvider.withConnection { connection ->
-            updater.update(connection, EntityWrapper.fromClass(instance))
+            updater.update(connection, classInfo.entityWrapper(instance))
         }
     }
 

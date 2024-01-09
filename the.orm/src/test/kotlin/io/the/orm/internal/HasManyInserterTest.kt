@@ -29,13 +29,14 @@ object HasManyInserterTest {
         val connection = mock<ConnectionProvider>()
         val belonging = Belonging("belonging 1")
         val e = Entity("entity-name", hasMany(belonging))
-        val entity = EntityWrapper.fromClass(e)
-        val entityWithId = EntityWrapper.fromClass(e.copy(id = 42))
 
+        val belongingRepo = mock<Repo<Belonging>>()
+        val classInfo = ClassInfo(Entity::class, setOf(Belonging::class))
+        val entityClassInfo = classInfo.entityInfo
+        val entity = classInfo.entityWrapper(e)
+        val entityWithId = classInfo.entityWrapper(e.copy(id = 42))
         val rootSimpleInserter =
             mock<Inserter<Entity>> { method { create(connection, entity) }.returns(entityWithId) }
-        val belongingRepo = mock<Repo<Belonging>>()
-        val entityClassInfo = ClassInfo(Entity::class, setOf(Belonging::class)).entityInfo
         val belongingClassInfo = ClassInfo(Belonging::class, setOf(Entity::class))
         entityClassInfo.hasManyRelations
             .single()

@@ -6,7 +6,6 @@ import failgood.Test
 import failgood.assert.containsExactlyInAnyOrder
 import failgood.tests
 import io.the.orm.PKType
-import io.the.orm.internal.EntityWrapper
 import io.the.orm.relations.BelongsTo
 import io.the.orm.relations.HasMany
 import io.the.orm.relations.belongsTo
@@ -20,12 +19,13 @@ object ClassInfoTest {
     val context = tests {
         data class Entity(val name: String, var mutableField: String, val id: Long?)
 
-        val classInfo = ClassInfo(Entity::class, setOf()).entityInfo
-        val instance = EntityWrapper.fromClass(Entity("nameValue", "mutableFieldValue", 42))
+        val classInfo = ClassInfo(Entity::class, setOf())
+        val entityInfo = classInfo.entityInfo
+        val instance = classInfo.entityWrapper(Entity("nameValue", "mutableFieldValue", 42))
         describe("for a simple class without relations") {
-            it("knows the class name") { expectThat(classInfo.name).isEqualTo("Entity") }
+            it("knows the class name") { expectThat(entityInfo.name).isEqualTo("Entity") }
             it("knows the field names and types") {
-                expectThat(classInfo.localFields.map { Pair(it.dbFieldName, it.type) })
+                expectThat(entityInfo.localFields.map { Pair(it.dbFieldName, it.type) })
                     .containsExactlyInAnyOrder(
                         Pair("name", String::class.java),
                         Pair("id", Long::class.java),
@@ -33,8 +33,8 @@ object ClassInfoTest {
                     )
             }
             it("can get field values") {
-                val names = classInfo.localFields.map { it.dbFieldName }
-                expectThat(names.zip(classInfo.values(instance).toList()))
+                val names = entityInfo.localFields.map { it.dbFieldName }
+                expectThat(names.zip(entityInfo.values(instance).toList()))
                     .containsExactlyInAnyOrder(
                         Pair("name", "nameValue"),
                         Pair("id", 42L),
@@ -42,40 +42,41 @@ object ClassInfoTest {
                     )
             }
             it("has an id field") {
-                val idField = assertNotNull(classInfo.idField)
+                val idField = assertNotNull(entityInfo.idField)
                 assert(idField.property.call(instance.entity) == 42L)
-                assert(idField == classInfo.idFieldOrThrow())
+                assert(idField == entityInfo.idFieldOrThrow())
             }
-            it("know that it has no relations") { assert(!classInfo.hasBelongsToRelations) }
+            it("know that it has no relations") { assert(!entityInfo.hasBelongsToRelations) }
             describe("mutable fields") {
                 it("knows if a field is mutable") {
                     assert(
-                        classInfo.localFields
+                        entityInfo.localFields
                             .singleOrNull { it.field.property == Entity::mutableField }
                             ?.mutable == true
                     )
                 }
                 it("knows if a field is immutable") {
                     assert(
-                        classInfo.localFields
+                        entityInfo.localFields
                             .singleOrNull { it.field.property == Entity::name }
                             ?.mutable == false
                     )
                 }
             }
             it("stores all lists as arraylist as premature optimization") {
-                assert(classInfo.localFields is ArrayList<*>)
-                assert(classInfo.simpleFields is ArrayList<*>)
-                assert(classInfo.belongsToRelations is ArrayList<*>)
-                assert(classInfo.hasManyRelations is ArrayList<*>)
+                assert(entityInfo.localFields is ArrayList<*>)
+                assert(entityInfo.simpleFields is ArrayList<*>)
+                assert(entityInfo.belongsToRelations is ArrayList<*>)
+                assert(entityInfo.hasManyRelations is ArrayList<*>)
             }
         }
         describe("for a class with eager belongs to relations") {
-            val classInfo = ClassInfo(Eager.UserGroup::class, setOf(Eager.User::class)).entityInfo
+            val classInfo = ClassInfo(Eager.UserGroup::class, setOf(Eager.User::class))
+            val entityInfo = classInfo.entityInfo
 
             it("knows field names and types for references") {
                 assert(
-                    classInfo.localFields
+                    entityInfo.localFields
                         .map { Pair(it.dbFieldName, it.type) }
                         .containsExactlyInAnyOrder(
                             Pair("user_id", Long::class.java),
@@ -85,45 +86,46 @@ object ClassInfoTest {
             }
             it("knows values for references") {
                 val values =
-                    classInfo.values(
-                        EntityWrapper.fromClass(
+                    entityInfo.values(
+                        classInfo.entityWrapper(
                             Eager.UserGroup(Eager.User("name", id = 10), id = 20)
                         )
                     )
-                val names = classInfo.localFields.map { it.dbFieldName }
+                val names = entityInfo.localFields.map { it.dbFieldName }
                 assert(
                     names
                         .zip(values.toList())
                         .containsExactlyInAnyOrder(Pair("id", 20L), Pair("user_id", 10L))
                 )
             }
-            it("knows if entity has relations") { assert(classInfo.hasBelongsToRelations) }
+            it("knows if entity has relations") { assert(entityInfo.hasBelongsToRelations) }
             it("separates fields and relations") {
                 assert(
-                    classInfo.simpleFields
+                    entityInfo.simpleFields
                         .map { Pair(it.dbFieldName, it.type) }
                         .containsExactlyInAnyOrder(Pair("id", Long::class.java))
                 )
                 assert(
-                    classInfo.belongsToRelations
+                    entityInfo.belongsToRelations
                         .map { Pair(it.dbFieldName, it.type) }
                         .containsExactlyInAnyOrder(Pair("user_id", Long::class.java))
                 )
             }
             it("indicates that the belongs to field does not support lazy") {
-                val rel = assertNotNull(classInfo.belongsToRelations.singleOrNull())
+                val rel = assertNotNull(entityInfo.belongsToRelations.singleOrNull())
                 assert(!rel.canBeLazy)
             }
             it("indicates that the class can not be fetched without relations") {
-                assert(!classInfo.canBeFetchedWithoutRelations)
+                assert(!entityInfo.canBeFetchedWithoutRelations)
             }
         }
         describe("for a class with lazy belongs to relations") {
-            val classInfo = ClassInfo(Lazy.UserGroup::class, setOf(Lazy.User::class)).entityInfo
+            val classInfo = ClassInfo(Lazy.UserGroup::class, setOf(Lazy.User::class))
+            val entityInfo = classInfo.entityInfo
 
             it("knows field names and types for references") {
                 assert(
-                    classInfo.localFields
+                    entityInfo.localFields
                         .map { Pair(it.dbFieldName, it.type) }
                         .containsExactlyInAnyOrder(
                             Pair("user_id", Long::class.java),
@@ -133,37 +135,37 @@ object ClassInfoTest {
             }
             it("knows values for references") {
                 val values =
-                    classInfo.values(
-                        EntityWrapper.fromClass(
+                    entityInfo.values(
+                        classInfo.entityWrapper(
                             Lazy.UserGroup(belongsTo(Lazy.User("name", id = 10)), id = 20)
                         )
                     )
-                val names = classInfo.localFields.map { it.dbFieldName }
+                val names = entityInfo.localFields.map { it.dbFieldName }
                 assert(
                     names
                         .zip(values.toList())
                         .containsExactlyInAnyOrder(Pair("id", 20L), Pair("user_id", 10L))
                 )
             }
-            it("knows if entity has relations") { assert(classInfo.hasBelongsToRelations) }
+            it("knows if entity has relations") { assert(entityInfo.hasBelongsToRelations) }
             it("separates fields and relations") {
                 assert(
-                    classInfo.simpleFields
+                    entityInfo.simpleFields
                         .map { Pair(it.dbFieldName, it.type) }
                         .containsExactlyInAnyOrder(Pair("id", Long::class.java))
                 )
                 assert(
-                    classInfo.belongsToRelations
+                    entityInfo.belongsToRelations
                         .map { Pair(it.dbFieldName, it.type) }
                         .containsExactlyInAnyOrder(Pair("user_id", Long::class.java))
                 )
             }
             it("indicates that the belongs to field supports lazy") {
-                val rel = assertNotNull(classInfo.belongsToRelations.singleOrNull())
+                val rel = assertNotNull(entityInfo.belongsToRelations.singleOrNull())
                 assert(rel.canBeLazy)
             }
             it("indicates that the class can be fetched without relations") {
-                assert(classInfo.canBeFetchedWithoutRelations)
+                assert(entityInfo.canBeFetchedWithoutRelations)
             }
         }
         describe("has many relations") {

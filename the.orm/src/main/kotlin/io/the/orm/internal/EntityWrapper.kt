@@ -4,7 +4,8 @@ import io.the.orm.internal.classinfo.Field
 
 interface EntityWrapper {
     companion object {
-        fun <Entity : Any> fromClass(entity: Entity) = EntityWrapperImpl(entity)
+        internal fun <Entity : Any> fromClass(entity: Entity, idHandler: IDHandler<Entity>) =
+            EntityWrapperImpl(entity, idHandler)
     }
 
     val entity: Any
@@ -18,12 +19,13 @@ interface GenericEntityWrapper<Entity : Any> : EntityWrapper {
     override fun withId(id: Long): GenericEntityWrapper<Entity>
 }
 
-data class EntityWrapperImpl<Entity : Any>(override val entity: Entity) :
-    GenericEntityWrapper<Entity> {
-    private val idHandler = IDHandler(entity::class)
+internal data class EntityWrapperImpl<Entity : Any>(
+    override val entity: Entity,
+    private val idHandler: IDHandler<Entity>
+) : GenericEntityWrapper<Entity> {
 
     override fun withId(id: Long): GenericEntityWrapper<Entity> {
-        return EntityWrapperImpl(idHandler.copyWithId(entity, id))
+        return EntityWrapperImpl(idHandler.copyWithId(entity, id), idHandler)
     }
 
     override fun get(field: Field): Any? {
