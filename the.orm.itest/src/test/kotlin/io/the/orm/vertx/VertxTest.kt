@@ -2,7 +2,7 @@ package io.the.orm.vertx
 
 import failgood.Ignored
 import failgood.Test
-import failgood.describe
+import failgood.tests
 import io.the.orm.test.TestUtilConfig
 import io.vertx.kotlin.coroutines.coAwait
 import io.vertx.sqlclient.Row
@@ -41,8 +41,7 @@ class VertxTest {
     // outside the context
     // this is just an experiment and will be replaced by something better
     val context =
-        describe(
-            "vertx sql client api",
+        tests(
             ignored =
                 if (TestUtilConfig.H2_ONLY) Ignored.Because("Running in h2 only mode") else null,
             isolation = false,
