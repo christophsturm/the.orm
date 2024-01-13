@@ -78,7 +78,7 @@ data class MockDBResult(
         return flowOf()
     }
 
-    override suspend fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T> {
+    override fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T> {
         return rows.asFlow().map(mappingFunction)
     }
 }

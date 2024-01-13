@@ -12,7 +12,7 @@ import org.reactivestreams.Publisher
 class R2dbcResult(private val result: io.r2dbc.spi.Result) : DBResult {
     override suspend fun rowsUpdated(): Long = result.rowsUpdated.awaitSingle()
 
-    override suspend fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T> {
+    override fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T> {
         val mapped: Publisher<T> =
             try {
                 result.map { row, _ ->

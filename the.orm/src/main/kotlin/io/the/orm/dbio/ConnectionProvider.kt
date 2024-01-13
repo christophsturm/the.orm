@@ -25,7 +25,7 @@ interface Statement {
 interface DBResult {
     suspend fun rowsUpdated(): Long
 
-    suspend fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T>
+    fun <T : Any> map(mappingFunction: (t: DBRow) -> T): Flow<T>
 
     suspend fun getId(): Long {
         return this.map { row -> row.get("id", java.lang.Long::class.java)!!.toLong() }.single()
