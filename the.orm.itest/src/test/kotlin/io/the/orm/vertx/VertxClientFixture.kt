@@ -20,7 +20,7 @@ suspend fun VertxClientFixture(schema: String): VertxClientFixture {
     return VertxClientFixture(db, client)
 }
 
-class VertxClientFixture(private val db: PostgresDb, private val client: Pool) : AutoCloseable {
+class VertxClientFixture(private val db: PostgresDb, val client: Pool) : AutoCloseable {
     override fun close() {
         db.close()
         client.close()

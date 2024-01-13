@@ -8,6 +8,8 @@ import io.vertx.kotlin.coroutines.coAwait
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
 import io.vertx.sqlclient.Tuple
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -83,6 +85,24 @@ class VertxTest {
                         }
                     assert(ids == listOf(1, 2, 3))
                 }
+            describe("streaming") {
+                it("works") {
+                    val client = with3Users.client
+                    val flow = flow {
+                        val cursor =
+                            client.connection
+                                .coAwait()
+                                .prepare("select * from users")
+                                .coAwait()
+                                .cursor()
+                        while (true) {
+                            cursor.read(10).coAwait().forEach { emit(it) }
+                            if (!cursor.hasMore()) break
+                        }
+                    }
+                    assert(flow.toList().size == 3)
+                }
+            }
             describe("querying by lists", given = { with3Users }) {
                 it("works with one parameter per item") {
                     assert(
