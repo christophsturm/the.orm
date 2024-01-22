@@ -1,7 +1,7 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 plugins {
-    id("com.github.ben-manes.versions") version "0.50.0"
+    id("com.github.ben-manes.versions") version "0.51.0"
     kotlin("plugin.serialization").version(io.the.orm.versions.kotlinVersion) apply false
     id("com.bnorm.power.kotlin-power-assert") version "0.13.0" apply false
 }
