@@ -25,7 +25,7 @@ dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
     implementation(platform("io.netty:netty-bom:$nettyVersion"))
     implementation(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:$coroutinesVersion"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.8.0")
 
     implementation("io.netty:netty-resolver-dns-native-macos:${nettyVersion}:osx-aarch_64")
     implementation(kotlin("stdlib-jdk8"))
